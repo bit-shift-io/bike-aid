@@ -62,16 +62,17 @@ Smoothing - Jerkiness Mitigation
 how quickly to adjust output, larger values are slower
 smoothing over time
 */
-const int THROTTLE_INCREASE_SMOOTH_FACTOR = 10000;
+const int THROTTLE_INCREASE_SMOOTH_FACTOR = 4000;
 const int THROTTLE_DECREASE_SMOOTH_FACTOR = 100;
 
 // Delay between loops
 const int THROTTLE_INTERVAL = 1; // ms
+const int DEBUG_PRINT_INTERVAL = 250;
 unsigned long last_throttle_interval = 0;
-const int DEBUG_PRINT_INTERVAL = 100;
 unsigned long last_debug_print_interval = 0;
 
 // operational global variables
+// todo: cleanup globals and types: https://arduino.stackexchange.com/questions/30749/int-vs-uint8-t-vs-uint16-t
 int throttle_input = 0;         //input value from 3-wire throttle 
 int throttle_limit_input = 0;   //input value from potentiometer 
 float throttle_output = 0;      // 0-1024, later throttle_mapped_output to 0-255
@@ -96,20 +97,13 @@ void debug() {
 #ifdef DEBUG_ENABLE
   if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < millis()) {
     last_debug_print_interval = millis();
-
-    Serial.print("Input: ");
-    Serial.print(throttle_input);
-    Serial.print(" Output: ");
-    Serial.print(throttle_output);
-    Serial.print(" Mapped: ");
-    Serial.print(throttle_mapped_output);
-    Serial.print(" +/-: ");
-    Serial.print(throttle_adjustment);
-    Serial.print(" Lim: ");
-    Serial.print(throttle_limit_input);
-    Serial.print(" Lim Map: ");
-    Serial.print(map(throttle_limit_input, THROTTLE_LIMIT_MAP_IN_MIN, THROTTLE_LIMIT_MAP_IN_MAX, THROTTLE_LIMIT_MAP_OUT_MIN, THROTTLE_LIMIT_MAP_OUT_MAX));
-    Serial.println("");
+    Serial.print("Throttle In\tThrottle Out\tThrottle Map\tThrottle Adj\tLimit In\tLimit Map");Serial.print("\n");
+    Serial.print(throttle_input);Serial.print("\t\t");
+    Serial.print(throttle_output);Serial.print("\t\t");
+    Serial.print(throttle_mapped_output);Serial.print("\t\t");
+    Serial.print(throttle_adjustment);Serial.print("\t\t");
+    Serial.print(throttle_limit_input);Serial.print("\t\t");
+    Serial.print(map(throttle_limit_input, THROTTLE_LIMIT_MAP_IN_MIN, THROTTLE_LIMIT_MAP_IN_MAX, THROTTLE_LIMIT_MAP_OUT_MIN, THROTTLE_LIMIT_MAP_OUT_MAX));Serial.print("\n\n");
   }
 #endif
 }
