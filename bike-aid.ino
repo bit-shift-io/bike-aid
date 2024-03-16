@@ -1,22 +1,23 @@
 /**
- * Based on Akom's smooth throttle using an Arduino (Pro Micro 5V or similar)
+ * Based on Akom's smooth throttle using an Arduino
+ * https://github.com/akomakom/arduino-throttle-smoother
  * 
- * Takes care of:
- * - Eliminating jerky throttle response
- * - Eliminating deadband
- * - Speed Limit (adjustable by potentiometer)
+ * Smoothing jerky throttle response - adjustable by potentiometer
+ * Minimize deadband/deadzones
+ * Speed Limit - adjustable by potentiometer
  */
 
-// print output messages
-// comment out this line to disable dbug
+// print output messages - comment to disable
 #define DEBUG_ENABLE
 
-// Input pin for throttle signal
-#define PIN_IN A1
-// Output pin to the controller
-#define PIN_OUT 10
-// Input pin for the speed limiting potentiometer
-#define PIN_LIMIT A3
+/* 
+PINS
+===========================
+*/
+const byte THROTTLE_SIGNAL_PIN_IN = A1;
+const byte THROTTLE_SIGNAL_PIN_OUT = 10; // D7
+const byte THROTTLE_PIN_LIMIT = A3;
+const byte THROTTLE_PIN_SMOOTHING = A1;
 
 
 /**
@@ -24,59 +25,66 @@
  * Note that they will be slightly wrong if the controller supplies less than 5v to throttle.
  */
 
-/* fine tune the throttle range to eliminate deadband */
-// Normal range of throttle
-#define THROTTLE_MAP_IN_MIN 180
-#define THROTTLE_MAP_IN_MAX 850
-// Range we want to send to the controller
-// values from "no movement yet" to "max speed":
-#define THROTTLE_MAP_OUT_MIN 390
-#define THROTTLE_MAP_OUT_MAX 800
 
-/* Speed Limit */
-// comment out this line to disable speed limit feature
-#define THROTLE_LIMIT_ENABLE
+/* 
+Deadband 
+===========================
+fine tune the throttle range to eliminate deadband 
+MAP_IN - Normal range of throttle
+MAP_OUT - range to output to controller
+*/
+const int THROTTLE_MAP_IN_MIN = 180;
+const int THROTTLE_MAP_IN_MAX = 850;
+const int THROTTLE_MAP_OUT_MIN = 390;
+const int THROTTLE_MAP_OUT_MAX = 800;
+
+/* 
+Speed Limit
+===========================
+*/
+#define THROTLE_LIMIT_ENABLE // comment to disable speed limit feature
 /* fine tune the speed limit potentiometer range */
 // input from potentiometer - possible values on analogRead, adjust to your pot's range
 // (min from pot to max from pot).   Defaults are appropriate for a 1K ohm pot.
-#define THROTTLE_LIMIT_MAP_IN_MIN 0
-#define THROTTLE_LIMIT_MAP_IN_MAX 1023
+const int THROTTLE_LIMIT_MAP_IN_MIN = 0;
+const int THROTTLE_LIMIT_MAP_IN_MAX = 1023;
 // this adjusts throttle output speed limit
 // value is applied to the throttle input range (THROTTLE_MAP_IN_*)
 // Adjust to "about as slow as is practical" to "max speed" - change the added number to your needs
 // you can also subtract from max to disallow full speed (hardcoded speed limit)
 // like this:  #define THROTTLE_LIMIT_MAP_OUT_MAX THROTTLE_MAP_IN_MAX - 300
-#define THROTTLE_LIMIT_MAP_OUT_MIN THROTTLE_MAP_IN_MIN + 100
-#define THROTTLE_LIMIT_MAP_OUT_MAX THROTTLE_MAP_IN_MAX
+const int THROTTLE_LIMIT_MAP_OUT_MIN = THROTTLE_MAP_IN_MIN + 100;
+const int THROTTLE_LIMIT_MAP_OUT_MAX = THROTTLE_MAP_IN_MAX;
 
-/* Jerkiness Mitigation */
-// how quickly to adjust output, larger values are slower
-#define THROTTLE_INCREASE_ERROR_FACTOR 14000
-#define THROTTLE_DECREASE_ERROR_FACTOR 100
+/* 
+Smoothing - Jerkiness Mitigation
+===========================
+how quickly to adjust output, larger values are slower
+smoothing over time
+*/
+const int THROTTLE_INCREASE_SMOOTH_FACTOR = 10000;
+const int THROTTLE_DECREASE_SMOOTH_FACTOR = 100;
 
-// Basically delay between loops:
-#define THROTTLE_INTERVAL 1 //ms
+// Delay between loops
+const int THROTTLE_INTERVAL = 1; // ms
 unsigned long last_throttle_interval = 0;
-#define DEBUG_PRINT_INTERVAL 100
+const int DEBUG_PRINT_INTERVAL = 100;
 unsigned long last_debug_print_interval = 0;
-#define TICK_LENGTH_MS 1
 
-// operational variables
-int throttle_input = 0;      //input value from 3-wire throttle 
-int throttle_limit_input = 0;         //input value from potentiometer 
-int throttle_delta = 0;              //computed error from last setting (throttle_output)
+// operational global variables
+int throttle_input = 0;         //input value from 3-wire throttle 
+int throttle_limit_input = 0;   //input value from potentiometer 
 float throttle_output = 0;      // 0-1024, later throttle_mapped_output to 0-255
-float throttle_adjustment = 0; // 
-int throttle_mapped_output = 0;             // throttle_output after mapping to controller range
-
+float throttle_adjustment = 0;  // 
+int throttle_mapped_output = 0; // throttle_output after mapping to controller range
 
 
 void setup() {
     Serial.begin(9600);
-    pinMode(PIN_IN, INPUT);
-    pinMode(PIN_LIMIT, INPUT);
-    pinMode(PIN_OUT, OUTPUT);
-    throttle_output = analogRead(PIN_IN); // initial value
+    pinMode(THROTTLE_SIGNAL_PIN_IN, INPUT);
+    pinMode(THROTTLE_PIN_LIMIT, INPUT);
+    pinMode(THROTTLE_SIGNAL_PIN_OUT, OUTPUT);
+    throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
 }
 
 void loop() {
@@ -110,12 +118,13 @@ void throttle() {
   if ((last_throttle_interval + THROTTLE_INTERVAL) < millis()) {
     last_throttle_interval = millis();
 
-    throttle_input = analogRead(PIN_IN);
-    throttle_delta = throttle_input - throttle_output; // error
-    throttle_adjustment = (float) throttle_delta / (float) (throttle_delta > 0 ? THROTTLE_INCREASE_ERROR_FACTOR : THROTTLE_DECREASE_ERROR_FACTOR);
+    throttle_input = analogRead(THROTTLE_SIGNAL_PIN_IN);
+    // delta computed error from last setting (throttle_output)
+    int throttle_delta = throttle_input - throttle_output; // error
+    throttle_adjustment = (float) throttle_delta / (float) (throttle_delta > 0 ? THROTTLE_INCREASE_SMOOTH_FACTOR : THROTTLE_DECREASE_SMOOTH_FACTOR);
 
 #ifdef THROTLE_LIMIT_ENABLE
-    throttle_limit_input = analogRead(PIN_LIMIT);
+    throttle_limit_input = analogRead(THROTTLE_PIN_LIMIT);
     // Apply speed limit - allow increase only if below limit
     if (throttle_output > map(throttle_limit_input, THROTTLE_LIMIT_MAP_IN_MIN, THROTTLE_LIMIT_MAP_IN_MAX, THROTTLE_LIMIT_MAP_OUT_MIN, THROTTLE_LIMIT_MAP_OUT_MAX)) {
         throttle_adjustment = min(throttle_adjustment, 0); // always allow decrease
@@ -133,7 +142,7 @@ void throttle() {
     );
 
     analogWrite(
-            PIN_OUT,
+            THROTTLE_SIGNAL_PIN_OUT,
             throttle_mapped_output / 4 // PWM is 0-254 while our values are 0-1023
     );
 
