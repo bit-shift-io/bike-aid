@@ -33,8 +33,8 @@ fine tune the throttle range to eliminate deadband
 MAP_IN - Normal range of throttle
 MAP_OUT - range to output to controller
 */
-const int THROTTLE_MAP_IN_MIN = 180;
-const int THROTTLE_MAP_IN_MAX = 850;
+const int THROTTLE_MAP_IN_MIN = 180; // no throttle
+const int THROTTLE_MAP_IN_MAX = 850; // full throttle
 const int THROTTLE_MAP_OUT_MIN = 390;
 const int THROTTLE_MAP_OUT_MAX = 800;
 
@@ -76,6 +76,13 @@ void setup() {
     pinMode(THROTTLE_PIN_LIMIT_IN, INPUT);
     pinMode(THROTTLE_SIGNAL_PIN_OUT, OUTPUT);
     throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
+    // safety feature for disconnected throttle
+    // ensure throttle is not in use
+    if(analogRead(THROTTLE_SIGNAL_PIN_IN) >= 200)
+    {
+      Serial.println("Error: Throttle wire has no signal!");
+      while(1); // wait for ever
+    }
 }
 
 void loop() {
