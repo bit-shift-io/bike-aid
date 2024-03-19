@@ -135,18 +135,19 @@ void throttle() {
     if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < millis()) {
       last_debug_print_interval = millis();
 
-      // format as object - data
-      Serial.print("throttle_input - "); Serial.println(throttle_input);
-      Serial.print("throttle_output - "); Serial.println(throttle_output);
-      Serial.print("throttle_mapped_output - "); Serial.println(throttle_mapped_output);
+      // format as object \t data
+      Serial.print("throttle_input\t"); Serial.println(throttle_input);
 
-      Serial.print("throttle_adjustment - "); Serial.println(throttle_adjustment);
+      Serial.print("throttle_output\t"); Serial.println(throttle_output);
+      Serial.print("throttle_mapped_output\t"); Serial.println(throttle_mapped_output);
 
-      Serial.print("throttle_limit_input - "); Serial.println(throttle_limit_input);
-      Serial.print("throttle_limit_output - "); Serial.println(map(throttle_limit_input, 0, 1023, THROTTLE_LIMIT_MAP_OUT_MIN, THROTTLE_LIMIT_MAP_OUT_MAX));
+      Serial.print("throttle_adjustment\t"); Serial.println(throttle_adjustment);
 
-      Serial.print("throttle_smooth_input - "); Serial.println(throttle_smooth_input);
-      Serial.print("throttle_smooth_mapped - "); Serial.println(throttle_smooth_mapped);
+      Serial.print("throttle_limit_input\t"); Serial.println(throttle_limit_input);
+      Serial.print("throttle_limit_output\t"); Serial.println(map(throttle_limit_input, 0, 1023, THROTTLE_LIMIT_MAP_OUT_MIN, THROTTLE_LIMIT_MAP_OUT_MAX));
+
+      Serial.print("throttle_smooth_input\t"); Serial.println(throttle_smooth_input);
+      Serial.print("throttle_smooth_mapped\t"); Serial.println(throttle_smooth_mapped);
       /*
       Serial.print("Throttle In -> Out -> Map\tTh Ad\tLimit In -> Map\tSmooth In -> Map");Serial.print("\n");
 

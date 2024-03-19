@@ -16,18 +16,20 @@ Note: this uses readline command, so make sure your data ends with /n from the a
 
 import time
 import threading
-import tkinter as Tkinter
-from tkinter import ttk
+#import tkinter as tk
+#from tkinter import ttk
 from tkinter import *
 import serial
 
 
 serial_data = ''
 filter_data = ''
+
 update_period = 5
 serial_object = None
 gui = Tk()
-gui.title("UART Interface")
+gui.title("UART")
+platform = StringVar(gui)
 
 
 def connect():
@@ -42,19 +44,18 @@ def connect():
     The other Parts are self explanatory.
     """
 
-    version_ = button_var.get()
-    print (version_)
     global serial_object
     port = port_entry.get()
     baud = baud_entry.get()
+    p = platform.get()
 
     try:
-        if version_ == 2:
+        if p == 'Linux':
             try:
                 serial_object = serial.Serial('/dev/tty' + str(port), baud, timeout=10)
             except:
                 print("Cant Open Specified Port")
-        elif version_ == 1:
+        elif p == 'Windows':
             serial_object = serial.Serial('COM' + str(port), baud, timeout=10)
 
     except ValueError:
@@ -80,12 +81,12 @@ def get_data():
 
     while True:
         try:
-            serial_data = serial_object.readline().decode()
+            serial_data = serial_object.readline().decode('utf-8', 'ignore')
             if not serial_data.strip():
                 continue
             #serial_data = serial_object.readline().strip('\n').strip('\r')
             #filter_data = serial_data.split(',')
-            print(serial_data.strip())
+            #print(serial_data.strip())
         except TypeError:
             pass
     
@@ -105,17 +106,14 @@ def update_gui():
     global update_period
     global serial_data
 
-    text.place(x = 15, y = 10)
-    progress_1.place(x = 60, y = 100)
-    progress_2.place(x = 60, y = 130)
-    progress_3.place(x = 60, y = 160)
-    progress_4.place(x = 60, y = 190)
-    progress_5.place(x = 60, y = 220)
     new = time.time()
-    
+
     while True:
         if serial_data:
-            text.insert(END, serial_data)
+            #serial_text = gui.nametowidget("serial_frame.serial_text")
+            serial_text.insert(END, serial_data)
+            serial_data = ''
+            serial_text.see(END)
 
         if filter_data:
             try:
@@ -185,64 +183,53 @@ if __name__ == "__main__":
     The Main loop handles all the widget placements.
 
     """
-    #frames
-    frame_1 = Frame(height = 300, width = 480, bd = 3, relief = 'groove').place(x = 7, y = 5)
-    frame_2 = Frame(height = 100, width = 480, bd = 3, relief = 'groove').place(x = 7, y = 310)
-    text = Text(width = 140, height = 5) #.place(x = 5, y = 5)
 
-    
-    #threads
+    # connect frame
+    connect_frame = Frame(gui)
+    connect_frame.pack(pady=10)
+
+    port_label = Label(connect_frame, text="Port:")
+    port_label.grid(row=0, column=0, sticky="W", padx = (10, 5))
+    port_entry = Entry(connect_frame)
+    port_entry.grid(row=0, column=1, padx = (5, 10))
+    port_entry.insert(0, 'USB0')
+
+    baud_label = Label(connect_frame, text="Baud:")
+    baud_label.grid(row=0, column=2, sticky="W", padx = (10, 5))
+    baud_entry = Entry(connect_frame)
+    baud_entry.grid(row=0, column=3, padx = (5, 10))
+    baud_entry.insert(0, '9600')
+
+    platform_options = ['Linux','Windows','OSX']
+    platform.set('Linux') # set the default option
+    drop_platform = OptionMenu(connect_frame, platform, *platform_options).grid(row=0, column=4, padx = (5, 10))
+
+    connect_button = Button(connect_frame, text = "Connect", command = connect)
+    connect_button.grid(row=0, column=5, padx = (5, 10))
+    disconnect_button = Button(connect_frame, text = "Disconnect", command = disconnect)
+    disconnect_button.grid(row=0, column=6, padx = (5, 10))
+
+    # serial interface
+    serial_frame = Frame(gui, name = "serial_frame")
+    serial_frame.pack(fill="x", expand=True, pady=10)
+    scroll = Scrollbar(serial_frame)
+    scroll.pack(side=RIGHT, fill=Y)
+    serial_text = Text(serial_frame, name = "serial_text", yscrollcommand=scroll.set, height=20)
+    serial_text.pack(fill='x')
+    print(serial_text)
+    scroll.config(command=serial_text.yview)
+
+
+
+    # automated interface
+    data_frame = Frame(gui)
+    data_frame.pack(fill="both", expand=True, pady=10)
+
+    data_template_label = Label(data_frame, text="Data: 1.04").grid(row=0, column=0, sticky="W", padx = (10, 5))
+
+    # threads
     t2 = threading.Thread(target = update_gui)
     t2.daemon = True
     t2.start()
 
-    
-    #Labels
-    data1_ = Label(text = "Data1:").place(x = 15, y= 100)
-    data2_ = Label(text = "Data2:").place(x = 15, y= 130)
-    data3_ = Label(text = "Data3:").place(x = 15, y= 160)
-    data4_ = Label(text = "Data4:").place(x = 15, y= 190)
-    data5_ = Label(text = "Data5:").place(x = 15, y= 220)
-
-    baud   = Label(text = "Baud").place(x = 100, y = 348)
-    port   = Label(text = "Port").place(x = 200, y = 348)
-
-    #progress_bars
-    progress_1 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
-    progress_2 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
-    progress_3 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
-    progress_4 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
-    progress_5 = ttk.Progressbar(orient = HORIZONTAL, mode = 'determinate', length = 200, max = 255)
-
-
-
-    #Entry
-
-    # send
-    data_entry = Entry()
-    data_entry.place(x = 100, y = 255)
-    
-    baud_entry = Entry(width = 7)
-    baud_entry.place(x = 100, y = 365)
-    baud_entry.insert(0, '9600')
-    
-    port_entry = Entry(width = 7)
-    port_entry.place(x = 200, y = 365)
-    port_entry.insert(0, 'USB0')
-
-
-
-    #radio button
-    button_var = IntVar()
-    radio_1 = Radiobutton(text = "Windows", variable = button_var, value = 1).place(x = 10, y = 315)
-    radio_2 = Radiobutton(text = "Linux", variable = button_var, value = 2).place(x = 110, y = 315)
-    button_var.set(2)
-
-    #button
-    button1 = Button(text = "Send", command = send, width = 6).place(x = 15, y = 250)
-    connect = Button(text = "Connect", command = connect).place(x = 15, y = 360)
-    disconnect = Button(text = "Disconnect", command = disconnect).place(x =300, y = 360)
-   
-    #mainloop
-    gui.geometry('1000x500')
     gui.mainloop()
