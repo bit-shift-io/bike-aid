@@ -27,3 +27,14 @@ If you don't want speed limiting, comment out `#LIMIT_ENABLE`
 
 **Note** that when plugged into USB, Arduino is running at 5V, but when powered by the motor controller,
 it is most likely running on 4.0V-4.5V.  This changes the numbers and behavior a little when you unplug USB.
+
+### Programming attiny85
+https://www.instructables.com/How-to-Program-an-Attiny85-From-an-Arduino-Uno/
+Files > Preferences > Additional Board Managers ...
+https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json
+Restart the IDE
+Tools > Boards > Board Manager
+Install 'attiny'
+Restart IDE
+Tools > Boards > attiny
+

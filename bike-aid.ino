@@ -7,17 +7,23 @@
  * Speed Limit - adjustable by potentiometer
  */
 
-// print output messages - comment to disable
-#define DEBUG_ENABLE
-
 /* 
 PINS
 ===========================
 */
+
+#ifdef ARDUINO_AVR_NANO 
 const byte THROTTLE_SIGNAL_PIN_IN = A0;
 const byte THROTTLE_SMOOTHING_PIN_IN = A1;
 const byte THROTTLE_PIN_LIMIT_IN = A2;
-const byte THROTTLE_SIGNAL_PIN_OUT = 10; // D7
+const byte THROTTLE_SIGNAL_PIN_OUT = 10; // 10 = D10
+#else // ATTINY
+const byte THROTTLE_SIGNAL_PIN_IN = 7;
+const byte THROTTLE_SMOOTHING_PIN_IN = 2;
+const byte THROTTLE_PIN_LIMIT_IN = 3;
+const byte THROTTLE_SIGNAL_PIN_OUT = 6;
+#endif
+
 
 
 /**
@@ -62,7 +68,7 @@ const int THROTTLE_DECREASE_SMOOTH_FACTOR = 100;
 
 // Delay between loops in ms
 const int THROTTLE_INTERVAL = 1;
-const int DEBUG_PRINT_INTERVAL = 250;
+const int DEBUG_PRINT_INTERVAL = 500;
 
 // global variables
 float throttle_output = 0; // 0-1024, later throttle_mapped_output to 0-255
@@ -71,18 +77,28 @@ unsigned long last_debug_print_interval = 0;
 
 
 void setup() {
-    Serial.begin(9600);
-    pinMode(THROTTLE_SIGNAL_PIN_IN, INPUT);
-    pinMode(THROTTLE_PIN_LIMIT_IN, INPUT);
-    pinMode(THROTTLE_SIGNAL_PIN_OUT, OUTPUT);
-    throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
-    // safety feature for disconnected throttle
-    // ensure throttle is not in use
-    if(analogRead(THROTTLE_SIGNAL_PIN_IN) >= 200)
-    {
-      Serial.println("Error: Throttle wire has no signal!");
-      while(1); // wait for ever
-    }
+  analogReference(EXTERNAL);
+
+  #ifdef ARDUINO_AVR_NANO
+  Serial.begin(9600);
+  #endif
+
+  pinMode(THROTTLE_SIGNAL_PIN_IN, INPUT);
+  pinMode(THROTTLE_PIN_LIMIT_IN, INPUT);
+  pinMode(THROTTLE_SIGNAL_PIN_OUT, OUTPUT);
+  throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
+  // safety feature for disconnected throttle
+  // ensure throttle is not in use
+  while(analogRead(THROTTLE_SIGNAL_PIN_IN) >= 250)
+  {
+    #ifdef ARDUINO_AVR_NANO
+    Serial.println("Error: Throttle wire has no signal!");
+    Serial.println(analogRead(THROTTLE_SIGNAL_PIN_IN));
+    #endif
+  }
+
+  // wait for sensors to stabalise
+  delay(1000);
 }
 
 void loop() {
@@ -131,11 +147,23 @@ void throttle() {
       throttle_mapped_output / 4 // PWM is 0-254 while our values are 0-1023
     );
 
-    #ifdef DEBUG_ENABLE
+    #ifdef ARDUINO_AVR_NANO
     if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < millis()) {
       last_debug_print_interval = millis();
 
-      // format as object \t data
+      // format for serial plotter
+      Serial.print(",Throttle In:");
+      Serial.print(throttle_input);
+
+      Serial.print(",Throttle Out:");
+      Serial.print(throttle_output);
+
+      Serial.print(",Throttle Fin:");
+      Serial.print(throttle_mapped_output);
+
+      Serial.println();
+
+/*
       Serial.print("throttle_input\t"); Serial.println(throttle_input);
 
       Serial.print("throttle_output\t"); Serial.println(throttle_output);
@@ -148,11 +176,12 @@ void throttle() {
 
       Serial.print("throttle_smooth_input\t"); Serial.println(throttle_smooth_input);
       Serial.print("throttle_smooth_mapped\t"); Serial.println(throttle_smooth_mapped);
-      /*
+
       Serial.print("Throttle In -> Out -> Map\tTh Ad\tLimit In -> Map\tSmooth In -> Map");Serial.print("\n");
 
       Serial.print("     ");Serial.print(throttle_input);Serial.print(" -> ");
       Serial.print(throttle_output);Serial.print(" -> ");
+
       Serial.print(throttle_mapped_output);Serial.print("\t");
 
       Serial.print(throttle_adjustment);Serial.print("\t");
