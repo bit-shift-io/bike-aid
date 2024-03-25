@@ -2,16 +2,15 @@
  * Based on Akom's smooth throttle using an Arduino
  * https://github.com/akomakom/arduino-throttle-smoother
  * 
- * Smoothing jerky throttle response - adjustable by potentiometer
- * Minimize deadband/deadzones
- * Speed Limit - adjustable by potentiometer
+ * Smoothing throttle response - adjustable by potentiometer
+ * Minimize deadband/deadzone
+ * Speed limit - adjustable by potentiometer
  */
 
 /* 
 PINS
 ===========================
 */
-
 #ifdef ARDUINO_AVR_NANO 
 const byte THROTTLE_SIGNAL_PIN_IN = A0;
 const byte THROTTLE_SMOOTHING_PIN_IN = A1;
@@ -25,24 +24,27 @@ const byte THROTTLE_SIGNAL_PIN_OUT = 6;
 #endif
 
 
-
-/**
- * All the ranges below can be determined by watching the serial console and twisting the throttle
- * Note that they will be slightly wrong if the controller supplies less than 5v to throttle.
- */
-
-
 /* 
-Deadband 
+Deadband / Deadzone
 ===========================
-fine tune the throttle range to eliminate deadband 
+Adjust throttle range to eliminate deadband/deadzones
+
 MAP_IN - Normal range of throttle
 MAP_OUT - range to output to controller
+
+All the ranges below can be determined by watching the serial console and twisting the throttle, they will be slightly wrong if the controller supplies less than 5v USB to throttle.
+Preferably, use a multimeter to measure voltage output from the throttle on your ebike and use the formula like so to calculate the numbers:
+( Signal Voltage / Supply Voltage ) * 1023
+
+THROTTLE_MAP_IN_MIN - Voltage when the throttle is unpressed
+THROTTLE_MAP_IN_MAX - Voltage when the throttle is fully pressed
+THROTTLE_MAP_OUT_MIN - Voltage just before the motor starts to activate the wheels
+THROTTLE_MAP_OUT_MAX - Voltage just after max speed (or use supply voltage otherwise)
 */
 const int THROTTLE_MAP_IN_MIN = 180; // no throttle
 const int THROTTLE_MAP_IN_MAX = 850; // full throttle
-const int THROTTLE_MAP_OUT_MIN = 390;
-const int THROTTLE_MAP_OUT_MAX = 800;
+const int THROTTLE_MAP_OUT_MIN = 390; // just before more active
+const int THROTTLE_MAP_OUT_MAX = 1023; // just after max speed
 
 /* 
 Speed Limit
@@ -63,15 +65,15 @@ smoothing over time
 // pot input is 0-1023, map this to output range
 const int THROTTLE_SMOOTH_MAP_OUT_MIN = 1; // never zero to avoid divide by zero
 const int THROTTLE_SMOOTH_MAP_OUT_MAX = 2000;
-//const int THROTTLE_INCREASE_SMOOTH_FACTOR = 4000; // potentiometer now
 const int THROTTLE_DECREASE_SMOOTH_FACTOR = 100;
+//const int THROTTLE_INCREASE_SMOOTH_FACTOR = 4000; // potentiometer now
 
 // Delay between loops in ms
 const int THROTTLE_INTERVAL = 1;
 const int DEBUG_PRINT_INTERVAL = 500;
 
 // global variables
-float throttle_output = 0; // 0-1024, later throttle_mapped_output to 0-255
+float throttle_output = 0; // 0-1023, later throttle_mapped_output to 0-255
 unsigned long last_throttle_interval = 0;
 unsigned long last_debug_print_interval = 0;
 
@@ -91,7 +93,7 @@ void setup() {
 
   // safety feature for disconnected throttle
   // ensure throttle is not in use
-  while(analogRead(THROTTLE_SIGNAL_PIN_IN) >= 400) // 250 to low
+  while(analogRead(THROTTLE_SIGNAL_PIN_IN) > 400) // todo: use THROTTLE_MAP_OUT_MIN
   {
     #ifdef ARDUINO_AVR_NANO
     Serial.println("Error: Throttle wire has no signal!");
@@ -109,8 +111,10 @@ void loop() {
 
 
 void throttle() {
-  if ((last_throttle_interval + THROTTLE_INTERVAL) < millis()) {
-    last_throttle_interval = millis();
+  unsigned long time = millis();
+
+  if ((last_throttle_interval + THROTTLE_INTERVAL) < time) {
+    last_throttle_interval = time;
 
     // throttle hall sensor input
     int throttle_input = analogRead(THROTTLE_SIGNAL_PIN_IN);
@@ -136,42 +140,21 @@ void throttle() {
     throttle_output += throttle_adjustment;
 
     // throttle to output value map - mapping to controller range
-    int throttle_mapped_output = map(
-      throttle_output,
-      THROTTLE_MAP_IN_MIN,
-      THROTTLE_MAP_IN_MAX,
-      THROTTLE_MAP_OUT_MIN,
-      THROTTLE_MAP_OUT_MAX
-    );
+    int throttle_mapped_output = map(throttle_output, THROTTLE_MAP_IN_MIN, THROTTLE_MAP_IN_MAX, THROTTLE_MAP_OUT_MIN, THROTTLE_MAP_OUT_MAX);
 
-    analogWrite(
-      THROTTLE_SIGNAL_PIN_OUT,
-      throttle_mapped_output / 4 // PWM is 0-254 while our values are 0-1023
-    );
+    // PWM is 0-254 while our values are 0-1023
+    analogWrite(THROTTLE_SIGNAL_PIN_OUT, throttle_mapped_output / 4);
 
     #ifdef ARDUINO_AVR_NANO
-    if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < millis()) {
-      last_debug_print_interval = millis();
-
+    if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < time) {
+      last_debug_print_interval = time;
       // format for serial plotter
-      Serial.print(",Th_In:");
-      Serial.print(throttle_input);
-
-      Serial.print(",Th_Out:");
-      Serial.print(throttle_output);
-
-      Serial.print(",Th_Map:");
-      Serial.print(throttle_mapped_output);
-
-      Serial.print(",Th_Adj:");
-      Serial.print(throttle_adjustment);
-
-      Serial.print(",Lim_In:");
-      Serial.print(throttle_limit_input);
-
-      Serial.print(",Smo_In:");
-      Serial.print(throttle_smooth_input);
-
+      Serial.print(",Th_In:");Serial.print(throttle_input);
+      Serial.print(",Th_Out:");Serial.print(throttle_output);
+      Serial.print(",Th_Map:");Serial.print(throttle_mapped_output);
+      Serial.print(",Th_Adj:");Serial.print(throttle_adjustment);
+      Serial.print(",Lim_In:");Serial.print(throttle_limit_input);
+      Serial.print(",Smo_In:");Serial.print(throttle_smooth_input);
       Serial.println();
     }
     #endif
