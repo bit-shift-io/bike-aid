@@ -43,7 +43,7 @@ THROTTLE_MAP_OUT_MAX - Voltage just after max speed (or use supply voltage other
 */
 const int THROTTLE_MAP_IN_MIN = 180; // no throttle
 const int THROTTLE_MAP_IN_MAX = 850; // full throttle
-const int THROTTLE_MAP_OUT_MIN = 390; // just before more active
+const int THROTTLE_MAP_OUT_MIN = 390; // just before motor active
 const int THROTTLE_MAP_OUT_MAX = 1023; // just after max speed
 
 /* 
@@ -70,7 +70,7 @@ const int THROTTLE_DECREASE_SMOOTH_FACTOR = 100;
 
 // Delay between loops in ms
 const int THROTTLE_INTERVAL = 1;
-const int DEBUG_PRINT_INTERVAL = 500;
+const int DEBUG_PRINT_INTERVAL = 250;
 
 // global variables
 float throttle_output = 0; // 0-1023, later throttle_mapped_output to 0-255
@@ -155,6 +155,7 @@ void throttle() {
       Serial.print(",Th_Adj:");Serial.print(throttle_adjustment);
       Serial.print(",Lim_In:");Serial.print(throttle_limit_input);
       Serial.print(",Smo_In:");Serial.print(throttle_smooth_input);
+      Serial.print(",G1:");Serial.print(THROTTLE_MAP_OUT_MIN); // guide
       Serial.println();
     }
     #endif
