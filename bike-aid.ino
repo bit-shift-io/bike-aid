@@ -41,10 +41,11 @@ THROTTLE_MAP_IN_MAX - Voltage when the throttle is fully pressed
 THROTTLE_MAP_OUT_MIN - Voltage just before the motor starts to activate the wheels
 THROTTLE_MAP_OUT_MAX - Voltage just after max speed (or use supply voltage otherwise)
 */
-const int THROTTLE_MAP_IN_MIN = 180; // no throttle
-const int THROTTLE_MAP_IN_MAX = 850; // full throttle
-const int THROTTLE_MAP_OUT_MIN = 390; // just before motor active
-const int THROTTLE_MAP_OUT_MAX = 1023; // just after max speed
+// supply voltage - 4.36v
+const int THROTTLE_MAP_IN_MIN = 199; // 0.847v no throttle
+const int THROTTLE_MAP_IN_MAX = 840; // 3.58v full throttle
+const int THROTTLE_MAP_OUT_MIN = 288; // 1.23v just before motor active
+const int THROTTLE_MAP_OUT_MAX = 610; // 2.6v just after max speed
 
 /* 
 Speed Limit
