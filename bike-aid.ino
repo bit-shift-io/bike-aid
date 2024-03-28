@@ -40,12 +40,14 @@ THROTTLE_MAP_IN_MIN - Voltage when the throttle is unpressed
 THROTTLE_MAP_IN_MAX - Voltage when the throttle is fully pressed
 THROTTLE_MAP_OUT_MIN - Voltage just before the motor starts to activate the wheels
 THROTTLE_MAP_OUT_MAX - Voltage just after max speed (or use supply voltage otherwise)
+
+Then verify the output with a multimeter also to tweak the ranges THROTTLE_MAP_OUT_MIN, and THROTTLE_MAP_OUT_MAX
 */
 // supply voltage - 4.36v
 const int THROTTLE_MAP_IN_MIN = 199; // 0.847v no throttle
 const int THROTTLE_MAP_IN_MAX = 840; // 3.58v full throttle
 const int THROTTLE_MAP_OUT_MIN = 288; // 1.23v just before motor active
-const int THROTTLE_MAP_OUT_MAX = 610; // 2.6v just after max speed
+const int THROTTLE_MAP_OUT_MAX = 620; // 2.6v just after max speed
 
 /* 
 Speed Limit
@@ -150,13 +152,14 @@ void throttle() {
     if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < time) {
       last_debug_print_interval = time;
       // format for serial plotter
-      Serial.print(",Th_In:");Serial.print(throttle_input);
-      Serial.print(",Th_Out:");Serial.print(throttle_output);
+      //Serial.print(",Th_In:");Serial.print(throttle_input);
+      //Serial.print(",Th_Out:");Serial.print(throttle_output);
       Serial.print(",Th_Map:");Serial.print(throttle_mapped_output);
-      Serial.print(",Th_Adj:");Serial.print(throttle_adjustment);
-      Serial.print(",Lim_In:");Serial.print(throttle_limit_input);
-      Serial.print(",Smo_In:");Serial.print(throttle_smooth_input);
+      //Serial.print(",Th_Adj:");Serial.print(throttle_adjustment);
+      //Serial.print(",Lim_In:");Serial.print(throttle_limit_input);
+      //Serial.print(",Smo_In:");Serial.print(throttle_smooth_input);
       Serial.print(",G1:");Serial.print(THROTTLE_MAP_OUT_MIN); // guide
+      Serial.print(",G2:");Serial.print(THROTTLE_MAP_OUT_MAX); // guide
       Serial.println();
     }
     #endif
