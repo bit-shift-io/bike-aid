@@ -15,6 +15,8 @@
 */
 
 #include "throttle.h"
+#include "power.h"
+#include "alarm.h"
 
 Throttle throttle;
 
@@ -22,6 +24,7 @@ void setup() {
   //analogReference(EXTERNAL);
   Serial.begin(9600);
   throttle.init();
+  Alarm::instance().setEnable(true);
 }
 
 void loop() {
