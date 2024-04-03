@@ -17,6 +17,7 @@
 #include "alarm.h"
 #include "throttle.h"
 #include "speed.h"
+#include "battery.h"
 
 
 void setup() {
