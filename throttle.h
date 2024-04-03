@@ -1,18 +1,33 @@
 #pragma once
-
 #include "Arduino.h"
 
 class Throttle {
+  public:
+    void update();
+    // singleton stuff + delete the functions
+    static Throttle& instance();
+    Throttle(const Throttle&) = delete;
+    Throttle(Throttle&&) = delete;
+    Throttle& operator=(const Throttle&) = delete;
+    Throttle& operator=(Throttle&&) = delete;
 
   private:
-    /* 
-    PINS
-    ===========================
-    */
-    const byte SMOOTHING_PIN_IN = A1;
-    const byte PIN_LIMIT_IN = A2;
-    const byte SIGNAL_PIN_IN = A0;
-    const byte SIGNAL_PIN_OUT = 10; // 10 = D10
+    bool enabled = false;
+    static Throttle& rInstance;
+    Throttle();
+    ~Throttle();
+
+    // pins
+    const byte PIN_IN = A0;
+    const byte PIN_OUT = 10; // 10 = D10
+
+    // Delay between loops in ms
+    const int INTERVAL = 1;
+    const int DEBUG_PRINT_INTERVAL = 250;
+
+    float output = 0; // 0-1023, later mapped_output to 0-255
+    unsigned long last_interval = 0;
+    unsigned long last_debug_print_interval = 0;
 
     /* 
     Deadband / Deadzone
@@ -44,8 +59,6 @@ class Throttle {
     ===========================
     adjusts throttle output speed limit
     */
-    #define THROTLE_LIMIT_ENABLE // comment to disable speed limit feature
-    // pot input is 0-1023, map this to output range
     const int LIMIT_MAP_OUT_MIN = 100;
     const int LIMIT_MAP_OUT_MAX = 1023;
 
@@ -55,24 +68,9 @@ class Throttle {
     how quickly to adjust output, larger values are slower
     smoothing over time
     */
-    // pot input is 0-1023, map this to output range
     const int SMOOTH_MAP_OUT_MIN = 1; // never zero to avoid divide by zero
     const int SMOOTH_MAP_OUT_MAX = 2000;
     const int DECREASE_SMOOTH_FACTOR = 100;
-    //const int INCREASE_SMOOTH_FACTOR = 4000; // potentiometer now
+    const int INCREASE_SMOOTH_FACTOR = 4000; 
 
-    // Delay between loops in ms
-    const int INTERVAL = 1;
-    const int DEBUG_PRINT_INTERVAL = 250;
-
-    // global variables
-    float output = 0; // 0-1023, later mapped_output to 0-255
-    unsigned long last_interval = 0;
-    unsigned long last_debug_print_interval = 0;
-
-
-  public:
-    Throttle();
-    void    init();
-    void    update();
 };

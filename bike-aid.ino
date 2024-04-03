@@ -14,19 +14,19 @@
   Bronson Mathews, 2024
 */
 
-#include "throttle.h"
-#include "power.h"
 #include "alarm.h"
+#include "throttle.h"
+#include "speed.h"
 
-Throttle throttle;
 
 void setup() {
   //analogReference(EXTERNAL);
   Serial.begin(9600);
-  throttle.init();
-  Alarm::instance().setEnable(true);
+  //Alarm::instance().setEnable(true);
 }
 
 void loop() {
-  throttle.update();
+  //Alarm::instance().update();
+  //Throttle::instance().update();
+  Speed::instance().update();
 }
