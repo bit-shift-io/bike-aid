@@ -15,7 +15,7 @@ static Throttle& Throttle::instance() {
 void Throttle::update() {
   unsigned long time = millis();
 
-  if ((last_interval + INTERVAL) < time) {
+  if (time - last_interval > INTERVAL) {
     last_interval = time;
 
     // throttle hall sensor input

@@ -1,19 +1,19 @@
 #include "Arduino.h"
-#include "speed.h"
+#include "bluetooth.h"
 
 
-Speed::Speed() {
+Bluetooth::Bluetooth() {
   pinMode(INPUT_PIN, INPUT);
 }
 
 
-static Speed& Speed::instance() {
-  static auto &&rInstance = Speed();
+static Bluetooth& Bluetooth::instance() {
+  static auto &&rInstance = Bluetooth();
   return rInstance;
 }
 
 
-void Speed::update() {
+void Bluetooth::update() {
   unsigned long time = millis();
 
   if (time - last_interval > INTERVAL) {
@@ -22,6 +22,6 @@ void Speed::update() {
     byte input = digitalRead(INPUT_PIN);
     if (input == LOW) {}
     else
-      Serial.print("speed click");
+      Serial.print("Bluetooth click");
   }
 }

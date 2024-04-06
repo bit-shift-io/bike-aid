@@ -18,16 +18,17 @@
 #include "throttle.h"
 #include "speed.h"
 #include "battery.h"
+#include "bluetooth.h"
 
 
 void setup() {
   //analogReference(EXTERNAL);
   Serial.begin(9600);
-  //Alarm::instance().setEnable(true);
+  Alarm::instance().setEnable(true);
 }
 
 void loop() {
-  //Alarm::instance().update();
+  Alarm::instance().update();
   //Throttle::instance().update();
-  Speed::instance().update();
+  //Speed::instance().update();
 }

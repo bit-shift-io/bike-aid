@@ -16,7 +16,7 @@ static Battery& Battery::instance() {
 void Battery::update() {
   unsigned long time = millis();
 
-  if ((last_interval + INTERVAL) < time) {
+  if (time - last_interval > INTERVAL) {
     last_interval = time;
 
     byte input = digitalRead(INPUT_PIN);
