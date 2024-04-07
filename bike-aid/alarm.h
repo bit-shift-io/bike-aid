@@ -7,10 +7,10 @@
 class Alarm {
 
   public:
-    void update();
-    
+    void update();  
     void setEnable(bool);
     static void interruptHandler();
+    
     // singleton stuff + delete the functions
     static Alarm& instance();
     Alarm(const Alarm&) = delete;

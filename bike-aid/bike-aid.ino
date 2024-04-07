@@ -24,11 +24,15 @@
 void setup() {
   //analogReference(EXTERNAL);
   Serial.begin(9600);
+
+  // enable modules
   //Alarm::instance().setEnable(true);
+  Speed::instance().setEnable(true);
+  //Throttle::instance().setEnable(true);
 }
 
 void loop() {
   Alarm::instance().update();
-  //Throttle::instance().update();
+  Throttle::instance().update();
   Speed::instance().update();
 }

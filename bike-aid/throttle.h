@@ -4,6 +4,8 @@
 class Throttle {
   public:
     void update();
+    void setEnable(bool);
+    
     // singleton stuff + delete the functions
     static Throttle& instance();
     Throttle(const Throttle&) = delete;
