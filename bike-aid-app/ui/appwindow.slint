@@ -1,17 +1,73 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, GroupBox, TabWidget, GridBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
+    in-out property<int> speed: 32;
+    in-out property<int> temperature: 18;
+    in-out property<int> battery_level: 50;
+    in-out property<int> battery_remaining: 60;
     in-out property<int> counter: 42;
     callback request-increase-value();
-    VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
-        }
-        Button {
-            text: "Increase value";
-            clicked => {
-                root.request-increase-value();
+
+    TabWidget {
+        Tab {
+            title: "Info";
+
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 5px;
+
+                VerticalBox {
+                    width: 100%;
+                    height: 80%;
+
+                    Text {
+                        text: "\{root.speed} kph";
+                        font-size: 30px;
+                    }
+                    Text {
+                        text: "\{root.temperature}°";
+                        font-size: 20px;
+                    }
+                    Text {
+                        text: "\{root.battery_level}%";
+                        font-size: 20px;
+                    }
+                    Text {
+                        text: "\{root.battery_remaining} mins";
+                        font-size: 20px;
+                    }
+                }
+
+                GridBox {
+                    Button {
+                        text: "Power";
+                        clicked => {
+                        }
+                    }
+                    Button {
+                        text: "Alarm";
+                        clicked => {
+                            root.request-increase-value();
+                        }
+                    }
+                    Button {
+                        text: "Lights";
+                        clicked => {
+                            root.request-increase-value();
+                        }
+                    }
+                }
             }
         }
+        Tab {
+            title: "Control";
+            Rectangle { background: pink; }
+        }
+        Tab {
+            title: "Settings";
+            Rectangle { background: pink; }
+        }
     }
+
 }
