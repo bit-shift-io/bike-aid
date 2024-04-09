@@ -21,7 +21,7 @@ void Throttle::setEnable(bool enable) {
 void Throttle::update() {
   if (!enabled)
     return;
-/*
+
   unsigned long time = millis();
 
   if (time - last_interval > INTERVAL) {
@@ -62,5 +62,4 @@ void Throttle::update() {
     }
 
   }
-  */
 }
