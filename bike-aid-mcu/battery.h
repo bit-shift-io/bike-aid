@@ -2,7 +2,7 @@
 #include "Arduino.h"
 
 class Battery {
-
+  
   public:
     void update();
     // singleton stuff + delete the functions

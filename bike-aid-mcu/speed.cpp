@@ -7,7 +7,7 @@ Speed::Speed() {
 }
 
 
-static Speed& Speed::instance() {
+Speed& Speed::instance() {
   static auto &&rInstance = Speed();
   return rInstance;
 }

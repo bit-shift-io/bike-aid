@@ -7,7 +7,7 @@ Alarm::Alarm() {
 }
 
 
-static Alarm& Alarm::instance() {
+Alarm& Alarm::instance() {
   static auto &&rInstance = Alarm();
   return rInstance;
 }
@@ -65,7 +65,7 @@ void Alarm::setEnable(bool enable) {
 }
 
 
-static void Alarm::interruptHandler() {
+void Alarm::interruptHandler() {
   // IRAM_ATTR for esp32?
   Alarm::instance().interrupt_count++;
 }

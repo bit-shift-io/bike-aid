@@ -7,7 +7,7 @@ Battery::Battery() {
 }
 
 
-static Battery& Battery::instance() {
+Battery& Battery::instance() {
   static auto &&rInstance = Battery();
   return rInstance;
 }

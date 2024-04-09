@@ -5,6 +5,7 @@ export component AppWindow inherits Window {
     in-out property<int> temperature: 18;
     in-out property<int> battery_level: 50;
     in-out property<int> battery_remaining: 60;
+    in-out property<int> trip_odometer: 100;
     in-out property<int> counter: 42;
     callback request-increase-value();
 
@@ -24,6 +25,10 @@ export component AppWindow inherits Window {
                     Text {
                         text: "\{root.speed} kph";
                         font-size: 30px;
+                    }
+                    Text {
+                        text: "\{root.trip_odometer} km";
+                        font-size: 20px;
                     }
                     Text {
                         text: "\{root.temperature}°";

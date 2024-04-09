@@ -7,7 +7,7 @@ Throttle::Throttle() {
   output = analogRead(PIN_IN); // initial value
 }
 
-static Throttle& Throttle::instance() {
+Throttle& Throttle::instance() {
   static auto &&rInstance = Throttle();
   return rInstance;
 }
@@ -21,7 +21,7 @@ void Throttle::setEnable(bool enable) {
 void Throttle::update() {
   if (!enabled)
     return;
-
+/*
   unsigned long time = millis();
 
   if (time - last_interval > INTERVAL) {
@@ -62,4 +62,5 @@ void Throttle::update() {
     }
 
   }
+  */
 }

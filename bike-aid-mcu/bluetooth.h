@@ -1,5 +1,9 @@
 #pragma once
 #include "Arduino.h"
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+#include <BLEUUID.h>
 
 class Bluetooth {
 
@@ -13,16 +17,11 @@ class Bluetooth {
     Bluetooth& operator=(Bluetooth&&) = delete;
 
   private:
-    // pins
-    const byte INPUT_PIN = 12;
+  const char* SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"; // todo: change
+  const char* CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"; // todo: change
+
     bool enabled = false;
 
-    const int INTERVAL = 1;
-    unsigned long last_interval = 0;
-
-    const byte Bluetooth_CAPACITY = 24; // Ah
-    const byte Bluetooth_VOLTAGE = 48; // v
-    const byte Bluetooth_LOW = 46; // v
 
     static Bluetooth& rInstance;
     Bluetooth();

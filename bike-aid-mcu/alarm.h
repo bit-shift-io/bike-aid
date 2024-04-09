@@ -1,6 +1,3 @@
-// singleton example
-// https://hnrck.io/post/singleton-design-pattern/
-
 #pragma once
 #include "Arduino.h"
 
