@@ -39,5 +39,5 @@ class Alarm {
     // class
     static Alarm& rInstance;
     Alarm();
-    ~Alarm();
+    //~Alarm();
 };

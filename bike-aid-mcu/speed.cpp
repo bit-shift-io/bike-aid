@@ -28,9 +28,7 @@ void Speed::update() {
   byte input = digitalRead(INPUT_PIN);
   if (input != last_state) {
     if (input == HIGH) {
-      //Serial.println("rising");
-      //rotations++;
-
+      rotations++;
       last_rotation_time = rotation_time;
       rotation_time = time;
     }
@@ -53,7 +51,11 @@ void Speed::update() {
       float adjust = (float) delta_speed / (float) SMOOTH_FACTOR;
       speed += adjust;
 
+      // trip odometer
+      int trip_distance = (rotations * WHEEL_CIRCUMFERENCE) / 1000000; // mm to km 
+
       Serial.print("kph:"); Serial.println(speed);
+      Serial.print("odo:"); Serial.println(trip_distance);
     }
   }
 }

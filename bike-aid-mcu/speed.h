@@ -28,6 +28,7 @@ class Speed {
     unsigned long rotation_time = 0;
     unsigned long last_rotation_time = 0;
     float speed = 0;
+    int rotations = 0;
 
     // smoothing
     const int SMOOTH_FACTOR = 3;
@@ -37,6 +38,5 @@ class Speed {
 
     static Speed& rInstance;
     Speed();
-    ~Speed();
-
+    //~Speed();
   };

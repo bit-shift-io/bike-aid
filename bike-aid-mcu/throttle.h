@@ -17,7 +17,7 @@ class Throttle {
     bool enabled = false;
     static Throttle& rInstance;
     Throttle();
-    ~Throttle();
+    //~Throttle();
 
     // pins
     const byte PIN_IN = A0;

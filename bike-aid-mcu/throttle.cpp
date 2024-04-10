@@ -1,11 +1,13 @@
 #include "Arduino.h"
 #include "throttle.h"
 
+
 Throttle::Throttle() {
   pinMode(PIN_IN, INPUT);
   pinMode(PIN_OUT, OUTPUT);
   output = analogRead(PIN_IN); // initial value
 }
+
 
 Throttle& Throttle::instance() {
   static auto &&rInstance = Throttle();
@@ -40,7 +42,7 @@ void Throttle::update() {
     int limit_input = 1023;
     // Apply speed limit - allow increase only if below limit
     if (output > map(limit_input, 0, 1023, LIMIT_MAP_OUT_MIN, LIMIT_MAP_OUT_MAX)) {
-      adjustment = min(adjustment, 0); // always allow decrease
+      adjustment = _min(adjustment, 0); // always allow decrease // _min for esp, min for arduino
     }
 
     output += adjustment;
