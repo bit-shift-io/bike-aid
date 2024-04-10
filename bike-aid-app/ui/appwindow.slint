@@ -1,4 +1,4 @@
-import { Button, VerticalBox, GroupBox, TabWidget, GridBox } from "std-widgets.slint";
+import { Button, VerticalBox, GroupBox, TabWidget, GridBox, HorizontalBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     in-out property<int> speed: 32;
@@ -6,10 +6,14 @@ export component AppWindow inherits Window {
     in-out property<int> battery_level: 50;
     in-out property<int> battery_remaining: 60;
     in-out property<int> trip_odometer: 100;
+    in-out property<string> trip_duration: "01:23";
     in-out property<int> counter: 42;
     callback request-increase-value();
 
     TabWidget {
+        width: 100%;
+        horizontal-stretch: 100%;
+
         Tab {
             title: "Info";
 
@@ -17,45 +21,104 @@ export component AppWindow inherits Window {
                 width: 100%;
                 height: 100%;
                 padding: 5px;
+                spacing: 0px;
 
-                VerticalBox {
+                Rectangle {
                     width: 100%;
-                    height: 80%;
+                    height: 2px;
+                    background: rgb(128,128,128);
+                }
 
-                    Text {
-                        text: "\{root.speed} kph";
-                        font-size: 30px;
-                    }
-                    Text {
-                        text: "\{root.trip_odometer} km";
-                        font-size: 20px;
-                    }
-                    Text {
-                        text: "\{root.temperature}°";
-                        font-size: 20px;
-                    }
-                    Text {
-                        text: "\{root.battery_level}%";
-                        font-size: 20px;
-                    }
+                HorizontalBox {
+                    width: 100%;
+                    height: 60px;
+                    spacing: 0px;
+
                     Text {
                         text: "\{root.battery_remaining} mins";
-                        font-size: 20px;
+                        font-size: 18px;
+                        horizontal-alignment: left;
+                    }
+
+                    Text {
+                        text: "\{root.battery_level}%";
+                        font-size: 18px;
+                        horizontal-alignment: right;
                     }
                 }
 
+                Rectangle {
+                    width: 100%;
+                    height: 2px;
+                    background: rgb(128,128,128);
+                }
+
+                VerticalBox {
+                    width: 100%;
+                    height: 50%;
+
+                    Text {
+                        text: "\{root.speed} km/h";
+                        font-size: 50px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 100%;
+                    height: 2px;
+                    background: rgb(128,128,128);
+                }
+
+                HorizontalBox {
+                    width: 100%;
+                    height: 60px;
+                    spacing: 0px;
+
+                    Text {
+                        text: "\{root.trip_odometer} km";
+                        font-size: 20px;
+                        horizontal-alignment: left;
+                    }
+
+                    Text {
+                        text: "\{root.temperature}°";
+                        font-size: 20px;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: "\{root.trip_duration}";
+                        font-size: 20px;
+                        horizontal-alignment: right;
+                    }
+                }
+
+                Rectangle {
+                    width: 100%;
+                    height: 2px;
+                    background: rgb(128,128,128);
+                }
+
                 GridBox {
+                    padding: 5px;
+                    spacing: 5px;
+                    //height: 60px;
+
                     Button {
                         text: "Power";
                         clicked => {
                         }
                     }
+
                     Button {
                         text: "Alarm";
                         clicked => {
                             root.request-increase-value();
                         }
                     }
+
                     Button {
                         text: "Lights";
                         clicked => {
@@ -65,10 +128,12 @@ export component AppWindow inherits Window {
                 }
             }
         }
+
         Tab {
-            title: "Control";
-            Rectangle { background: pink; }
+            title: "Devices";
+            Rectangle { background: blue; }
         }
+
         Tab {
             title: "Settings";
             Rectangle { background: pink; }
