@@ -1,4 +1,4 @@
-import { Button, VerticalBox, GroupBox, TabWidget, GridBox, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, GroupBox, TabWidget, GridBox, HorizontalBox, ListView, StandardTableView } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     in-out property<int> speed: 32;
@@ -9,6 +9,8 @@ export component AppWindow inherits Window {
     in-out property<string> trip_duration: "01:23";
     in-out property<int> counter: 42;
     callback request-increase-value();
+    callback scan();
+    callback on_render_plot();
 
     TabWidget {
         width: 100%;
@@ -131,12 +133,32 @@ export component AppWindow inherits Window {
 
         Tab {
             title: "Devices";
-            Rectangle { background: blue; }
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 5px;
+                spacing: 0px;
+
+                Button {
+                    text: "Scan";
+                    clicked => {
+                        root.on_render_plot();
+                        root.scan();
+                    }
+                }
+
+                ListView {
+
+                }
+            }
+
         }
 
         Tab {
             title: "Settings";
-            Rectangle { background: pink; }
+            StandardTableView {
+
+            }
         }
     }
 
