@@ -1,3 +1,3 @@
 pub fn main() {
-    bike_aid::main();
+    let _ = bike_aid::main();
 }

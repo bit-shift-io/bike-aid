@@ -6,10 +6,20 @@ use tokio::time;
 use btleplug::api::{Central, Manager as _, Peripheral, ScanFilter};
 use btleplug::platform::Manager;
 
-//#[tokio::main]
-pub async fn main() -> Result<(), Box<dyn Error>> {
-    //pretty_env_logger::init();
+/*
+pub async fn get_adapter_list() -> Result<Vec<Adapter>, Box<dyn Error>> {
+    // get first bluetooth adapters
+    let manager = Manager::new().await?;
+    let adapter_list = manager.adapters().await?;
+    if adapter_list.is_empty() {
+        eprintln!("No Bluetooth adapters found");
+    }
+    return adapter_list;
+}*/
 
+
+pub async fn test() -> Result<(), Box<dyn Error>> {
+    // get first bluetooth adapter (there may be multiple)
     let manager = Manager::new().await?;
     let adapter_list = manager.adapters().await?;
     if adapter_list.is_empty() {
