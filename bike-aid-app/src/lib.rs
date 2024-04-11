@@ -16,7 +16,7 @@ pub async fn main() -> Result<(), slint::PlatformError> {
 
                     // Call async function
                     println!("here");
-                    let _ = bluetooth::test().await;
+                    let _ = bluetooth::scan_sleep().await;
 
                     // Update UI model state
                     //update_model(
