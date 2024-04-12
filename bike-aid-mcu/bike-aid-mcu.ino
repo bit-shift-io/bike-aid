@@ -33,13 +33,13 @@ void setup() {
   delay(1000); // let serial connect
 
   // enable modules
-
+  
   //Alarm::instance().setEnable(true);
   Speed::instance().setEnable(true);
   //Throttle::instance().setEnable(true);
   Clock::instance().setEnable(true);
-
-  Bluetooth::instance().setEnable(false);
+  Bluetooth::instance().setEnable(true);
+  
 }
 
 void loop() {
