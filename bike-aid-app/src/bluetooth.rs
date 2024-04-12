@@ -1,10 +1,12 @@
 
+use std::any::Any;
 use std::error::Error;
 use std::time::Duration;
 use btleplug::api::{bleuuid::BleUuid, Central, CentralEvent, Manager as _, Peripheral, ScanFilter};
 use btleplug::platform::{Adapter, Manager};
+use tokio::sync::futures;
 use tokio::time;
-use tokio_stream::StreamExt;
+use tokio_stream::{Stream, StreamExt};
 
 
 /* 
@@ -27,13 +29,14 @@ pub async fn get_central() -> Result<Adapter, Box<dyn Error>> {
 }
 */
 
+
 pub async fn get_central(manager: &Manager) -> Adapter {
     let adapters = manager.adapters().await.unwrap();
     adapters.into_iter().nth(0).unwrap()
 }
 
 
-pub async fn scan_sleep() -> Result<(), Box<dyn Error>> {
+pub async fn scan_sleep() -> Result<(), Box<dyn Error + Send + Sync>> { // added send sync
 
     let manager = Manager::new().await?;
 

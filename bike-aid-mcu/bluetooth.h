@@ -8,6 +8,8 @@ class Bluetooth {
 
   public:
     void update();
+    void setEnable(bool);
+    
     // singleton stuff + delete the functions
     static Bluetooth& instance();
     Bluetooth(const Bluetooth&) = delete;
@@ -24,6 +26,6 @@ class Bluetooth {
 
     static Bluetooth& rInstance;
     Bluetooth();
-    ~Bluetooth();
+    //~Bluetooth();
 
   };

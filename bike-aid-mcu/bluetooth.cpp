@@ -3,6 +3,7 @@
 
 
 Bluetooth::Bluetooth() {
+  Serial.println("Starting BLE work!");
   BLEDevice::init("Bronson Scooter");
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -21,6 +22,7 @@ Bluetooth::Bluetooth() {
   pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
   pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
+  Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
 
 
@@ -30,5 +32,12 @@ Bluetooth& Bluetooth::instance() {
 }
 
 
+void Bluetooth::setEnable(bool enable) {
+  enabled = enable;
+}
+
+
 void Bluetooth::update() {
+  if (!enabled)
+    return;
 }

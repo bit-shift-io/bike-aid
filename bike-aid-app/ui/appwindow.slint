@@ -1,6 +1,16 @@
 import { Button, VerticalBox, GroupBox, TabWidget, GridBox, HorizontalBox, ListView, StandardTableView } from "std-widgets.slint";
 
+/*
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export struct ScanItem  {
+    title: string,
+    checked: bool,
+    peripheral: btleplug::api::Peripheral,
+}
+*/
+
 export component AppWindow inherits Window {
+    
     in-out property<int> speed: 32;
     in-out property<int> temperature: 18;
     in-out property<int> battery_level: 50;
@@ -8,6 +18,13 @@ export component AppWindow inherits Window {
     in-out property<int> trip_odometer: 100;
     in-out property<string> trip_duration: "01:23";
     in-out property<int> counter: 42;
+    /*
+    in property <[ScanItem]> scan_model: [
+        { title: "Implement the .slint file", checked: true },
+        { title: "Do the Rust part", checked: false },
+    ];
+    */
+
     callback request-increase-value();
     callback scan();
     callback on_render_plot();

@@ -26,13 +26,20 @@
 
 void setup() {
   //analogReference(EXTERNAL);
-  Serial.begin(9600);
+  //Serial.begin(9600);
+  Serial.begin(115200);
+
+  // debug
+  delay(1000); // let serial connect
 
   // enable modules
+
   //Alarm::instance().setEnable(true);
   Speed::instance().setEnable(true);
   //Throttle::instance().setEnable(true);
   Clock::instance().setEnable(true);
+
+  Bluetooth::instance().setEnable(false);
 }
 
 void loop() {
@@ -40,4 +47,5 @@ void loop() {
   Throttle::instance().update();
   Speed::instance().update();
   Clock::instance().update();
+  Bluetooth::instance().update();
 }

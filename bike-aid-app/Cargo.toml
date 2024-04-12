@@ -12,6 +12,7 @@ slint = { version = "1.5", features = ["backend-android-activity-05"] }
 btleplug = { version = "0.10", features = ["serde"] }
 tokio = { version = "1.37.0", features = ["full"] }
 tokio-stream = "0.1.15"
+sixtyfps = "0.2.0"
 
 [build-dependencies]
 slint-build = "1.5"
