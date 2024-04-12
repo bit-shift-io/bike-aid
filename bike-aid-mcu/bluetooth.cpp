@@ -37,6 +37,10 @@ Bluetooth::Bluetooth() {
   // start the service
   pService->start();
 
+  // pin code
+  BLESecurity *pSecurity = new BLESecurity();
+  pSecurity->setStaticPIN(PIN_CODE); 
+
   // Start advertising
   pServer->getAdvertising()->start();
   /*

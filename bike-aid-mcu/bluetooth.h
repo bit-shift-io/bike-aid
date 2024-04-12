@@ -26,9 +26,10 @@ class Bluetooth {
 
 
   private:
-    const char* SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"; // todo: change
+    // https://www.uuidgenerator.net/
+    const char* SERVICE_UUID = "8fabcc8a-0a6e-4c37-b640-eb5adf88b465";
     const char* CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"; // todo: change
-
+    const int PIN_CODE = 123456;
     bool enabled = false;
 
     BLEServer *pServer = NULL;
