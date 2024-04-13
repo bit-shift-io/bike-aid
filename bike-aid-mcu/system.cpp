@@ -6,7 +6,6 @@
 System::System() {
   print_cpu_info();
   set_power_low();
-  set_wdt();
 }
 
 
@@ -17,22 +16,6 @@ System& System::instance() {
 
 
 void System::update() {
-  yield();
-  vTaskDelay(10);
-  /*
-  unsigned long time = millis();
-  if (time - last_interval > INTERVAL) {
-    last_interval = time;
-    //esp_task_wdt_reset();
-  }
-  */
-}
-
-
-void System::set_wdt() {
-  // disable watch dog
-  // issues under 40mhz mode
-  disableCore0WDT();
 }
 
 
@@ -53,7 +36,7 @@ void System::print_cpu_info() {
 
 void System::set_power_low() {
   // wifi power mode
-  esp_wifi_set_ps(WIFI_PS_MAX_MODEM); // lowest
+  //esp_wifi_set_ps(WIFI_PS_MAX_MODEM); // lowest
   //esp_wifi_set_ps(WIFI_PS_MIN_MODEM); // low
 
   // disable adc and wifi
@@ -64,12 +47,15 @@ void System::set_power_low() {
   // bluetooth off
   //btStop();
 
-  // cpu freq, under 80 is not stable for me...
+  // cpu freq, bluetooth needs 80mhz or above
   //  240, 160, 80    <<< For all XTAL types
   //  40, 20, 10      <<< For 40MHz XTAL
   //  26, 13          <<< For 26MHz XTAL
   //  24, 12          <<< For 24MHz XTAL
-  setCpuFrequencyMhz(10);
+  setCpuFrequencyMhz(80);
+
+  // disable watch dog when using less than 80mhz
+  //disableCore0WDT();
 }
 
 

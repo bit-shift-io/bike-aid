@@ -11,7 +11,6 @@
 class System {
   
   public:
-    void set_wdt();
     void set_power_low();
     void set_power_high();
     void print_cpu_info();
@@ -25,7 +24,6 @@ class System {
     System& operator=(System&&) = delete;
 
   private:
-    const uint32_t WDT_TIMEOUT = 3; // 3 sec
     bool enabled = false;
 
     const int INTERVAL = 500;

@@ -40,7 +40,7 @@ class Bluetooth {
     // services
 
     // characteristics
-    BLECharacteristic *pBatteryLevelCharacteristic = NULL;
+    BLECharacteristic *battery_level_characteristic = NULL;
 
     // callbacks
     bool device_connected = false;
