@@ -22,24 +22,23 @@
 #include "speed.h"
 #include "battery.h"
 #include "bluetooth.h"
+#include "system.h"
 
 
 void setup() {
   //analogReference(EXTERNAL);
   //Serial.begin(9600);
   Serial.begin(115200);
+  Serial.println("Serial begin...");
 
-  // debug
-  delay(1000); // let serial connect
 
   // enable modules
-  
   //Alarm::instance().setEnable(true);
   Speed::instance().setEnable(true);
   //Throttle::instance().setEnable(true);
   Clock::instance().setEnable(true);
   Bluetooth::instance().setEnable(true);
-  
+  System::instance(); // init
 }
 
 void loop() {
@@ -48,4 +47,5 @@ void loop() {
   Speed::instance().update();
   Clock::instance().update();
   Bluetooth::instance().update();
+  System::instance().update();
 }

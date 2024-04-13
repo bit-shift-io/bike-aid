@@ -21,21 +21,62 @@ Bluetooth::Bluetooth() {
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new BluetoothServerCallbacks());
 
+  // for services, see https://www.bluetooth.com/specifications/assigned-numbers/
 
-  // create ble service
+  // device info service
+  BLEService *pDeviceInfoService = pServer->createService(BLEUUID((uint16_t) 0x180a));
+	BLECharacteristic *pPnpCharacteristic = pDeviceInfoService->createCharacteristic((uint16_t) 0x2a50, BLECharacteristic::PROPERTY_READ);
+  BLECharacteristic *pManufacturerCharacteristic = pDeviceInfoService->createCharacteristic((uint16_t) 0x2a29, BLECharacteristic::PROPERTY_READ);
+  pManufacturerCharacteristic->setValue("Bronson Mathews");
+  pDeviceInfoService->start();
+
+
+  // create unknown service
   BLEService *pService = pServer->createService(SERVICE_UUID);
-
-  // create a characteristic
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          CHARACTERISTIC_UUID,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE
-                                       );
+                                         BLECharacteristic::PROPERTY_WRITE);
 
   pCharacteristic->setValue("Hello World says Neil");
-
-  // start the service
   pService->start();
+
+
+  // battery
+
+
+
+
+  // battery
+  // https://circuitdigest.com/microcontroller-projects/esp32-ble-server-how-to-use-gatt-services-for-battery-level-indication
+  BLEService *pBatteryService = pServer->createService(BLEUUID((uint16_t) 0x180f));
+
+  /*pBatteryLevelCharacteristic = pBatteryService->createCharacteristic(
+                                          BLEUUID((uint16_t)0x2A19), 
+                                          BLECharacteristic::PROPERTY_READ | 
+                                          BLECharacteristic::PROPERTY_NOTIFY);
+  //BLEDescriptor *pBatteryDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2901));
+*/
+
+	BLE2904* batteryLevelDescriptor = new BLE2904();
+	batteryLevelDescriptor->setFormat(BLE2904::FORMAT_UINT8);
+	batteryLevelDescriptor->setNamespace(1);
+	batteryLevelDescriptor->setUnit(0x27ad);
+
+	pBatteryLevelCharacteristic = pBatteryService->createCharacteristic(
+                                          (uint16_t) 0x2a19,
+                                          BLECharacteristic::PROPERTY_READ |
+                                          BLECharacteristic::PROPERTY_NOTIFY);
+	pBatteryLevelCharacteristic->addDescriptor(batteryLevelDescriptor);
+	pBatteryLevelCharacteristic->addDescriptor(new BLE2902());
+
+  //pBatteryService->addCharacteristic(&pBatteryCharacteristic);
+  //pBatteryLevelCharacteristic->addDescriptor(BLEUUID((uint16_t)0x2901));
+  //pBatteryLevelCharacteristic->addDescriptor(new BLE2902());
+  //pBatteryLevelCharacteristic->setValue("Percentage 0 - 100");
+  pBatteryService->start();
+
+  
 
   // pin code
   BLESecurity *pSecurity = new BLESecurity();
@@ -80,8 +121,9 @@ void Bluetooth::update() {
 
     // check device is still conected
     if (device_connected) {
-      // todo: do stuff
-      //return;
+      uint8_t battery_level = 0;
+      pBatteryLevelCharacteristic->setValue(&battery_level, 1);
+      pBatteryLevelCharacteristic->notify();
     }
 
     // disconnecting

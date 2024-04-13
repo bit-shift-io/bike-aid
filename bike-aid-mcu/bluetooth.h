@@ -5,6 +5,8 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLE2904.h>
+#include <BLE2902.h>
 
 class Bluetooth {
 
@@ -32,7 +34,13 @@ class Bluetooth {
     const int PIN_CODE = 123456;
     bool enabled = false;
 
+    // server
     BLEServer *pServer = NULL;
+
+    // services
+
+    // characteristics
+    BLECharacteristic *pBatteryLevelCharacteristic = NULL;
 
     // callbacks
     bool device_connected = false;
