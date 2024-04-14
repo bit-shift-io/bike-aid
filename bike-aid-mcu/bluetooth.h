@@ -18,6 +18,7 @@ class Bluetooth {
     // callbacks
     void on_connect(BLEServer* pServer);
     void on_disconnect(BLEServer* pServer);
+    void on_write(BLECharacteristic *pCharacteristic);
 
     // singleton stuff + delete the functions
     static Bluetooth& instance();
@@ -40,7 +41,12 @@ class Bluetooth {
     // services
 
     // characteristics
-    BLECharacteristic *battery_level_characteristic = NULL;
+    BLECharacteristic *battery_level_characteristic;
+    BLECharacteristic *throttle_smoothing_characteristic;
+    BLECharacteristic *temperature_characteristic;
+    BLECharacteristic *trip_distance_characteristic;
+    BLECharacteristic *trip_duration_characteristic;
+    BLECharacteristic *speed_characteristic;
 
     // callbacks
     bool device_connected = false;

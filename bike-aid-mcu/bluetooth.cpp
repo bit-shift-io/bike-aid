@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "BLEServer.h"
 #include "Arduino.h"
 #include "bluetooth.h"
@@ -10,6 +11,13 @@ class BluetoothServerCallbacks: public BLEServerCallbacks {
 
     void onDisconnect(BLEServer* pServer) {
       Bluetooth::instance().on_disconnect(pServer);
+    }
+};
+
+// class for callbacks
+class BluetoothCharacteristicCallbacks: public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    Bluetooth::instance().on_write(pCharacteristic);
     }
 };
 
@@ -34,6 +42,24 @@ Bluetooth::Bluetooth() {
 
   device_information_service->start();
 
+  // user editable settings
+  // settings service   0x2B1E
+  // throttle smoothing
+  // deadband - upper
+  // deadband - lower
+  BLEService *settings_service = pServer->createService(BLEUUID((uint16_t) 0x2B1E));
+
+  // custom desc
+  throttle_smoothing_characteristic = settings_service->createCharacteristic(
+                                         CHARACTERISTIC_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE);
+
+  throttle_smoothing_characteristic->setValue(std::to_string(42));
+  throttle_smoothing_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+
+  settings_service->start();
+
 
   // user data service  0x181C  
   // speed              0x2A67
@@ -42,32 +68,25 @@ Bluetooth::Bluetooth() {
   // temperature        0x2A6E
   BLEService *user_data_service = pServer->createService(BLEUUID((uint16_t) 0x181C));
 
-  BLECharacteristic *speed_characteristic = user_data_service->createCharacteristic(
+  speed_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2A67,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY);
 
-  BLECharacteristic *trip_duration_characteristic = user_data_service->createCharacteristic(
+  trip_duration_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2BF2,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY);
 
-  BLECharacteristic *trip_distance_characteristic = user_data_service->createCharacteristic(
+  trip_distance_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2AE3,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY);
 
-  BLECharacteristic *temperature_characteristic = user_data_service->createCharacteristic(
+  temperature_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2A6E,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY);
-
-  // custom desc
-  BLECharacteristic *pCharacteristic = user_data_service->createCharacteristic(
-                                         CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE);
-  pCharacteristic->setValue("Hello World says Neil");
 
   user_data_service->start();
 
@@ -111,7 +130,6 @@ Bluetooth::Bluetooth() {
                                          (uint16_t) 0x2B06,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY);
-  capacity_characteristic->setValue("21");
 
   battery_service->start();
 
@@ -187,3 +205,27 @@ void Bluetooth::on_connect(BLEServer* pServer) {
 void Bluetooth::on_disconnect(BLEServer* pServer) {
   device_connected = false;
 };
+
+
+// callbacks
+void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
+  // we can only recieve bytes, so need to convert to string to manipulate it
+  std::string value = pCharacteristic->getValue();
+  int int_val = std::stoi(str_value.c_str());
+
+  /*
+  Serial.println("some value arrived");
+  Serial.println(pCharacteristic->getUUID().toString().c_str());
+  Serial.println(str_value);
+  Serial.println(int_val);
+  */
+
+  if (pCharacteristic == throttle_smoothing_characteristic) {
+    Serial.println("throttle_smooth");
+    Serial.println(int_val);
+    // todo: write property to store & throttle
+  }
+  else {
+    Serial.println("ops! no characteristic");
+  }
+}
