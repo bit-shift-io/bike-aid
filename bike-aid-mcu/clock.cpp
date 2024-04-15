@@ -1,3 +1,4 @@
+#include <string>
 #include "Arduino.h"
 #include "clock.h"
 
@@ -28,6 +29,12 @@ void Clock::update() {
     int all_minutes = time / 60000;
     int run_hours = all_minutes / 60;
     int run_minutes = all_minutes - (run_hours * 60);
-    // todo: store hr and min in 2 byte or a string?
+
+    // convert to string hh:mm
+    char buffer[6];
+    sprintf(buffer, "%02d:%02d", run_hours, run_minutes);
+
+    // send data
+    Bluetooth::instance().set_value("trip_duration", (std::string) buffer);
   }
 }

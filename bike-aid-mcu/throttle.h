@@ -5,6 +5,8 @@ class Throttle {
   public:
     void update();
     void setEnable(bool);
+    void set_increase_smoothing_factor(int);
+    int get_increase_smoothing_factor();
     
     // singleton stuff + delete the functions
     static Throttle& instance();
@@ -71,8 +73,8 @@ class Throttle {
     smoothing over time
     */
     const int SMOOTH_MAP_OUT_MIN = 1; // never zero to avoid divide by zero
-    const int SMOOTH_MAP_OUT_MAX = 2000;
+    const int SMOOTH_MAP_OUT_MAX = 2000; 
     const int DECREASE_SMOOTH_FACTOR = 100;
-    const int INCREASE_SMOOTH_FACTOR = 4000; 
+    int INCREASE_SMOOTH_FACTOR = 4000;  // stored in flash, not const
 
 };

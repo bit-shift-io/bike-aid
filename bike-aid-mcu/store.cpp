@@ -3,12 +3,21 @@
 
 
 Store::Store() {
-  if (!WIPE_STORE)
-    return;
+  if (WIPE_STORE) {
+    Serial.println("wipe flash...");
+    nvs_flash_erase(); // erase the NVS partition and...
+    nvs_flash_init(); // initialize the NVS partition.
+    while(true);
+  }
 
-  nvs_flash_erase(); // erase the NVS partition and...
-  nvs_flash_init(); // initialize the NVS partition.
-  while(true);
+  // restore values 
+  // Note: Key name is limited to 15 chars.
+  // see the url for types
+  // https://microcontrollerslab.com/save-data-esp32-flash-permanently-preferences-library/
+
+  preferences.begin("bike-aid", false);
+  Throttle::instance().set_increase_smoothing_factor(preferences.getInt("smoothing", 2000));
+  preferences.end();
 }
 
 
@@ -18,28 +27,14 @@ Store& Store::instance() {
 }
 
 
-void Store::setEnable(bool enable) {
-  enabled = enable;
-}
-
-
-void Store::update() {
-  if (!enabled)
+void Store::set_value(String name, std::string value) {
+  Serial.println("store set value");
+  if (name == "increase_smoothing_factor") {
+    preferences.begin("bike-aid", false);
+    preferences.putUInt("smoothing", std::stoi(value)); // to int
+    preferences.end();
     return;
+  }
 
-  // example to write to memory
-  preferences.begin("bike-aid", false);
-
-  // Get the counter value, if the key does not exist, return a default value of 0
-  // Note: Key name is limited to 15 chars.
-  unsigned int counter = preferences.getUInt("counter", 0);
-
-  // Store the counter to the Preferences
-  preferences.putUInt("counter", counter);
-
-  // note we can also store some kind of structs, which may be usefull eg network credentials and password
-  // note 2, if storing more than a few values, investigate SPIFFS/JSON writing to file instead
-
-  // close
-  preferences.end();
+  Serial.println("no set_value for " + name);
 }

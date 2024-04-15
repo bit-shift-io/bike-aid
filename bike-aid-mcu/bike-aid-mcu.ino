@@ -29,15 +29,16 @@ void setup() {
   //analogReference(EXTERNAL);
   //Serial.begin(9600);
   Serial.begin(115200);
-  Serial.println("Serial begin...");
-
 
   // enable modules
   //Alarm::instance().setEnable(true);
   Speed::instance().setEnable(true);
   //Throttle::instance().setEnable(true);
   Clock::instance().setEnable(true);
-  Bluetooth::instance().setEnable(true);
+  
+  // order important for these ones
+  Store::instance(); // init
+  Bluetooth::instance();
   System::instance(); // init
 }
 
@@ -46,6 +47,6 @@ void loop() {
   Throttle::instance().update();
   Speed::instance().update();
   Clock::instance().update();
-  Bluetooth::instance().update();
-  System::instance().update();
+  //Bluetooth::instance().update();
+  //System::instance().update();
 }

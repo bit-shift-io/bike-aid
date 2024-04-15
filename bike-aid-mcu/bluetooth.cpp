@@ -1,7 +1,9 @@
+#include <string>
 #include <cstdint>
 #include "BLEServer.h"
 #include "Arduino.h"
 #include "bluetooth.h"
+
 
 // class for callbacks
 class BluetoothServerCallbacks: public BLEServerCallbacks {
@@ -14,12 +16,14 @@ class BluetoothServerCallbacks: public BLEServerCallbacks {
     }
 };
 
+
 // class for callbacks
 class BluetoothCharacteristicCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     Bluetooth::instance().on_write(pCharacteristic);
     }
 };
+
 
 Bluetooth::Bluetooth() {
    // create ble device
@@ -55,7 +59,7 @@ Bluetooth::Bluetooth() {
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE);
 
-  throttle_smoothing_characteristic->setValue(std::to_string(42));
+  throttle_smoothing_characteristic->setValue(std::to_string(Throttle::instance().get_increase_smoothing_factor()));
   throttle_smoothing_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
 
   settings_service->start();
@@ -156,15 +160,7 @@ Bluetooth& Bluetooth::instance() {
   return rInstance;
 }
 
-
-void Bluetooth::init() {
-}
-
-void Bluetooth::setEnable(bool enable) {
-  enabled = enable;
-}
-
-
+/*
 void Bluetooth::update() {
   if (!enabled)
     return;
@@ -193,7 +189,26 @@ void Bluetooth::update() {
     }
   }
 }
+*/
 
+void Bluetooth::set_value(String name, std::string value) {
+  if (name == "speed") {
+    Serial.println(value.c_str());
+    return;
+  }
+
+  if (name == "trip_distance") {
+    Serial.println(value.c_str());
+    return;
+  }
+
+  if (name == "trip_duration") {
+    trip_duration_characteristic->setValue(value);
+    return;
+  }
+
+  Serial.println("bluetooth set_value missing for: " + name);
+}
 
 // callbacks
 void Bluetooth::on_connect(BLEServer* pServer) {
@@ -204,6 +219,9 @@ void Bluetooth::on_connect(BLEServer* pServer) {
 // callbacks
 void Bluetooth::on_disconnect(BLEServer* pServer) {
   device_connected = false;
+  delay(500); // give the bluetooth stack the chance to get things ready
+  pServer->startAdvertising(); // restart advertising
+  //old_device_connected = device_connected;
 };
 
 
@@ -211,21 +229,13 @@ void Bluetooth::on_disconnect(BLEServer* pServer) {
 void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
   // we can only recieve bytes, so need to convert to string to manipulate it
   std::string value = pCharacteristic->getValue();
-  int int_val = std::stoi(str_value.c_str());
-
-  /*
-  Serial.println("some value arrived");
-  Serial.println(pCharacteristic->getUUID().toString().c_str());
-  Serial.println(str_value);
-  Serial.println(int_val);
-  */
+  //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
+  Serial.println("ble on write");
 
   if (pCharacteristic == throttle_smoothing_characteristic) {
-    Serial.println("throttle_smooth");
-    Serial.println(int_val);
-    // todo: write property to store & throttle
+    Store::instance().set_value("increase_smoothing_factor", value);
+    return;
   }
-  else {
-    Serial.println("ops! no characteristic");
-  }
+
+  Serial.println("ops! no characteristic");
 }

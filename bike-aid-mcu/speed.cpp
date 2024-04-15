@@ -54,8 +54,9 @@ void Speed::update() {
       // trip odometer
       int trip_distance = (rotations * WHEEL_CIRCUMFERENCE) / 1000000; // mm to km 
 
-      Serial.print("kph:"); Serial.println(speed);
-      Serial.print("odo:"); Serial.println(trip_distance);
+      // send data
+      Bluetooth::instance().set_value("trip_distance", std::to_string(trip_distance));
+      Bluetooth::instance().set_value("speed", std::to_string(speed));
     }
   }
 }

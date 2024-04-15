@@ -62,6 +62,14 @@ void Throttle::update() {
       //Serial.print(",Th_Adj:");Serial.print(adjustment);
       Serial.println();
     }
-
   }
+}
+
+
+void Throttle::set_increase_smoothing_factor(int value) {
+  INCREASE_SMOOTH_FACTOR = value;
+}
+
+int Throttle::get_increase_smoothing_factor() {
+  return INCREASE_SMOOTH_FACTOR;
 }
