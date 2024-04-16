@@ -4,7 +4,7 @@
 class Throttle {
   public:
     void update();
-    void setEnable(bool);
+    void set_enable(bool);
     void set_increase_smoothing_factor(int);
     int get_increase_smoothing_factor();
     

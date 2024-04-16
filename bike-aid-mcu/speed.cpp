@@ -13,7 +13,7 @@ Speed& Speed::instance() {
 }
 
 
-void Speed::setEnable(bool enable) {
+void Speed::set_enable(bool enable) {
   enabled = enable;
 }
 

@@ -40,7 +40,8 @@ void Alarm::update() {
 
   // trigger the alarm
   if (warn_count > WARNINGS)
-    Serial.println("ALARM!");
+    alarm_active = true;
+    // todo: play annoying alarm noise, till user turns off the alarm
 
   
   if (warn_count == 0)
@@ -55,13 +56,17 @@ void Alarm::update() {
 }
 
 
-void Alarm::setEnable(bool enable) {
+void Alarm::set_enable(bool enable) {
+  /*
   if (enable)
     attachInterrupt(digitalPinToInterrupt(INPUT_PIN), interruptHandler, RISING);
   else
     detachInterrupt(digitalPinToInterrupt(INPUT_PIN));
-
+  */
   enabled = enable;
+
+  if (!enabled)
+    alarm_active = false;
 }
 
 

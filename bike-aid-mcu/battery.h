@@ -5,6 +5,7 @@ class Battery {
   
   public:
     void update();
+
     // singleton stuff + delete the functions
     static Battery& instance();
     Battery(const Battery&) = delete;

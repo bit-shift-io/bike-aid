@@ -5,7 +5,7 @@ class Alarm {
 
   public:
     void update();  
-    void setEnable(bool);
+    void set_enable(bool);
     static void interruptHandler();
     
     // singleton stuff + delete the functions
@@ -16,9 +16,9 @@ class Alarm {
     Alarm& operator=(Alarm&&) = delete;
 
   private:
-    // pins
     const byte INPUT_PIN = 2; // Nano 2 + 3 are interrupts
     bool enabled = false;
+    bool alarm_active = false;
 
     // how many readings in 1 second
     const int INTERVAL = 1000;

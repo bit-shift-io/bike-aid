@@ -13,15 +13,21 @@ Battery& Battery::instance() {
 }
 
 
+void Battery::set_enable(bool enable) {
+  enabled = enable;
+}
+
+
 void Battery::update() {
+  if (!enabled)
+    return;
+    
   unsigned long time = millis();
 
   if (time - last_interval > INTERVAL) {
     last_interval = time;
 
-    byte input = digitalRead(INPUT_PIN);
-    if (input == LOW) {}
-    else
-      Serial.print("Battery click");
+    byte input = analogRead(INPUT_PIN);
+    // todo: battery meter
   }
 }

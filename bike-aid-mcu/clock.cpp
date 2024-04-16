@@ -13,8 +13,11 @@ Clock& Clock::instance() {
 }
 
 
-void Clock::setEnable(bool enable) {
+void Clock::set_enable(bool enable) {
   enabled = enable;
+
+  if (enabled)
+    start_time = millis();
 }
 
 
@@ -26,15 +29,13 @@ void Clock::update() {
   if (time - last_interval > INTERVAL) {
     last_interval = time;
 
-    int all_minutes = time / 60000;
+    int all_minutes = time - start_time / 60000;
     int run_hours = all_minutes / 60;
     int run_minutes = all_minutes - (run_hours * 60);
 
     // convert to string hh:mm
     char buffer[6];
     sprintf(buffer, "%02d:%02d", run_hours, run_minutes);
-
-    // send data
     Bluetooth::instance().set_value("trip_duration", (std::string) buffer);
   }
 }

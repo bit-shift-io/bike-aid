@@ -7,7 +7,7 @@ class Speed {
 
   public:
     void update();
-    void setEnable(bool);
+    void set_enable(bool);
 
     // singleton stuff + delete the functions
     static Speed& instance();

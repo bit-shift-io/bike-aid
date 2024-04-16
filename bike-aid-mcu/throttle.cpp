@@ -3,6 +3,7 @@
 
 
 Throttle::Throttle() {
+  //analogReference(EXTERNAL);
   pinMode(PIN_IN, INPUT);
   pinMode(PIN_OUT, OUTPUT);
   output = analogRead(PIN_IN); // initial value
@@ -15,7 +16,7 @@ Throttle& Throttle::instance() {
 }
 
 
-void Throttle::setEnable(bool enable) {
+void Throttle::set_enable(bool enable) {
   enabled = enable;
 }
 
