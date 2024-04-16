@@ -54,6 +54,7 @@ void Throttle::update() {
     // PWM is 0-254 while our values are 0-1023
     analogWrite(PIN_OUT, mapped_output / 4);
 
+
     if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < time) {
       last_debug_print_interval = time;
       // format for serial plotter
@@ -63,6 +64,7 @@ void Throttle::update() {
       //Serial.print(",Th_Adj:");Serial.print(adjustment);
       Serial.println();
     }
+
   }
 }
 

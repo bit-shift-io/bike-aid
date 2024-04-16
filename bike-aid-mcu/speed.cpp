@@ -31,6 +31,8 @@ void Speed::update() {
       rotations++;
       last_rotation_time = rotation_time;
       rotation_time = time;
+      // todo: calculate instant speed for speed limiter here
+
     }
     last_state = input;
   }

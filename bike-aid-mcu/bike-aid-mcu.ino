@@ -28,20 +28,20 @@
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
+
+  // order important
+  Store::instance();
+  Bluetooth::instance();
+  System::instance();
 
   // enable modules
   // testing set true
   Alarm::instance().set_enable(true);
   Speed::instance().set_enable(true);
-  Throttle::instance().set_enable(true);
+  Throttle::instance().set_enable(false);
   Power::instance().set_enable(true);
   Clock::instance().set_enable(true);
-  
-  // order important
-  Store::instance();
-  Bluetooth::instance();
-  System::instance();
 }
 
 void loop() {

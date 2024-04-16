@@ -1,3 +1,4 @@
+#include "NimBLECharacteristic.h"
 #include <string>
 #include <cstdint>
 #include "BLEServer.h"
@@ -39,9 +40,9 @@ Bluetooth::Bluetooth() {
   // manufacturer
   // email
   BLEService *device_information_service = pServer->createService(BLEUUID((uint16_t) 0x180a));
-  BLECharacteristic *manufacturer_characteristic = device_information_service->createCharacteristic((uint16_t) 0x2a29, BLECharacteristic::PROPERTY_READ);
+  BLECharacteristic *manufacturer_characteristic = device_information_service->createCharacteristic((uint16_t) 0x2a29, NIMBLE_PROPERTY::READ);
   manufacturer_characteristic->setValue("Bronson Mathews");
-  BLECharacteristic *email_characteristic = device_information_service->createCharacteristic((uint16_t) 0x2A87, BLECharacteristic::PROPERTY_READ);
+  BLECharacteristic *email_characteristic = device_information_service->createCharacteristic((uint16_t) 0x2A87, NIMBLE_PROPERTY::READ);
   email_characteristic->setValue("bronsonmathews@gmail.com");
 
   device_information_service->start();
@@ -56,8 +57,8 @@ Bluetooth::Bluetooth() {
   // custom desc
   throttle_smoothing_characteristic = settings_service->createCharacteristic(
                                          CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::WRITE);
 
   throttle_smoothing_characteristic->setValue(std::to_string(Throttle::instance().get_increase_smoothing_factor()));
   throttle_smoothing_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
@@ -74,23 +75,23 @@ Bluetooth::Bluetooth() {
 
   speed_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2A67,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   trip_duration_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2BF2,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   trip_distance_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2AE3,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   temperature_characteristic = user_data_service->createCharacteristic(
                                          (uint16_t) 0x2A6E,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   user_data_service->start();
 
@@ -103,37 +104,30 @@ Bluetooth::Bluetooth() {
   // total ah           0x2B06
   BLEService *battery_service = pServer->createService(BLEUUID((uint16_t) 0x180f));
 
-	BLE2904* batteryLevelDescriptor = new BLE2904();
-	batteryLevelDescriptor->setFormat(BLE2904::FORMAT_UINT8);
-	batteryLevelDescriptor->setNamespace(1);
-	batteryLevelDescriptor->setUnit(0x27ad);
-
 	battery_level_characteristic = battery_service->createCharacteristic(
                                           (uint16_t) 0x2a19,
-                                          BLECharacteristic::PROPERTY_READ |
-                                          BLECharacteristic::PROPERTY_NOTIFY);
-	battery_level_characteristic->addDescriptor(batteryLevelDescriptor);
-	battery_level_characteristic->addDescriptor(new BLE2902());
+                                          NIMBLE_PROPERTY::READ |
+                                          NIMBLE_PROPERTY::NOTIFY);
 
   BLECharacteristic *voltage_characteristic = battery_service->createCharacteristic(
                                          (uint16_t) 0x2B18,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   BLECharacteristic *power_characteristic = battery_service->createCharacteristic(
                                          (uint16_t) 0x2B05,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   BLECharacteristic *current_characteristic = battery_service->createCharacteristic(
                                          (uint16_t) 0x2AEE,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   BLECharacteristic *capacity_characteristic = battery_service->createCharacteristic(
                                          (uint16_t) 0x2B06,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY);
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::NOTIFY);
 
   battery_service->start();
 
@@ -160,50 +154,26 @@ Bluetooth& Bluetooth::instance() {
   return rInstance;
 }
 
-/*
-void Bluetooth::update() {
-  if (!enabled)
-    return;
-
-  unsigned long time = millis();
-  if (time - last_interval > INTERVAL) {
-    last_interval = time;
-
-    // check device is still conected
-    if (device_connected) {
-      uint8_t battery_level = 0;
-      battery_level_characteristic->setValue(&battery_level, 1);
-      battery_level_characteristic->notify();
-    }
-
-    // disconnecting
-    if (!device_connected && old_device_connected) {
-      //delay(500); // give the bluetooth stack the chance to get things ready
-      pServer->startAdvertising(); // restart advertising
-      old_device_connected = device_connected;
-    }
-    // connecting
-    if (device_connected && !old_device_connected) {
-		  // do stuff here on connecting
-      old_device_connected = device_connected;
-    }
-  }
-}
-*/
 
 void Bluetooth::set_value(String name, std::string value) {
+  Serial.print(name);
+  Serial.println(value.c_str());
+
   if (name == "speed") {
-    Serial.println(value.c_str());
+    speed_characteristic->setValue(value);
+    speed_characteristic->notify();
     return;
   }
 
   if (name == "trip_distance") {
-    Serial.println(value.c_str());
+    trip_distance_characteristic->setValue(value);
+    trip_distance_characteristic->notify();
     return;
   }
 
   if (name == "trip_duration") {
     trip_duration_characteristic->setValue(value);
+    trip_duration_characteristic->notify();
     return;
   }
 

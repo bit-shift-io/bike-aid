@@ -4,7 +4,7 @@
 
 
 System::System() {
-  print_cpu_info();
+  //print_cpu_info();
   set_power_low();
 }
 

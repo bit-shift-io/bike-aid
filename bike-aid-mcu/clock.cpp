@@ -16,8 +16,10 @@ Clock& Clock::instance() {
 void Clock::set_enable(bool enable) {
   enabled = enable;
 
-  if (enabled)
+  if (enabled) {
     start_time = millis();
+    last_interval = start_time;
+  }
 }
 
 
@@ -29,7 +31,7 @@ void Clock::update() {
   if (time - last_interval > INTERVAL) {
     last_interval = time;
 
-    int all_minutes = time - start_time / 60000;
+    int all_minutes = (time - start_time) / 60000;
     int run_hours = all_minutes / 60;
     int run_minutes = all_minutes - (run_hours * 60);
 

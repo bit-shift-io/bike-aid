@@ -2,19 +2,20 @@
 
 #pragma once
 #include "Arduino.h"
+#include "NimBLEDevice.h"
+/*
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2904.h>
 #include <BLE2902.h>
+*/
 #include "store.h"
 #include "throttle.h"
 
 class Bluetooth {
 
   public:
-    void update();
-
     // set data
     void set_value(String name, std::string value);
 

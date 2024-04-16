@@ -36,5 +36,7 @@ void Store::set_value(String name, std::string value) {
     return;
   }
 
+  // todo: store other values min smoothing, speed limit, deadband
+
   Serial.println("no set_value for " + name);
 }

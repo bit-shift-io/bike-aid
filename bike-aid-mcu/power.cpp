@@ -21,6 +21,8 @@ void Power::set_enable(bool enable) {
 
 void Power::toggle_power() {
   digitalWrite(POWER_PIN, !digitalRead(POWER_PIN));
+
+  // todo: ble display
 }
 
 
@@ -28,4 +30,6 @@ void Power::toggle_lights() {
   if (!enabled)
     return;
   digitalWrite(LIGHT_PIN, !digitalRead(LIGHT_PIN));
+
+  // todo ble display
 }

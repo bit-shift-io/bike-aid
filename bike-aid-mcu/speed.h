@@ -36,6 +36,7 @@ class Speed {
     const int SMOOTH_FACTOR = 3;
 
     // measure wheel circumference for more accurate speed
+          // todo: measure wheel circumference
     const float WHEEL_CIRCUMFERENCE = 997.46; // 12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference
 
     static Speed& rInstance;

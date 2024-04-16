@@ -5,6 +5,7 @@ class Battery {
   
   public:
     void update();
+    void set_enable(bool);
 
     // singleton stuff + delete the functions
     static Battery& instance();
