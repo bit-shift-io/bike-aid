@@ -3,15 +3,10 @@
 #pragma once
 #include "Arduino.h"
 #include "NimBLEDevice.h"
-/*
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include <BLE2904.h>
-#include <BLE2902.h>
-*/
 #include "store.h"
 #include "throttle.h"
+#include "alarm.h"
+#include "power.h"
 
 class Bluetooth {
 
@@ -35,7 +30,10 @@ class Bluetooth {
   private:
     // https://www.uuidgenerator.net/
     const char* SERVICE_UUID = "8fabcc8a-0a6e-4c37-b640-eb5adf88b465";
-    const char* CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"; // todo: change
+    const char* THROTTLE_SMOOTHING_UUID = "beb5483e-36e1-0000-b7f5-ea07361b26a8";
+    const char* ALARM_ENABLED_UUID = "beb5483e-36e1-0001-b7f5-ea07361b26a8";
+    const char* POWER_SYSTEM_UUID = "beb5483e-36e1-0002-b7f5-ea07361b26a8";
+    const char* POWER_LIGHTS_UUID = "beb5483e-36e1-0003-b7f5-ea07361b26a8";
     const int PIN_CODE = 123456;
 
     // server
@@ -44,6 +42,9 @@ class Bluetooth {
     // services
 
     // characteristics
+    BLECharacteristic *power_system_characteristic;
+    BLECharacteristic *power_lights_characteristic;
+    BLECharacteristic *alarm_enabled_characteristic;
     BLECharacteristic *battery_level_characteristic;
     BLECharacteristic *throttle_smoothing_characteristic;
     BLECharacteristic *temperature_characteristic;

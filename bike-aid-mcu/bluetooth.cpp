@@ -22,7 +22,7 @@ class BluetoothServerCallbacks: public BLEServerCallbacks {
 class BluetoothCharacteristicCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     Bluetooth::instance().on_write(pCharacteristic);
-    }
+  }
 };
 
 
@@ -52,14 +52,36 @@ Bluetooth::Bluetooth() {
   // throttle smoothing
   // deadband - upper
   // deadband - lower
+  // alarm toggle
+  // power system toggle
+  // lights toggle
   BLEService *settings_service = pServer->createService(BLEUUID((uint16_t) 0x2B1E));
 
-  // custom desc
-  throttle_smoothing_characteristic = settings_service->createCharacteristic(
-                                         CHARACTERISTIC_UUID,
+  power_system_characteristic = settings_service->createCharacteristic(
+                                         POWER_SYSTEM_UUID,
                                          NIMBLE_PROPERTY::READ |
                                          NIMBLE_PROPERTY::WRITE);
+  power_system_characteristic->setValue(std::to_string(Power::instance().get_enable()));
+  power_system_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
 
+  power_lights_characteristic = settings_service->createCharacteristic(
+                                         POWER_LIGHTS_UUID,
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::WRITE);
+  power_lights_characteristic->setValue(std::to_string(Power::instance().get_lights_enable()));
+  power_lights_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+
+  alarm_enabled_characteristic = settings_service->createCharacteristic(
+                                         ALARM_ENABLED_UUID,
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::WRITE);
+  alarm_enabled_characteristic->setValue(std::to_string(Alarm::instance().get_enable()));
+  alarm_enabled_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+
+  throttle_smoothing_characteristic = settings_service->createCharacteristic(
+                                         THROTTLE_SMOOTHING_UUID,
+                                         NIMBLE_PROPERTY::READ |
+                                         NIMBLE_PROPERTY::WRITE);
   throttle_smoothing_characteristic->setValue(std::to_string(Throttle::instance().get_increase_smoothing_factor()));
   throttle_smoothing_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
 
@@ -177,8 +199,35 @@ void Bluetooth::set_value(String name, std::string value) {
     return;
   }
 
+  if (name == "temperature") {
+    temperature_characteristic->setValue(value);
+    temperature_characteristic->notify();
+    return;
+  }
+
   Serial.println("bluetooth set_value missing for: " + name);
 }
+
+
+// callbacks for user changables
+void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
+  // we can only recieve bytes, so need to convert to string to manipulate it
+  std::string value = pCharacteristic->getValue();
+  //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
+
+  if (pCharacteristic == throttle_smoothing_characteristic) {
+    Store::instance().set_value("increase_smoothing_factor", value);
+    return;
+  }
+
+  if (pCharacteristic == throttle_smoothing_characteristic) {
+    Store::instance().set_value("increase_smoothing_factor", value);
+    return;
+  }
+
+  Serial.println("ops! no characteristic");
+}
+
 
 // callbacks
 void Bluetooth::on_connect(BLEServer* pServer) {
@@ -193,19 +242,3 @@ void Bluetooth::on_disconnect(BLEServer* pServer) {
   pServer->startAdvertising(); // restart advertising
   //old_device_connected = device_connected;
 };
-
-
-// callbacks
-void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
-  // we can only recieve bytes, so need to convert to string to manipulate it
-  std::string value = pCharacteristic->getValue();
-  //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
-  Serial.println("ble on write");
-
-  if (pCharacteristic == throttle_smoothing_characteristic) {
-    Store::instance().set_value("increase_smoothing_factor", value);
-    return;
-  }
-
-  Serial.println("ops! no characteristic");
-}

@@ -29,7 +29,9 @@ class Speed {
 
     unsigned long rotation_time = 0;
     unsigned long last_rotation_time = 0;
-    float speed = 0;
+    float smooth_speed = 0; // for user
+    float instant_speed = 0; // for speed limiter
+    float delta_time = 0;
     int rotations = 0;
 
     // smoothing

@@ -1,11 +1,13 @@
 #pragma once
 #include "Arduino.h"
+#include "bluetooth.h"
 
 class Alarm {
 
   public:
     void update();  
     void set_enable(bool);
+    bool get_enable();
     static void interruptHandler();
     
     // singleton stuff + delete the functions

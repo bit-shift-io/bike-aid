@@ -16,20 +16,23 @@ Power& Power::instance() {
 
 void Power::set_enable(bool enable) {
   enabled = enable;
+  digitalWrite(POWER_PIN, enabled);
+  Bluetooth::instance().set_value("power_system", std::to_string(enabled));
 }
 
 
-void Power::toggle_power() {
-  digitalWrite(POWER_PIN, !digitalRead(POWER_PIN));
-
-  // todo: ble display
+void Power::set_lights_enable(bool enable) {
+  lights_enabled = enable;
+  digitalWrite(LIGHT_PIN, lights_enabled);
+  Bluetooth::instance().set_value("power_lights", std::to_string(lights_enabled));
 }
 
 
-void Power::toggle_lights() {
-  if (!enabled)
-    return;
-  digitalWrite(LIGHT_PIN, !digitalRead(LIGHT_PIN));
+bool Power::get_enable() {
+    return enabled;
+}
 
-  // todo ble display
+
+bool Power::get_lights_enable() {
+    return lights_enabled;
 }

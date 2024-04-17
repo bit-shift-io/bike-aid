@@ -31,8 +31,15 @@ void Speed::update() {
       rotations++;
       last_rotation_time = rotation_time;
       rotation_time = time;
-      // todo: calculate instant speed for speed limiter here
 
+      /*
+      // calculate instant speed for speed limiter here??
+      delta_time = rotation_time - last_rotation_time;
+      if (delta_time > 20 && delta_time < 5000) {
+        // mm per second -> kms (1mm/s = 0.0036km/s)
+        instant_speed = (1000.0f / delta_time) * WHEEL_CIRCUMFERENCE * 0.0036f; 
+      }
+      */
     }
     last_state = input;
   }
@@ -41,24 +48,24 @@ void Speed::update() {
   if (time - last_interval > INTERVAL) {
     last_interval = time;
 
-    // calculate speed using time
+    // calculate speed using time, then apply smoothing
     // filter values to high or to low
-    float delta_time = rotation_time - last_rotation_time; // ms
+    delta_time = rotation_time - last_rotation_time; // ms
     if (delta_time > 20 && delta_time < 5000) {
-      float mm_sec = (1000.0f / delta_time) * WHEEL_CIRCUMFERENCE; // mm per second
-      float cur_speed = mm_sec * 0.0036f; // 1mm/s = 0.0036km/s 
+      // mm per second -> kms (1mm/s = 0.0036km/s)
+      instant_speed = (1000.0f / delta_time) * WHEEL_CIRCUMFERENCE * 0.0036f; 
 
       // do smoothing
-      float delta_speed = cur_speed - speed; // calc difference btween speeds
+      float delta_speed = instant_speed - smooth_speed; // calc difference btween speeds
       float adjust = (float) delta_speed / (float) SMOOTH_FACTOR;
-      speed += adjust;
+      smooth_speed += adjust;
 
       // trip odometer
       int trip_distance = (rotations * WHEEL_CIRCUMFERENCE) / 1000000; // mm to km 
 
       // send data
       Bluetooth::instance().set_value("trip_distance", std::to_string(trip_distance));
-      Bluetooth::instance().set_value("speed", std::to_string(speed));
+      Bluetooth::instance().set_value("speed", std::to_string(smooth_speed));
     }
   }
 }

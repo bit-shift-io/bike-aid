@@ -13,6 +13,7 @@
   - Throttle smoothing
   - Throttle limiting / speed limiting
   - Throttle deadband adjustment
+  - Temperature
 
   Bronson Mathews, 2024
 */
@@ -25,6 +26,7 @@
 #include "bluetooth.h"
 #include "system.h"
 #include "power.h"
+#include "temperature.h"
 
 
 void setup() {
@@ -37,6 +39,7 @@ void setup() {
 
   // enable modules
   // testing set true
+  Temperature::instance().set_enable(true);
   Alarm::instance().set_enable(true);
   Speed::instance().set_enable(true);
   Throttle::instance().set_enable(false);
@@ -49,4 +52,5 @@ void loop() {
   Throttle::instance().update();
   Speed::instance().update();
   Clock::instance().update();
+  Temperature::instance().update();
 }
