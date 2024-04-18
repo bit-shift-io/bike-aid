@@ -19,12 +19,12 @@ const byte THROTTLE_SIGNAL_PIN_IN = A0;
 const byte THROTTLE_SIGNAL_PIN_OUT = 10; // 10 = D10
 
 #else // ATTINY
-const byte PIN_01 = PB5; // p1
-const byte THROTTLE_SMOOTHING_PIN_IN = PB3; // p2
-const byte THROTTLE_PIN_LIMIT_IN = PB4; // p3 ok
+//const byte RESET_PIN = PB5; // pin 1
+const byte THROTTLE_SMOOTHING_PIN_IN = PB3; // pin 2
+const byte THROTTLE_PIN_LIMIT_IN = PB4; // pin 3
 
-const byte THROTTLE_SIGNAL_PIN_IN = PB2; // p7
-const byte THROTTLE_SIGNAL_PIN_OUT = PB1; // p6
+const byte THROTTLE_SIGNAL_PIN_IN = PB2; // pin 7
+const byte THROTTLE_SIGNAL_PIN_OUT = PB1; // pin 6
 #endif
 
 
@@ -92,13 +92,12 @@ void setup() {
   Serial.begin(9600);
   #endif
 
-  pinMode(PIN_01, INPUT); // p1 above ground test
   pinMode(THROTTLE_SMOOTHING_PIN_IN, INPUT);
   pinMode(THROTTLE_PIN_LIMIT_IN, INPUT);
   pinMode(THROTTLE_SIGNAL_PIN_IN, INPUT);
   pinMode(THROTTLE_SIGNAL_PIN_OUT, OUTPUT); // output
 
-  //throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
+  throttle_output = analogRead(THROTTLE_SIGNAL_PIN_IN); // initial value
 
   /*
   // safety feature for disconnected throttle
@@ -117,19 +116,14 @@ void setup() {
 }
 
 void loop() {
-    int in = analogRead(PIN_01);
-    analogWrite(THROTTLE_SIGNAL_PIN_OUT, in / 4); // debug - ok
-    //analogWrite(THROTTLE_SMOOTHING_PIN_IN, 192); // debug
-    //analogWrite(THROTTLE_PIN_LIMIT_IN, 64); // debug - ok
-    //analogWrite(THROTTLE_SIGNAL_PIN_IN, 64); // debug
-  //throttle();
+  throttle();
 }
 
 
 void throttle() {
   unsigned long time = millis();
 
-  if ((last_throttle_interval + THROTTLE_INTERVAL) < time) {
+  if (time - last_throttle_interval > THROTTLE_INTERVAL) {
     last_throttle_interval = time;
 
     // throttle hall sensor input
