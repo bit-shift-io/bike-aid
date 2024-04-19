@@ -35,7 +35,7 @@ void setup() {
   // order important
   Store::instance();
   Bluetooth::instance();
-  System::instance();
+  //System::instance();
 
   // enable modules
   // testing set true

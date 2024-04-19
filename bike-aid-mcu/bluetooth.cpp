@@ -47,6 +47,17 @@ Bluetooth::Bluetooth() {
 
   device_information_service->start();
 
+  // uart service
+  BLEService *uart_service = pServer->createService(SERVICE_UART_UUID);
+  uart_tx_characteristic = uart_service->createCharacteristic(
+                                          CHARACTERISTIC_TX_UUID,
+                                          NIMBLE_PROPERTY::NOTIFY);
+  uart_rx_characteristic = uart_service->createCharacteristic(
+                                          CHARACTERISTIC_RX_UUID,
+                                          NIMBLE_PROPERTY::WRITE);
+  uart_rx_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  uart_service->start();
+
   // user editable settings
   // settings service   0x2B1E
   // throttle smoothing
@@ -155,19 +166,23 @@ Bluetooth::Bluetooth() {
 
   
 
-  // pin code
+  // todo: pin code
   BLESecurity *pSecurity = new BLESecurity();
   pSecurity->setStaticPIN(PIN_CODE); 
 
   // Start advertising
   BLEAdvertising *pAdvertising = pServer->getAdvertising();  // this still is working for backward compatibility
-  pAdvertising->addServiceUUID(SERVICE_UUID); // custom id
+  /* // old?
   pAdvertising->setScanResponse(true);
   pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
   pAdvertising->setMinPreferred(0x12);
-  pServer->getAdvertising()->start();
+  */
+  pAdvertising->addServiceUUID(SERVICE_UART_UUID); // uart
+  pAdvertising->addServiceUUID(SERVICE_UUID); // custom id
+  pAdvertising->start();
 
-  Serial.println("Characteristic defined! Now you can read it in your phone!");
+
+  Serial.println("Waiting for ble connection...");
 }
 
 
@@ -212,6 +227,8 @@ void Bluetooth::set_value(String name, std::string value) {
 // callbacks for user changables
 void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
   // we can only recieve bytes, so need to convert to string to manipulate it
+  const uint8_t *data = pCharacteristic->getValue();
+  size_t size = pCharacteristic->getDataLength();
   std::string value = pCharacteristic->getValue();
   //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
 
@@ -224,6 +241,25 @@ void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
     Store::instance().set_value("increase_smoothing_factor", value);
     return;
   }
+
+  if (pCharacteristic == uart_rx_characteristic) {
+    // notify data recieved
+    uart_tx_characteristic->notify(data, size);
+
+    // process data
+    if (value.length() > 0) {
+      Serial.println("*********");
+      Serial.print("Received Value: ");
+      for (int i = 0; i < value.length(); i++)
+        Serial.print(value[i]);
+
+      Serial.println();
+      Serial.println("*********");
+    }
+
+    return;
+  }
+
 
   Serial.println("ops! no characteristic");
 }

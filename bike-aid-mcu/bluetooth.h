@@ -34,7 +34,14 @@ class Bluetooth {
     const char* ALARM_ENABLED_UUID = "beb5483e-36e1-0001-b7f5-ea07361b26a8";
     const char* POWER_SYSTEM_UUID = "beb5483e-36e1-0002-b7f5-ea07361b26a8";
     const char* POWER_LIGHTS_UUID = "beb5483e-36e1-0003-b7f5-ea07361b26a8";
+
     const int PIN_CODE = 123456;
+
+    // UART service UUID
+    // https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-service
+    const char* SERVICE_UART_UUID =       "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"; 
+    const char* CHARACTERISTIC_RX_UUID =  "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"; // tx??
+    const char* CHARACTERISTIC_TX_UUID =  "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"; // rx id??
 
     // server
     BLEServer *pServer = NULL;
@@ -51,6 +58,10 @@ class Bluetooth {
     BLECharacteristic *trip_distance_characteristic;
     BLECharacteristic *trip_duration_characteristic;
     BLECharacteristic *speed_characteristic;
+
+    // uart
+    BLECharacteristic *uart_tx_characteristic;
+    BLECharacteristic *uart_rx_characteristic;
 
     // callbacks
     bool device_connected = false;
