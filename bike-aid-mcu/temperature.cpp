@@ -1,13 +1,14 @@
-#include "Arduino.h"
 #include "temperature.h"
 
 
 Temperature::Temperature() {
+  /*
   OneWire one_wire(TEMPERATURE_PIN);
   DallasTemperature temperature_sensors(&one_wire);
 
   // Start the DS18B20 sensor
   temperature_sensors.begin();
+  */
 }
 
 
@@ -18,11 +19,13 @@ Temperature& Temperature::instance() {
 
 
 void Temperature::set_enable(bool enable) {
+  Log.print("temperature enable ");Log.println(enable);
   enabled = enable;
 }
 
 
 void Temperature::update() {
+  /*
   if (!enabled)
   return;
 
@@ -35,4 +38,5 @@ void Temperature::update() {
 
     Bluetooth::instance().set_value("temperature", std::to_string(temp));
   }
+  */
 }

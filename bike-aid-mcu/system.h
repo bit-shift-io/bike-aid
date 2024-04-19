@@ -1,9 +1,10 @@
 #pragma once
-#include "Arduino.h"
+#include "global.h"
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include "driver/adc.h"
 #include <esp_task_wdt.h>
+#include "esp32-hal.h"
 
 // guide 
 // https://mischianti.org/esp32-practical-power-saving-manage-wifi-and-cpu-1/

@@ -2,7 +2,7 @@
 #include <string>
 #include <cstdint>
 #include "BLEServer.h"
-#include "Arduino.h"
+#include "global.h"
 #include "bluetooth.h"
 
 
@@ -182,7 +182,7 @@ Bluetooth::Bluetooth() {
   pAdvertising->start();
 
 
-  Serial.println("Waiting for ble connection...");
+  Log.println("bluetooth init");
 }
 
 
@@ -193,8 +193,8 @@ Bluetooth& Bluetooth::instance() {
 
 
 void Bluetooth::set_value(String name, std::string value) {
-  Serial.print(name);
-  Serial.println(value.c_str());
+  Log.print(name);
+  Log.println(value.c_str());
 
   if (name == "speed") {
     speed_characteristic->setValue(value);
@@ -220,7 +220,7 @@ void Bluetooth::set_value(String name, std::string value) {
     return;
   }
 
-  Serial.println("bluetooth set_value missing for: " + name);
+  Log.println("bluetooth set_value missing for: " + name);
 }
 
 
@@ -248,20 +248,20 @@ void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
 
     // process data
     if (value.length() > 0) {
-      Serial.println("*********");
-      Serial.print("Received Value: ");
+      Log.println("*********");
+      Log.print("Received Value: ");
       for (int i = 0; i < value.length(); i++)
-        Serial.print(value[i]);
+        Log.print(value[i]);
 
-      Serial.println();
-      Serial.println("*********");
+      Log.println();
+      Log.println("*********");
     }
 
     return;
   }
 
 
-  Serial.println("ops! no characteristic");
+  Log.println("ops! no characteristic");
 }
 
 

@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "speed.h"
 
 
@@ -14,6 +13,7 @@ Speed& Speed::instance() {
 
 
 void Speed::set_enable(bool enable) {
+  Log.print("speed enable ");Log.println(enable);
   enabled = enable;
 }
 

@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "power.h"
 
 
@@ -15,6 +14,7 @@ Power& Power::instance() {
 
 
 void Power::set_enable(bool enable) {
+  Log.print("power enable ");Log.println(enable);
   enabled = enable;
   digitalWrite(POWER_PIN, enabled);
   Bluetooth::instance().set_value("power_system", std::to_string(enabled));

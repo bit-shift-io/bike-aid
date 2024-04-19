@@ -1,5 +1,3 @@
-#include <string>
-#include "Arduino.h"
 #include "clock.h"
 
 
@@ -14,6 +12,7 @@ Clock& Clock::instance() {
 
 
 void Clock::set_enable(bool enable) {
+  Log.print("clock enable ");Log.println(enable);
   enabled = enable;
 
   if (enabled) {

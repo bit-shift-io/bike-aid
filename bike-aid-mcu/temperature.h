@@ -1,8 +1,8 @@
 #pragma once
-#include "Arduino.h"
+#include "global.h"
 #include "bluetooth.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
+//#include <OneWire.h>
+//#include <DallasTemperature.h>
 
 class Temperature {
 
@@ -20,7 +20,7 @@ class Temperature {
   private:
     const byte TEMPERATURE_PIN = 6; 
 
-    DallasTemperature temperature_sensors;
+    //DallasTemperature temperature_sensors;
     
     bool enabled = false;
     unsigned long start_time = 0;

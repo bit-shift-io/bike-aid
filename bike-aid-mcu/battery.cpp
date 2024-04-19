@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "battery.h"
 
 
@@ -14,6 +13,7 @@ Battery& Battery::instance() {
 
 
 void Battery::set_enable(bool enable) {
+  Log.println("battery enable " + enable);
   enabled = enable;
 }
 

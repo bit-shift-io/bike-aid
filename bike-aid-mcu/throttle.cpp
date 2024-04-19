@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "throttle.h"
 
 
@@ -17,6 +16,7 @@ Throttle& Throttle::instance() {
 
 
 void Throttle::set_enable(bool enable) {
+  Log.print("throttle enable ");Log.println(enable);
   enabled = enable;
 }
 
@@ -58,11 +58,11 @@ void Throttle::update() {
     if ((last_debug_print_interval + DEBUG_PRINT_INTERVAL) < time) {
       last_debug_print_interval = time;
       // format for serial plotter
-      //Serial.print(",Th_In:");Serial.print(input);
-      //Serial.print(",Th_Out:");Serial.print(output);
-      Serial.print(",Th_Map:");Serial.print(mapped_output);
-      //Serial.print(",Th_Adj:");Serial.print(adjustment);
-      Serial.println();
+      //Log.print(",Th_In:");Log.print(input);
+      //Log.print(",Th_Out:");Log.print(output);
+      Log.print(",Th_Map:");Log.print(mapped_output);
+      //Log.print(",Th_Adj:");Log.print(adjustment);
+      Log.println();
     }
 
   }

@@ -1,5 +1,5 @@
 #pragma once
-#include "Arduino.h"
+#include "global.h"
 #include <Preferences.h>
 #include <nvs_flash.h>
 #include "throttle.h"

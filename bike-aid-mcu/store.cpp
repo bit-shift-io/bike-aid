@@ -1,12 +1,14 @@
-#include "Arduino.h"
 #include "store.h"
 
 
 Store::Store() {
+  Log.println("store init");
+
   if (WIPE_STORE) {
-    Serial.println("wipe flash...");
+    Log.println("wipe flash...");
     nvs_flash_erase(); // erase the NVS partition and...
     nvs_flash_init(); // initialize the NVS partition.
+    Log.println("wipe complete, flash new rom");
     while(true);
   }
 
@@ -28,7 +30,7 @@ Store& Store::instance() {
 
 
 void Store::set_value(String name, std::string value) {
-  Serial.println("store set value");
+  Log.println("store set value");
   if (name == "increase_smoothing_factor") {
     preferences.begin("bike-aid", false);
     preferences.putUInt("smoothing", std::stoi(value)); // to int
@@ -38,5 +40,5 @@ void Store::set_value(String name, std::string value) {
 
   // todo: store other values min smoothing, speed limit, deadband
 
-  Serial.println("no set_value for " + name);
+  Log.println("no set_value for " + name);
 }

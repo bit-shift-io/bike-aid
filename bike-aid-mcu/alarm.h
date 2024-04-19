@@ -1,6 +1,6 @@
 #pragma once
-#include "Arduino.h"
 #include "bluetooth.h"
+#include "global.h"
 
 class Alarm {
 

@@ -1,5 +1,6 @@
 #pragma once
-#include "Arduino.h"
+#include <string>
+#include "global.h"
 #include "bluetooth.h"
 
 class Clock {

@@ -1,10 +1,9 @@
-#include "esp32-hal.h"
-#include "Arduino.h"
 #include "system.h"
 
 
 System::System() {
-  //print_cpu_info();
+  Log.println("system init");
+  print_cpu_info();
   set_power_low();
 }
 
@@ -20,17 +19,19 @@ void System::update() {
 
 
 void System::print_cpu_info() {
-  Serial.print("CPU Freq = ");
-  Serial.print(getCpuFrequencyMhz());
-  Serial.println(" MHz");
+  Log.println("-------------");
+  Log.print("CPU Freq = ");
+  Log.print(getCpuFrequencyMhz());
+  Log.println(" MHz");
 
-  Serial.print("XTAL Freq = ");
-  Serial.print(getXtalFrequencyMhz());
-  Serial.println(" MHz");
+  Log.print("XTAL Freq = ");
+  Log.print(getXtalFrequencyMhz());
+  Log.println(" MHz");
 
-  Serial.print("APB Freq = ");
-  Serial.print(getApbFrequency());
-  Serial.println(" Hz");
+  Log.print("APB Freq = ");
+  Log.print(getApbFrequency());
+  Log.println(" Hz");
+  Log.println("-------------");
 }
 
 

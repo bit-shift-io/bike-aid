@@ -1,7 +1,7 @@
 // handy guide https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_uart/BLE_uart.ino
 
 #pragma once
-#include "Arduino.h"
+#include "global.h"
 #include "NimBLEDevice.h"
 #include "store.h"
 #include "throttle.h"

@@ -18,6 +18,11 @@
   Bronson Mathews, 2024
 */
 
+/*
+Note: if using pins that dont exist the system will crash. Be cautious when setting new classes
+*/
+
+#include "global.h"
 #include "alarm.h"
 #include "clock.h"
 #include "throttle.h"
@@ -30,12 +35,12 @@
 
 
 void setup() {
-  Serial.begin(9600);
+  Log.init(115200);
 
   // order important
   Store::instance();
   Bluetooth::instance();
-  //System::instance();
+  System::instance();
 
   // enable modules
   // testing set true
@@ -45,6 +50,8 @@ void setup() {
   Throttle::instance().set_enable(false);
   Power::instance().set_enable(true);
   Clock::instance().set_enable(true);
+
+  Log.println("boot ok!");Log.println();
 }
 
 void loop() {

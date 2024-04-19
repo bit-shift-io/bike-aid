@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "alarm.h"
 
 
@@ -31,8 +30,8 @@ void Alarm::update() {
 
     if (trigger_count > SENSITIVITY) {
       warn_count++;
-      Serial.print("warn:");
-      Serial.println(warn_count);
+      Log.print("warn:");
+      Log.println(warn_count);
     }
 
     trigger_count = 0;
@@ -51,12 +50,13 @@ void Alarm::update() {
   if (time - last_warn_interval > WARN_INTERVAL) {
     last_warn_interval = time;
     warn_count--; // decement
-    Serial.println("warn decrease");
+    Log.println("warn decrease");
   }
 }
 
 
 void Alarm::set_enable(bool enable) {
+  Log.print("alarm enable ");Log.println(enable);
   /*
   if (enable)
     attachInterrupt(digitalPinToInterrupt(INPUT_PIN), interruptHandler, RISING);

@@ -1,5 +1,5 @@
 #pragma once
-#include "Arduino.h"
+#include "global.h"
 #include "bluetooth.h"
 
 
@@ -18,7 +18,7 @@ class Speed {
 
   private:
     // pins
-    const byte INPUT_PIN = 12;
+    const byte INPUT_PIN = 5;
     bool enabled = false;
 
     // update interval
