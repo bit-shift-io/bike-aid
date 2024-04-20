@@ -17,14 +17,14 @@ void Power::set_enable(bool enable) {
   Log.print("power enable ");Log.println(enable);
   enabled = enable;
   digitalWrite(POWER_PIN, enabled);
-  Bluetooth::instance().set_value("power_system", std::to_string(enabled));
+  //Bluetooth.set_value("power_system", std::to_string(enabled));
 }
 
 
 void Power::set_lights_enable(bool enable) {
   lights_enabled = enable;
   digitalWrite(LIGHT_PIN, lights_enabled);
-  Bluetooth::instance().set_value("power_lights", std::to_string(lights_enabled));
+  //Bluetooth.set_value("power_lights", std::to_string(lights_enabled));
 }
 
 

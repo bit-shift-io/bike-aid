@@ -2,39 +2,44 @@
 #include <string>
 #include <cstdint>
 #include "BLEServer.h"
-#include "global.h"
 #include "bluetooth.h"
 
+// assign global 
+BluetoothClass Bluetooth;
 
 // class for callbacks
-class BluetoothServerCallbacks: public BLEServerCallbacks {
+class BluetoothClassServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
-      Bluetooth::instance().on_connect(pServer);
+      Bluetooth.on_connect(pServer);
     };
 
     void onDisconnect(BLEServer* pServer) {
-      Bluetooth::instance().on_disconnect(pServer);
+      Bluetooth.on_disconnect(pServer);
     }
 };
 
 
 // class for callbacks
-class BluetoothCharacteristicCallbacks: public BLECharacteristicCallbacks {
+class BluetoothClassCharacteristicCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
-    Bluetooth::instance().on_write(pCharacteristic);
+    Bluetooth.on_write(pCharacteristic);
   }
 };
 
 
-Bluetooth::Bluetooth() {
+BluetoothClass::BluetoothClass() {
+}
+
+
+void BluetoothClass::init() {
    // create ble device
   BLEDevice::init("Bronson Scooter");
 
   // create the ble server
   pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new BluetoothServerCallbacks());
+  pServer->setCallbacks(new BluetoothClassServerCallbacks());
 
-  // for services, see https://www.bluetooth.com/specifications/assigned-numbers/
+  // for services, see https://www.BluetoothClass.com/specifications/assigned-numbers/
 
   // device information service
   // manufacturer
@@ -55,7 +60,7 @@ Bluetooth::Bluetooth() {
   uart_rx_characteristic = uart_service->createCharacteristic(
                                           CHARACTERISTIC_RX_UUID,
                                           NIMBLE_PROPERTY::WRITE);
-  uart_rx_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  uart_rx_characteristic->setCallbacks(new BluetoothClassCharacteristicCallbacks());
   uart_service->start();
 
   // user editable settings
@@ -73,28 +78,28 @@ Bluetooth::Bluetooth() {
                                          NIMBLE_PROPERTY::READ |
                                          NIMBLE_PROPERTY::WRITE);
   power_system_characteristic->setValue(std::to_string(Power::instance().get_enable()));
-  power_system_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  power_system_characteristic->setCallbacks(new BluetoothClassCharacteristicCallbacks());
 
   power_lights_characteristic = settings_service->createCharacteristic(
                                          POWER_LIGHTS_UUID,
                                          NIMBLE_PROPERTY::READ |
                                          NIMBLE_PROPERTY::WRITE);
   power_lights_characteristic->setValue(std::to_string(Power::instance().get_lights_enable()));
-  power_lights_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  power_lights_characteristic->setCallbacks(new BluetoothClassCharacteristicCallbacks());
 
   alarm_enabled_characteristic = settings_service->createCharacteristic(
                                          ALARM_ENABLED_UUID,
                                          NIMBLE_PROPERTY::READ |
                                          NIMBLE_PROPERTY::WRITE);
   alarm_enabled_characteristic->setValue(std::to_string(Alarm::instance().get_enable()));
-  alarm_enabled_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  alarm_enabled_characteristic->setCallbacks(new BluetoothClassCharacteristicCallbacks());
 
   throttle_smoothing_characteristic = settings_service->createCharacteristic(
                                          THROTTLE_SMOOTHING_UUID,
                                          NIMBLE_PROPERTY::READ |
                                          NIMBLE_PROPERTY::WRITE);
   throttle_smoothing_characteristic->setValue(std::to_string(Throttle::instance().get_increase_smoothing_factor()));
-  throttle_smoothing_characteristic->setCallbacks(new BluetoothCharacteristicCallbacks());
+  throttle_smoothing_characteristic->setCallbacks(new BluetoothClassCharacteristicCallbacks());
 
   settings_service->start();
 
@@ -182,17 +187,11 @@ Bluetooth::Bluetooth() {
   pAdvertising->start();
 
 
-  Log.println("bluetooth init");
+  Log.println("BluetoothClass init");
 }
 
 
-Bluetooth& Bluetooth::instance() {
-  static auto &&rInstance = Bluetooth();
-  return rInstance;
-}
-
-
-void Bluetooth::set_value(String name, std::string value) {
+void BluetoothClass::set_value(String name, std::string value) {
   Log.print(name);
   Log.println(value.c_str());
 
@@ -220,12 +219,12 @@ void Bluetooth::set_value(String name, std::string value) {
     return;
   }
 
-  Log.println("bluetooth set_value missing for: " + name);
+  Log.println("BluetoothClass set_value missing for: " + name);
 }
 
 
 // callbacks for user changables
-void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
+void BluetoothClass::on_write(BLECharacteristic *pCharacteristic) {
   // we can only recieve bytes, so need to convert to string to manipulate it
   const uint8_t *data = pCharacteristic->getValue();
   size_t size = pCharacteristic->getDataLength();
@@ -233,12 +232,12 @@ void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
   //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
 
   if (pCharacteristic == throttle_smoothing_characteristic) {
-    Store::instance().set_value("increase_smoothing_factor", value);
+    Store.set_value("increase_smoothing_factor", value);
     return;
   }
 
   if (pCharacteristic == throttle_smoothing_characteristic) {
-    Store::instance().set_value("increase_smoothing_factor", value);
+    Store.set_value("increase_smoothing_factor", value);
     return;
   }
 
@@ -266,15 +265,15 @@ void Bluetooth::on_write(BLECharacteristic *pCharacteristic) {
 
 
 // callbacks
-void Bluetooth::on_connect(BLEServer* pServer) {
+void BluetoothClass::on_connect(BLEServer* pServer) {
   device_connected = true;
 };
 
 
 // callbacks
-void Bluetooth::on_disconnect(BLEServer* pServer) {
+void BluetoothClass::on_disconnect(BLEServer* pServer) {
   device_connected = false;
-  delay(500); // give the bluetooth stack the chance to get things ready
+  delay(500); // give the BluetoothClass stack the chance to get things ready
   pServer->startAdvertising(); // restart advertising
   //old_device_connected = device_connected;
 };

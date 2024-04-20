@@ -1,24 +1,20 @@
 #include "system.h"
 
+SystemClass System;
 
-System::System() {
-  Log.println("system init");
+
+SystemClass::SystemClass() {
+}
+
+
+void SystemClass::init() {
+  Log.println("SystemClass init");
   print_cpu_info();
-  set_power_low();
+  //set_power_low(); // crash!
 }
 
 
-System& System::instance() {
-  static auto &&rInstance = System();
-  return rInstance;
-}
-
-
-void System::update() {
-}
-
-
-void System::print_cpu_info() {
+void SystemClass::print_cpu_info() {
   Log.println("-------------");
   Log.print("CPU Freq = ");
   Log.print(getCpuFrequencyMhz());
@@ -35,7 +31,7 @@ void System::print_cpu_info() {
 }
 
 
-void System::set_power_low() {
+void SystemClass::set_power_low() {
   // wifi power mode
   //esp_wifi_set_ps(WIFI_PS_MAX_MODEM); // lowest
   //esp_wifi_set_ps(WIFI_PS_MIN_MODEM); // low
@@ -60,7 +56,7 @@ void System::set_power_low() {
 }
 
 
-void System::set_power_high() {
+void SystemClass::set_power_high() {
   // wifi power mode
   esp_wifi_set_ps(WIFI_PS_NONE); // default
 

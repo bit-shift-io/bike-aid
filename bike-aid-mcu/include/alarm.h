@@ -1,6 +1,6 @@
 #pragma once
-#include "bluetooth.h"
-#include "global.h"
+#include "log.h"
+#include "Arduino.h"
 
 class Alarm {
 
@@ -18,7 +18,7 @@ class Alarm {
     Alarm& operator=(Alarm&&) = delete;
 
   private:
-    const byte INPUT_PIN = 2; // Nano 2 + 3 are interrupts
+    const int INPUT_PIN = 2; // Nano 2 + 3 are interrupts
     bool enabled = false;
     bool alarm_active = false;
 
@@ -26,7 +26,7 @@ class Alarm {
     const int INTERVAL = 1000;
     unsigned long last_interval = 0;
     const int SENSITIVITY = 40;
-    byte trigger_count = 0;
+    int trigger_count = 0;
     bool tigger_state = 0; // 0 - low, 1 - high
 
     // interupt
@@ -35,8 +35,8 @@ class Alarm {
     // warnings
     const int WARN_INTERVAL = 10000;
     unsigned long last_warn_interval = 0;
-    const byte WARNINGS = 2;
-    byte warn_count = 0;
+    const int WARNINGS = 2;
+    int warn_count = 0;
 
     // class
     static Alarm& rInstance;

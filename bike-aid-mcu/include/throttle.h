@@ -1,6 +1,6 @@
 #pragma once
-#include "Arduino.h"
-#include "global.h"
+#include "log.h"
+
 
 class Throttle {
   public:

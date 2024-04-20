@@ -68,7 +68,7 @@ void Alarm::set_enable(bool enable) {
   if (!enabled)
     alarm_active = false;
 
-  Bluetooth::instance().set_value("alarm_enabled", std::to_string(enabled));
+  //Bluetooth.set_value("alarm_enabled", std::to_string(enabled));
 }
 
 

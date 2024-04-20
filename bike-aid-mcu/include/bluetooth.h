@@ -1,31 +1,23 @@
 // handy guide https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_uart/BLE_uart.ino
 
 #pragma once
-#include "global.h"
 #include "NimBLEDevice.h"
 #include "store.h"
 #include "throttle.h"
 #include "alarm.h"
 #include "power.h"
 
-class Bluetooth {
+class BluetoothClass {
 
   public:
-    // set data
+    BluetoothClass();
+    void init();
     void set_value(String name, std::string value);
 
     // callbacks
     void on_connect(BLEServer* pServer);
     void on_disconnect(BLEServer* pServer);
     void on_write(BLECharacteristic *pCharacteristic);
-
-    // singleton stuff + delete the functions
-    static Bluetooth& instance();
-    Bluetooth(const Bluetooth&) = delete;
-    Bluetooth(Bluetooth&&) = delete;
-    Bluetooth& operator=(const Bluetooth&) = delete;
-    Bluetooth& operator=(Bluetooth&&) = delete;
-
 
   private:
     // https://www.uuidgenerator.net/
@@ -38,7 +30,7 @@ class Bluetooth {
     const int PIN_CODE = 123456;
 
     // UART service UUID
-    // https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-service
+    // https://learn.adafruit.com/introducing-adafruit-ble-BluetoothClass-low-energy-friend/uart-service
     const char* SERVICE_UART_UUID =       "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"; 
     const char* CHARACTERISTIC_RX_UUID =  "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"; // tx??
     const char* CHARACTERISTIC_TX_UUID =  "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"; // rx id??
@@ -70,8 +62,6 @@ class Bluetooth {
     // Delay between loops in ms
     const int INTERVAL = 6000; // 1 minute
     unsigned long last_interval = 0;
-
-    static Bluetooth& rInstance;
-    Bluetooth();
-    //~Bluetooth();
 };
+
+extern BluetoothClass Bluetooth;

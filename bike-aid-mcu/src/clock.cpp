@@ -37,6 +37,6 @@ void Clock::update() {
     // convert to string hh:mm
     char buffer[6];
     sprintf(buffer, "%02d:%02d", run_hours, run_minutes);
-    Bluetooth::instance().set_value("trip_duration", (std::string) buffer);
+    //Bluetooth.set_value("trip_duration", (std::string) buffer);
   }
 }

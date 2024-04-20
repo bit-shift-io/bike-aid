@@ -1,8 +1,8 @@
 #pragma once
-#include "global.h"
-#include "bluetooth.h"
+//#include "bluetooth.h"
 //#include <OneWire.h>
 //#include <DallasTemperature.h>
+#include "log.h"
 
 class Temperature {
 
@@ -18,7 +18,7 @@ class Temperature {
     Temperature& operator=(Temperature&&) = delete;
 
   private:
-    const byte TEMPERATURE_PIN = 6; 
+    const int TEMPERATURE_PIN = 6; 
 
     //DallasTemperature temperature_sensors;
     

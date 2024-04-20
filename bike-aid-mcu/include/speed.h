@@ -1,6 +1,7 @@
 #pragma once
-#include "global.h"
-#include "bluetooth.h"
+//#include "bluetooth.h"
+#include "Arduino.h"
+#include "log.h"
 
 
 class Speed {
@@ -18,14 +19,14 @@ class Speed {
 
   private:
     // pins
-    const byte INPUT_PIN = 5;
+    const int INPUT_PIN = 5;
     bool enabled = false;
 
     // update interval
     const int INTERVAL = 250;
     unsigned long last_interval = 0;
 
-    byte last_state = LOW;
+    int last_state = LOW;
 
     unsigned long rotation_time = 0;
     unsigned long last_rotation_time = 0;

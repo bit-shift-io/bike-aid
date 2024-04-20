@@ -64,8 +64,8 @@ void Speed::update() {
       int trip_distance = (rotations * WHEEL_CIRCUMFERENCE) / 1000000; // mm to km 
 
       // send data
-      Bluetooth::instance().set_value("trip_distance", std::to_string(trip_distance));
-      Bluetooth::instance().set_value("speed", std::to_string(smooth_speed));
+      //Bluetooth.set_value("trip_distance", std::to_string(trip_distance));
+      //Bluetooth.set_value("speed", std::to_string(smooth_speed));
     }
   }
 }

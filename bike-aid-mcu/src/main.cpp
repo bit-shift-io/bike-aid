@@ -22,25 +22,28 @@
 Note: if using pins that dont exist the system will crash. Be cautious when setting new classes
 */
 
-#include "global.h"
+#include "Arduino.h"
+#include "log.h"
+#include "system.h"
+#include "store.h"
 #include "alarm.h"
 #include "clock.h"
 #include "throttle.h"
 #include "speed.h"
 #include "battery.h"
-#include "bluetooth.h"
 #include "system.h"
 #include "power.h"
 #include "temperature.h"
+#include "bluetooth.h"
 
 
 void setup() {
-  Log.init(115200);
 
   // order important
-  Store::instance();
-  Bluetooth::instance();
-  System::instance();
+  Log.init(115200);
+  Store.init();
+  Bluetooth.init();
+  System.init();
 
   // enable modules
   // testing set true
@@ -52,6 +55,8 @@ void setup() {
   Clock::instance().set_enable(true);
 
   Log.println("boot ok!");Log.println();
+
+  //Bluetooth.set_value("test", "50");
 }
 
 void loop() {

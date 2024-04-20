@@ -1,6 +1,6 @@
 #pragma once
-#include "global.h"
-#include "bluetooth.h"
+#include "log.h"
+//#include "bluetooth.h"
 
 class Power {
   
@@ -19,8 +19,8 @@ class Power {
     Power& operator=(Power&&) = delete;
 
   private:
-    const byte POWER_PIN = 8;
-    const byte LIGHT_PIN = 9;
+    const int POWER_PIN = 8;
+    const int LIGHT_PIN = 9;
 
     bool enabled = false; // system
     bool lights_enabled = false;

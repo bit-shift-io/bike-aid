@@ -1,5 +1,6 @@
 #pragma once
-#include "global.h"
+#include "Arduino.h"
+#include "log.h"
 
 class Battery {
   
@@ -16,15 +17,15 @@ class Battery {
 
   private:
     // pins
-    const byte INPUT_PIN = 12;
+    const int INPUT_PIN = 12;
     bool enabled = false;
 
     const int INTERVAL = 1;
     unsigned long last_interval = 0;
 
-    const byte BATTERY_CAPACITY = 24; // Ah
-    const byte BATTERY_VOLTAGE = 48; // v
-    const byte BATTERY_LOW = 46; // v
+    const int BATTERY_CAPACITY = 24; // Ah
+    const int BATTERY_VOLTAGE = 48; // v
+    const int BATTERY_LOW = 46; // v
 
     static Battery& rInstance;
     Battery();
