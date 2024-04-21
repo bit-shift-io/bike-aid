@@ -55,8 +55,6 @@ void setup() {
   Clock::instance().set_enable(true);
 
   Log.println("boot ok!");Log.println();
-
-  //Bluetooth.set_value("test", "50");
 }
 
 void loop() {

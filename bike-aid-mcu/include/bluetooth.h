@@ -12,12 +12,32 @@ class BluetoothClass {
   public:
     BluetoothClass();
     void init();
-    void set_value(String name, std::string value);
+    
+    void set_value(BLECharacteristic *pCharacteristic, std::string value);
+    void set_value(BLECharacteristic *pCharacteristic, uint8_t value);
 
     // callbacks
     void on_connect(BLEServer* pServer);
     void on_disconnect(BLEServer* pServer);
     void on_write(BLECharacteristic *pCharacteristic);
+
+
+    // services
+
+    // characteristics
+    BLECharacteristic *power_system_characteristic;
+    BLECharacteristic *power_lights_characteristic;
+    BLECharacteristic *alarm_enabled_characteristic;
+    BLECharacteristic *battery_level_characteristic;
+    BLECharacteristic *throttle_smoothing_characteristic;
+    BLECharacteristic *temperature_characteristic;
+    BLECharacteristic *trip_distance_characteristic;
+    BLECharacteristic *trip_duration_characteristic;
+    BLECharacteristic *speed_characteristic;
+
+    // uart
+    BLECharacteristic *uart_tx_characteristic;
+    BLECharacteristic *uart_rx_characteristic;
 
   private:
     // https://www.uuidgenerator.net/
@@ -38,22 +58,7 @@ class BluetoothClass {
     // server
     BLEServer *pServer = NULL;
 
-    // services
 
-    // characteristics
-    BLECharacteristic *power_system_characteristic;
-    BLECharacteristic *power_lights_characteristic;
-    BLECharacteristic *alarm_enabled_characteristic;
-    BLECharacteristic *battery_level_characteristic;
-    BLECharacteristic *throttle_smoothing_characteristic;
-    BLECharacteristic *temperature_characteristic;
-    BLECharacteristic *trip_distance_characteristic;
-    BLECharacteristic *trip_duration_characteristic;
-    BLECharacteristic *speed_characteristic;
-
-    // uart
-    BLECharacteristic *uart_tx_characteristic;
-    BLECharacteristic *uart_rx_characteristic;
 
     // callbacks
     bool device_connected = false;

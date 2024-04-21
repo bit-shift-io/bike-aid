@@ -191,35 +191,22 @@ void BluetoothClass::init() {
 }
 
 
-void BluetoothClass::set_value(String name, std::string value) {
-  Log.print(name);
-  Log.println(value.c_str());
-
-  if (name == "speed") {
-    speed_characteristic->setValue(value);
-    speed_characteristic->notify();
+void BluetoothClass::set_value(BLECharacteristic *pCharacteristic, std::string value) {
+  if (!pCharacteristic)
     return;
-  }
 
-  if (name == "trip_distance") {
-    trip_distance_characteristic->setValue(value);
-    trip_distance_characteristic->notify();
+  pCharacteristic->setValue(value);
+  pCharacteristic->notify();
+  Log.println("bluetooh set_value");
+}
+
+
+void BluetoothClass::set_value(BLECharacteristic *pCharacteristic, uint8_t value) {
+  if (!pCharacteristic)
     return;
-  }
-
-  if (name == "trip_duration") {
-    trip_duration_characteristic->setValue(value);
-    trip_duration_characteristic->notify();
-    return;
-  }
-
-  if (name == "temperature") {
-    temperature_characteristic->setValue(value);
-    temperature_characteristic->notify();
-    return;
-  }
-
-  Log.println("BluetoothClass set_value missing for: " + name);
+  pCharacteristic->setValue(value);
+  pCharacteristic->notify();
+  Log.println("bluetooh set_value");
 }
 
 
@@ -260,7 +247,7 @@ void BluetoothClass::on_write(BLECharacteristic *pCharacteristic) {
   }
 
 
-  Log.println("ops! no characteristic");
+  Log.println("ops! no characteristic on write");
 }
 
 

@@ -13,9 +13,13 @@ void LogClass::init(int baud) {
 }
 
 
+size_t LogClass::write(uint8_t c) { // overwirte this method from print
+    set_value(c);
+    return 1;
+}
+
+
 void LogClass::set_value(uint8_t c) {
-  //Bluetooth.set_value("log", std::string((char *)c));
-  size_t len;
-  std::string s(reinterpret_cast<char const*>(c), len);
-  //Bluetooth.set_value("log", s);
+  Serial.write(c);
+  //Bluetooth.set_value(Bluetooth.uart_rx_characteristic, c);
 }

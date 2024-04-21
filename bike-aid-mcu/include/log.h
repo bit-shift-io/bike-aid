@@ -8,14 +8,10 @@ class LogClass : public Print {
   public:
     LogClass();
     void init(int baud);
-    void set_value(uint8_t c);
+    size_t write(uint8_t c);
 
-    // overwirte this method
-    size_t write(uint8_t c) {
-        Serial.write(c);
-        set_value(c);
-        return 1;
-    }
+  private:
+    void set_value(uint8_t c);
 };
 
 extern LogClass Log;
