@@ -1,6 +1,4 @@
 #pragma once
-#include "log.h"
-
 
 class Throttle {
   public:
@@ -23,8 +21,8 @@ class Throttle {
     //~Throttle();
 
     // pins
-    const byte PIN_IN = A0;
-    const byte PIN_OUT = 10; // 10 = D10
+    const int PIN_IN = 0; // a0
+    const int PIN_OUT = 10; // 10 = D10
 
     // Delay between loops in ms
     const int INTERVAL = 1;

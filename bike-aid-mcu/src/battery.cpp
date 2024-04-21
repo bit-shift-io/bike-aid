@@ -1,5 +1,6 @@
 #include "battery.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Battery::Battery() {
   pinMode(INPUT_PIN, INPUT);

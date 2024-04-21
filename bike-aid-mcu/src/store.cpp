@@ -1,4 +1,7 @@
 #include "store.h"
+#include <nvs_flash.h>
+#include "throttle.h"
+#include "log.h"
 
 StoreClass Store;
 
@@ -29,16 +32,19 @@ void StoreClass::init() {
 }
 
 
-void StoreClass::set_value(String name, std::string value) {
+void StoreClass::set_value(StoreClass::type name, std::string value) {
   Log.println("StoreClass set value");
-  if (name == "increase_smoothing_factor") {
-    preferences.begin("bike-aid", false);
-    preferences.putUInt("smoothing", std::stoi(value)); // to int
-    preferences.end();
-    return;
+
+  switch(name) {
+    case StoreClass::increase_smoothing_factor:
+      preferences.begin("bike-aid", false);
+      preferences.putUInt("smoothing", std::stoi(value)); // to int
+      preferences.end();
+      return;
+      break;
   }
 
-  // todo: StoreClass other values min smoothing, speed limit, deadband
 
-  Log.println("no set_value for " + name);
+  // todo: StoreClass other values min smoothing, speed limit, deadband
+  Log.println("missing store set_value ");
 }

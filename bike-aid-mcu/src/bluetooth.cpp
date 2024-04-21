@@ -3,6 +3,11 @@
 #include <cstdint>
 #include "BLEServer.h"
 #include "bluetooth.h"
+#include "store.h"
+#include "throttle.h"
+#include "alarm.h"
+#include "power.h"
+#include "log.h"
 
 // assign global 
 BluetoothClass Bluetooth;
@@ -142,7 +147,7 @@ void BluetoothClass::init() {
   // total ah           0x2B06
   BLEService *battery_service = pServer->createService(BLEUUID((uint16_t) 0x180f));
 
-	battery_level_characteristic = battery_service->createCharacteristic(
+  battery_level_characteristic = battery_service->createCharacteristic(
                                           (uint16_t) 0x2a19,
                                           NIMBLE_PROPERTY::READ |
                                           NIMBLE_PROPERTY::NOTIFY);
@@ -219,12 +224,12 @@ void BluetoothClass::on_write(BLECharacteristic *pCharacteristic) {
   //int int_val = std::stoi(value.c_str()); // debug, we send strings via ble
 
   if (pCharacteristic == throttle_smoothing_characteristic) {
-    Store.set_value("increase_smoothing_factor", value);
+    Store.set_value(StoreClass::increase_smoothing_factor, value);
     return;
   }
 
   if (pCharacteristic == throttle_smoothing_characteristic) {
-    Store.set_value("increase_smoothing_factor", value);
+    Store.set_value(StoreClass::increase_smoothing_factor, value);
     return;
   }
 

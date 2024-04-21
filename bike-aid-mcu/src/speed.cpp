@@ -1,5 +1,6 @@
 #include "speed.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Speed::Speed() {
   pinMode(INPUT_PIN, INPUT);

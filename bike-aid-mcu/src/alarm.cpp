@@ -1,5 +1,6 @@
 #include "alarm.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Alarm::Alarm() {
   pinMode(INPUT_PIN, INPUT);

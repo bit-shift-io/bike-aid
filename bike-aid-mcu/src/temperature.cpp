@@ -1,5 +1,8 @@
 #include "temperature.h"
-
+//#include "bluetooth.h"
+//#include <OneWire.h>
+//#include <DallasTemperature.h>
+#include "log.h"
 
 Temperature::Temperature() {
   /*

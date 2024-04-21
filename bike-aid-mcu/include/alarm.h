@@ -1,6 +1,4 @@
 #pragma once
-#include "log.h"
-#include "Arduino.h"
 
 class Alarm {
 

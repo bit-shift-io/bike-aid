@@ -1,5 +1,6 @@
 #include "power.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Power::Power() {
     pinMode(POWER_PIN, OUTPUT);

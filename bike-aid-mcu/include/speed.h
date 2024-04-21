@@ -1,8 +1,4 @@
 #pragma once
-//#include "bluetooth.h"
-#include "Arduino.h"
-#include "log.h"
-
 
 class Speed {
 
@@ -26,7 +22,7 @@ class Speed {
     const int INTERVAL = 250;
     unsigned long last_interval = 0;
 
-    int last_state = LOW;
+    int last_state = 0;
 
     unsigned long rotation_time = 0;
     unsigned long last_rotation_time = 0;

@@ -1,8 +1,4 @@
 #pragma once
-//#include "bluetooth.h"
-//#include <OneWire.h>
-//#include <DallasTemperature.h>
-#include "log.h"
 
 class Temperature {
 

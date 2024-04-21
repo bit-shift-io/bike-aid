@@ -1,15 +1,16 @@
 #pragma once
 #include <Preferences.h>
-#include <nvs_flash.h>
-#include "throttle.h"
 
 class StoreClass {
-  
+
   public:
+    enum type {
+      increase_smoothing_factor
+    };
+
     StoreClass();
     void init();
-    void update();
-    void set_value(String name, std::string value);
+    void set_value(StoreClass::type name, std::string value);
 
   private:
     Preferences preferences;

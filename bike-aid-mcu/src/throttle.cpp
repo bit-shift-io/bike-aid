@@ -1,5 +1,6 @@
 #include "throttle.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Throttle::Throttle() {
   //analogReference(EXTERNAL);

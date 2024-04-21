@@ -1,5 +1,6 @@
 #include "clock.h"
-
+#include "Arduino.h"
+#include "log.h"
 
 Clock::Clock() {
 }

@@ -1,7 +1,6 @@
 #pragma once
-#include "Arduino.h"
 #include <string>
-#include "bluetooth.h"
+#include "Arduino.h"
 
 class LogClass : public Print {
   

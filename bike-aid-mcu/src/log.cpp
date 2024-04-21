@@ -1,4 +1,5 @@
 #include "log.h"
+#include "bluetooth.h"
 
 LogClass Log;
 

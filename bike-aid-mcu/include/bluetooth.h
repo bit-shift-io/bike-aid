@@ -2,17 +2,14 @@
 
 #pragma once
 #include "NimBLEDevice.h"
-#include "store.h"
-#include "throttle.h"
-#include "alarm.h"
-#include "power.h"
+
 
 class BluetoothClass {
 
   public:
     BluetoothClass();
     void init();
-    
+
     void set_value(BLECharacteristic *pCharacteristic, std::string value);
     void set_value(BLECharacteristic *pCharacteristic, uint8_t value);
 

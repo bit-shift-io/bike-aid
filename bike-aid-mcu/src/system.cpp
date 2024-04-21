@@ -1,4 +1,10 @@
 #include "system.h"
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include "driver/adc.h"
+#include <esp_task_wdt.h>
+#include "esp32-hal.h"
+#include "log.h"
 
 SystemClass System;
 

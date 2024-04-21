@@ -1,6 +1,4 @@
 #pragma once
-#include "log.h"
-//#include "bluetooth.h"
 
 class Power {
   

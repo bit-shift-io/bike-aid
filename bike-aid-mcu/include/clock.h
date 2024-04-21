@@ -1,7 +1,4 @@
 #pragma once
-#include <string>
-//#include "bluetooth.h"
-#include "log.h"
 
 class Clock {
 
