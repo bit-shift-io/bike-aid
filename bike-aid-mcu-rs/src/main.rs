@@ -46,9 +46,9 @@ async fn main(spawner: Spawner) {
 
     
     // loop
-    let mut sub = signals::TEST_CHANNEL.subscriber().unwrap();
+    let mut sub_minutes = signals::CHANNEL_CLOCK_MINUTES.subscriber().unwrap();
     loop {
-        let val = sub.next_message_pure().await;
+        let val = sub_minutes.next_message_pure().await;
         log::info!("{:02}", val);
     }
 }
