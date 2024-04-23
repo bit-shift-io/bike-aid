@@ -1,7 +1,7 @@
+/*
 use embassy_executor::Spawner;
 
-use super::trip::clock::Clock;
-pub mod clock;
+use crate::clock::Clock;
 
 pub trait TripTrait {
     fn start(&mut self);
@@ -33,3 +33,4 @@ impl TripTrait for Trip {
     fn stop(&mut self) {
     }
 }
+ */

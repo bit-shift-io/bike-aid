@@ -1,5 +1,5 @@
 [package]
-name = "basics"
+name = "bike-aid-mcu-rs"
 version = "0.1.0"
 authors = ["bronsonmathews@gmail.com"]
 edition = "2021"
