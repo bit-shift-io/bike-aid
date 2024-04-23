@@ -4,21 +4,21 @@
 
 //use riscv_rt::entry;
 
-
 // imports
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
 use esp32c3_hal::{clock::ClockControl, embassy, peripherals::Peripherals, prelude::*, IO};
 use esp_backtrace as _;
 use esp_println::logger::init_logger;
 
 // modules
-mod trip;
 mod signals;
+mod task_manager;
+mod task_clock;
+mod task_speed;
+use task_speed::speed;
+use task_clock::clock;
+use task_manager::TaskManager;
 
-// task modules
-mod task_commander;
-mod task_blinker;
 
 
 #[main]
@@ -37,33 +37,18 @@ async fn main(spawner: Spawner) {
         esp32c3_hal::timer::TimerGroup::new(peripherals.TIMG0, &clocks).timer0,
     );
 
-    use crate::task_commander::commander;
-    spawner.must_spawn(commander(
-        signals::BLINKER_MODE.publisher().unwrap(),
-    ));
+    // init task manager
+    let mut task_manager: TaskManager = TaskManager::new(spawner);
 
-    // blinker crate
-    use crate::task_blinker::blinker;
-    spawner.must_spawn(blinker(
-        signals::BLINKER_MODE.subscriber().unwrap(),
-        pins.gpio8.into_push_pull_output().degrade()
-    ));
-
-    // Ensure all signal subscribers are used
-    assert!(signals::BLINKER_MODE.subscriber().is_err());
-
-    /*
-    // init trip
-    let mut trip: Trip = Trip::new(spawner);
-    trip.start();
+    // spawn tasks
+    spawner.spawn(clock()).unwrap();
+    spawner.spawn(speed()).unwrap();
 
     
     // loop
-    let mut count = 0;
+    let mut sub = signals::TEST_CHANNEL.subscriber().unwrap();
     loop {
-        log::info!("Main Task Count: {}", count);
-        count += 1;
-        Timer::after(Duration::from_millis(5_000)).await;
+        let val = sub.next_message_pure().await;
+        log::info!("{:02}", val);
     }
-     */
 }

@@ -1,18 +1,17 @@
-/*
 use embassy_executor::Spawner;
 
-use crate::clock::Clock;
+use crate::task_clock::Clock;
 
-pub trait TripTrait {
+pub trait TaskTrait {
     fn start(&mut self);
     fn stop(&mut self);
 }
 
-pub struct Trip {
+pub struct TaskManager {
     spawner: Spawner
 }
 
-impl Trip {
+impl TaskManager {
     pub fn new(spawner: Spawner) -> Self {
         Self {
             spawner
@@ -21,7 +20,7 @@ impl Trip {
     
 }
 
-impl TripTrait for Trip {
+impl TaskTrait for TaskManager {
     fn start(&mut self) {
         log::info!("Trip started");
 
@@ -33,4 +32,3 @@ impl TripTrait for Trip {
     fn stop(&mut self) {
     }
 }
- */
