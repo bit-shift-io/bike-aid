@@ -5,7 +5,7 @@ static TASK_ID : &str = "CLOCK";
 
 
 #[embassy_executor::task]
-pub async fn clock () {
+pub async fn init () {
     let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
     let pub_minutes = signals::CLOCK_MINUTES.publisher().unwrap();
 

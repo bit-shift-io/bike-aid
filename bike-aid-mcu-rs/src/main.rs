@@ -2,11 +2,6 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 
-// imports
-use embassy_executor::Spawner;
-use esp32c3_hal::prelude::*;
-use esp_backtrace as _;
-
 // modules
 mod signals;
 mod task_manager;
@@ -14,21 +9,37 @@ mod task_clock;
 mod task_speed;
 mod system;
 
-use task_manager::TaskManager;
+// imports
+use esp_hal::entry;
+use static_cell::StaticCell;
+use embassy_executor::Executor;
+use embassy_executor::Spawner;
+use esp_backtrace as _;
+
+// globals
+static EXECUTOR: StaticCell<Executor> = StaticCell::new();
 
 
+#[entry]
+fn main() -> ! {
+    // a bit of a hack to get around not being able to use `main` with `#[embassy_executor::main]` on riscv
+    // spawn tasks
+    let executor = EXECUTOR.init(Executor::new());
+    executor.run(|spawner| {
+        spawner.spawn(start(spawner)).unwrap();
+    });
+}
 
-#[main]
-async fn main(spawner: Spawner) {
+
+#[embassy_executor::task]
+async fn start (spawner : Spawner) {
     // init system
     system::init();
 
-    // init task manager
-    let mut task_manager: TaskManager = TaskManager::new(spawner);
-
     // spawn tasks
-    spawner.spawn(task_clock::clock()).unwrap();
-    spawner.spawn(task_speed::speed()).unwrap();
+    spawner.spawn(task_manager::init()).unwrap();
+    spawner.spawn(task_clock::init()).unwrap();
+    spawner.spawn(task_speed::init()).unwrap();
 
     // loop
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
