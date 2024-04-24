@@ -3,10 +3,11 @@ use embassy_time::{Duration, Timer};
 
 static TASK_ID : &str = "CLOCK";
 
+
 #[embassy_executor::task]
 pub async fn clock () {
-    let pub_hours = signals::CHANNEL_CLOCK_HOURS.publisher().unwrap();
-    let pub_minutes = signals::CHANNEL_CLOCK_MINUTES.publisher().unwrap();
+    let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
+    let pub_minutes = signals::CLOCK_MINUTES.publisher().unwrap();
 
     let start_time: u64 = embassy_time::Instant::now().as_secs();
 
