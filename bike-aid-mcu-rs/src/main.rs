@@ -8,6 +8,7 @@ mod task_manager;
 mod task_clock;
 mod task_speed;
 mod system;
+mod shared_io;
 
 // imports
 use esp_hal::entry;
@@ -15,6 +16,7 @@ use static_cell::StaticCell;
 use embassy_executor::Executor;
 use embassy_executor::Spawner;
 use esp_backtrace as _;
+use system::System;
 
 // globals
 static EXECUTOR: StaticCell<Executor> = StaticCell::new();
@@ -34,7 +36,7 @@ fn main() -> ! {
 #[embassy_executor::task]
 async fn start (spawner : Spawner) {
     // init system
-    system::init();
+    System::init();
 
     // spawn tasks
     spawner.spawn(task_manager::init()).unwrap();

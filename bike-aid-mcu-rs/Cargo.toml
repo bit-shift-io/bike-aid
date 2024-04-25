@@ -44,3 +44,4 @@ portable-atomic = {version = "1.5.1", default-features = false, features = ["req
 log = "0.4.21"
 
 static_cell = {version = "2.0.0", features = ["nightly"]}
+critical-section = "1.1.2"
