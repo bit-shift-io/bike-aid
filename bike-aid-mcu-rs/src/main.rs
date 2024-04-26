@@ -7,8 +7,13 @@ mod signals;
 mod task_manager;
 mod task_clock;
 mod task_speed;
+mod task_temperature;
+mod task_alarm;
+mod task_battery;
+mod task_throttle;
+mod task_bluetooth;
+mod task_store;
 mod system;
-mod shared_io;
 
 // imports
 use esp_hal::entry;
@@ -37,11 +42,16 @@ fn main() -> ! {
 async fn start (spawner : Spawner) {
     // init system
     System::init();
+    System::init_i2c();
 
     // spawn tasks
     spawner.spawn(task_manager::init()).unwrap();
     spawner.spawn(task_clock::init()).unwrap();
+    spawner.spawn(task_temperature::init()).unwrap();
     spawner.spawn(task_speed::init()).unwrap();
+    spawner.spawn(task_battery::init()).unwrap();
+    spawner.spawn(task_alarm::init()).unwrap();
+    spawner.spawn(task_throttle::init()).unwrap();
 
     // loop
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
