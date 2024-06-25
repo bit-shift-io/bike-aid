@@ -3,6 +3,7 @@
 use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
 use esp_hal::clock::Clocks;
 use esp_hal::peripherals::I2C0;
+use esp_hal::system::SystemParts;
 use esp_hal::timer::TimerGroup;
 use esp_hal::{clock::ClockControl, i2c::I2C, peripherals::Peripherals};
 use esp_hal::gpio::{GpioPin, Output, OutputPin, Pin, Pins, IO};
@@ -17,12 +18,27 @@ use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 
 
 //static SHARED_ASYNC_I2C : StaticCell<Mutex<I2C<I2C0, Async>>> = StaticCell::new();
+pub fn pin_output(pin : i8, level : bool) -> () {
+
+    let peripherals = Peripherals::take();
+    // let mutex: Mutex<CriticalSectionRawMutex, Peripherals> = Mutex::new(Peripherals::take());
+    // let mut peripherals = mutex.lock().await;
+
+     let system = peripherals.SYSTEM.split();
+     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+     let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
+
+     //io.pins.gpio0.enable_output()
+
+}
+
 
 pub struct System {
+    //peripherals: &'static Peripherals
 }
 
 impl System {
-    pub fn init() {
+    pub fn init() -> Self {
         init_logger(log::LevelFilter::Info); 
         log::info!("SYSTEM : init");
     
@@ -37,11 +53,20 @@ impl System {
 
         // embassy
         embassy::init(&clocks,timg0);
+
+        Self {
+        //    peripherals: &Peripherals::take()
+        }
     }
 
     pub fn init_i2c() {
         // I2C
         log::info!("I2C : init");
+
+        let peripherals = Peripherals::take();
+        let system = peripherals.SYSTEM.split();
+        let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+        let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
 /*
         static I2C_BUS: StaticCell<Mutex<NoopRawMutex, Twim<TWISPI0>>> = StaticCell::new();
         let config = twim::Config::default();
@@ -55,12 +80,12 @@ impl System {
 
         let mut sda = Output::new(3, Level::Low, OutputDrive::Standard);
         let mut scl = Output::new(2, Level::Low, OutputDrive::Standard);
-    
+    */
         // Initialize and configure I2C0
         let mut i2c0 = I2C::new_async(
             peripherals.I2C0,
-            sda,
-            scl,
+            io.pins.gpio0,
+            io.pins.gpio10,
             100u32.kHz(),
             &clocks,
         );
@@ -80,7 +105,7 @@ impl System {
                 Err(_) => {},
             }
         };
-         */
+
 
     }
 
