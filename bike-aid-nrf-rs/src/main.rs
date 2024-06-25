@@ -8,6 +8,7 @@ mod system;
 mod signals;
 mod task_clock;
 mod task_twm;
+mod task_led;
 
 // imports
 use system::System;
@@ -24,7 +25,9 @@ async fn main(spawner: Spawner) {
 
    
     // spawn tasks
+    spawner.spawn(task_twm::init()).unwrap();
     spawner.spawn(task_clock::init()).unwrap();
+    spawner.spawn(task_led::init()).unwrap();
      /*
     spawner.spawn(task_manager::init()).unwrap();
     spawner.spawn(task_clock::init()).unwrap();
