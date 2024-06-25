@@ -1,5 +1,6 @@
 use crate::signals;
 use embassy_time::{Duration, Timer};
+use defmt::*;
 
 static TASK_ID : &str = "TEMPERATURE";
 
@@ -8,7 +9,7 @@ static TASK_ID : &str = "TEMPERATURE";
 pub async fn init () {
     let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
 
-    log::info!("{} : Entering main loop",TASK_ID);
+    info!("{} : Entering main loop",TASK_ID);
     loop {
         // todo: read temperature
 

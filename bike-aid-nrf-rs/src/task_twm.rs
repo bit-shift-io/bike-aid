@@ -17,6 +17,7 @@ pub async fn init () {
         SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
     });
 
+    /*
     let p = System::peripherals;
     let config = twim::Config::default();
     let mut twi = Twim::new(p.TWISPI0, Irqs, p.P0_03, p.P0_04, config);
@@ -27,7 +28,7 @@ pub async fn init () {
     //unwrap!(twi.blocking_write_read(ADDRESS, &mut [0x00], &mut buf));
 
     info!("Read: {=[u8]:x}", buf);
-
+ */
     /*
     // Start Scan at Address 1 going up to 127
     for addr in 1..=127 {

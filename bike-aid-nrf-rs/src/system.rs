@@ -9,7 +9,8 @@ static TASK_ID : &str = "System";
 
 
 pub struct System {
-    pub peripherals: Peripherals
+    pub peripherals: Peripherals,
+    pub test: i32,
 }
 
 impl System {
@@ -19,7 +20,8 @@ impl System {
         let p = embassy_nrf::init(Default::default());
         
         Self {
-            peripherals: p
+            peripherals: p,
+            test: 34,
         }
     }
 

@@ -1,5 +1,6 @@
 use crate::{signals, system};
 use embassy_time::{Duration, Timer};
+use defmt::*;
 
 static TASK_ID : &str = "SPEED";
 static WHEEL_CIRCUMFERENCE : f32 = 1105.0; // 12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference
@@ -19,7 +20,7 @@ pub async fn init () {
     let mut last_state = 0; // default low
     let mut smooth_speed = 0.0;
 
-    log::info!("{} : Entering main loop",TASK_ID);
+    info!("{} : Entering main loop",TASK_ID);
     loop {
         // todo: check for rising on pin using async
         let mut pin_state = 1; // high
