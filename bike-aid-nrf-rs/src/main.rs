@@ -1,28 +1,31 @@
-//! Example on how to read a 24C/24LC i2c eeprom.
-//!
-//! Connect SDA to P0.03, SCL to P0.04
+//! TWI/i2c - SDA to P0.03, SCL to P0.04
 
 #![no_std]
 #![no_main]
 
-// modules
+// modules/creates
 mod system;
+mod signals;
+mod task_clock;
+mod task_twm;
 
 // imports
 use system::System;
 
 // external imports
 use embassy_executor::Spawner;
-use embassy_time::Timer;
+use defmt::*;
 
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     // init system
     System::init();
 
-    /*
+   
     // spawn tasks
+    spawner.spawn(task_clock::init()).unwrap();
+     /*
     spawner.spawn(task_manager::init()).unwrap();
     spawner.spawn(task_clock::init()).unwrap();
     spawner.spawn(task_temperature::init()).unwrap();
@@ -33,9 +36,11 @@ async fn main(_spawner: Spawner) {
     */
 
     // test loop
+    // loop
+    let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
-        Timer::after_millis(300).await;
-        log::info!("loop");
+        let val = sub_minutes.next_message_pure().await;
+        info!("{:02}", val);
     }
 
  
