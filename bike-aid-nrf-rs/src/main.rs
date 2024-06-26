@@ -36,7 +36,7 @@ async fn main(spawner: Spawner) {
     // LED Task
     use crate::task_led::led;
     spawner.must_spawn(led(
-        p.P0_13.degrade()
+        p.P1_11.degrade() // label 111 - D14
     ));
 
 
@@ -56,8 +56,10 @@ async fn main(spawner: Spawner) {
     // test loop
     // loop
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
+    let mut pub_led = signals::LED_MODE.publisher().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
+        pub_led.publish_immediate(task_led::LedMode::ThreeFast);
         info!("{:02}", val);
     }
  
