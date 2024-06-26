@@ -16,6 +16,7 @@ mod task_alarm;
 mod task_throttle;
 
 use embassy_nrf::gpio::Pin;
+use embassy_time::Timer;
 // imports
 use system::System;
 
@@ -27,6 +28,10 @@ use defmt::*;
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     let p = embassy_nrf::init(Default::default());
+
+    // DEBUG: add sleep incase we need to flash during debug and get a crash
+    Timer::after_secs(2).await;
+
 
     // Clock Task
     use crate::task_clock::clock;

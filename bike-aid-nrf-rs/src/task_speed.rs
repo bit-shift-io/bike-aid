@@ -24,15 +24,14 @@ pub async fn speed (
     let mut rotation_time = 0;
     let mut last_level  = Level::Low; // default low
     let mut smooth_speed = 0.0;
-    let mut pin_state = Input::new(pin, Pull::Up); // high
+    let mut pin_state = Input::new(pin, Pull::Down); // low
 
     info!("{} : Entering main loop",TASK_ID);
     loop {
-
-        pin_state.wait_for_low().await;
+        pin_state.wait_for_high().await;
         info!("Button pressed!");
 
-        pin_state.wait_for_high().await;
+        pin_state.wait_for_low().await;
         info!("Button released!");
 
         let mut pin_level = pin_state.get_level();

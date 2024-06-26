@@ -32,8 +32,21 @@ Then '''cargo run'''
 
 ## Error: No connected probes were found.
 Need to configure udev rules in linux
+```
 probe-rs list
 ls /dev/ttyACM*
+lsusb
+```
+
+## Erase the chip
+```
+probe-rs erase --chip nRF52840_xxAA
+```
+
+## Mount usb device
+```
+reset to gnd 2x within 0.5s
+```
 
 
 ## Links
