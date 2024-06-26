@@ -36,8 +36,3 @@ microfft = "0.5.0"
 
 [profile.release]
 debug = 2
-#name = "bike_aid"
-#path = "src/main.rs"
-#test = false
-#doctest = false
-#bench = false

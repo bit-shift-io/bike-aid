@@ -1,11 +1,11 @@
 use crate::signals;
 use embassy_time::{Duration, Timer};
 
-static TASK_ID : &str = "THROTTLE";
+static TASK_ID : &str = "ALARM";
 
 
 #[embassy_executor::task]
-pub async fn throttle () {
+pub async fn init () {
     /*
     //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
 
