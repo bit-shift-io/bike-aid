@@ -1,4 +1,3 @@
-use crate::System;
 use embassy_nrf::{bind_interrupts, peripherals, twim::{self, Twim}};
 use defmt::*;
 
@@ -9,7 +8,7 @@ const ADDRESS: u8 = 0x50;
 
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn twm () {
     info!("Initializing TWI...");
 
     // bind interrupts

@@ -1,13 +1,18 @@
-use crate::{signals, system};
+use crate::signals;
+use embassy_nrf::gpio::{AnyPin, Level};
 use embassy_time::{Duration, Timer};
+use embassy_nrf::gpio::{Input, Pull};
 use defmt::*;
 
 static TASK_ID : &str = "SPEED";
 static WHEEL_CIRCUMFERENCE : f32 = 1105.0; // 12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference
 static SPEED_SMOOTH_FACTOR : f32 = 0.3;
+static TICKS_PER_ROTATION : u32 = 12; // TODO:how many times the sensor will tick per rotation
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn speed (
+    pin : AnyPin
+) {
     let pub_instant_speed = signals::INSTANT_SPEED.publisher().unwrap();
     let pub_smooth_speed = signals::SMOOTH_SPEED.publisher().unwrap();
     let pub_wheel_rotations = signals::WHEEL_ROTATIONS.publisher().unwrap();
@@ -17,25 +22,27 @@ pub async fn init () {
     let mut rotations = 0;
     let mut last_rotation_time = 0;
     let mut rotation_time = 0;
-    let mut last_state = 0; // default low
+    let mut last_level  = Level::Low; // default low
     let mut smooth_speed = 0.0;
+    let mut pin_state = Input::new(pin, Pull::Up); // high
 
     info!("{} : Entering main loop",TASK_ID);
     loop {
-        // todo: check for rising on pin using async
-        let mut pin_state = 1; // high
 
-        // todo: remove, check pins using async
-        Timer::after(Duration::from_millis(1000)).await;
+        pin_state.wait_for_low().await;
+        info!("Button pressed!");
 
+        pin_state.wait_for_high().await;
+        info!("Button released!");
 
+        let mut pin_level = pin_state.get_level();
 
-        if (pin_state == last_state || pin_state == 0) {
+        if (pin_level == last_level || pin_level == Level::Low) {
             continue;
         }
 
         // pin high, another rotation completed
-        if (pin_state == 1) {
+        if (pin_level == Level::High) {
             let time = embassy_time::Instant::now().as_micros();
 
             // rotations
@@ -65,6 +72,6 @@ pub async fn init () {
             }
             
         }
-        last_state = pin_state;
+        last_level = pin_level;
     }
 }

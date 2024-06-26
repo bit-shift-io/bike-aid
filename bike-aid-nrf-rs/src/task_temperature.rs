@@ -1,4 +1,5 @@
 use crate::signals;
+use embassy_nrf::gpio::AnyPin;
 use embassy_time::{Duration, Timer};
 use defmt::*;
 
@@ -6,7 +7,9 @@ static TASK_ID : &str = "TEMPERATURE";
 
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn temperature (
+    pin : AnyPin
+) {
     let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
 
     info!("{} : Entering main loop",TASK_ID);
