@@ -9,7 +9,6 @@ mod signals;
 mod task_clock;
 mod task_twm;
 mod task_led;
-mod task_manager;
 mod task_temperature;
 mod task_speed;
 mod task_battery;
