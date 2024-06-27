@@ -75,7 +75,6 @@ async fn main(spawner: Spawner) {
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth());
  
-    /*
     // TWI
     use crate::task_twi_manager::twi_manager;
     spawner.must_spawn(twi_manager(
@@ -83,7 +82,7 @@ async fn main(spawner: Spawner) {
         p.P0_03.degrade(),
         p.P0_04.degrade()
     ));
-     */
+    
 
     // todo: flash led boot complete
     let mut pub_led = signals::LED_MODE.publisher().unwrap();
