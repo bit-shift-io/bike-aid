@@ -5,7 +5,7 @@ static TASK_ID : &str = "BATTERY";
 
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn battery () {
     /*
     //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
 

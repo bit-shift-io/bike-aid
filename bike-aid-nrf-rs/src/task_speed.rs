@@ -18,7 +18,6 @@ pub async fn speed (
     let pub_wheel_rotations = signals::WHEEL_ROTATIONS.publisher().unwrap();
     let pub_odometer = signals::ODOMETER.publisher().unwrap();
 
-
     let mut rotations = 0;
     let mut last_rotation_time = 0;
     let mut rotation_time = 0;

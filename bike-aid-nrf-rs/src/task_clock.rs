@@ -9,7 +9,6 @@ static TASK_ID : &str = "CLOCK";
 pub async fn clock () {
     let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
     let pub_minutes = signals::CLOCK_MINUTES.publisher().unwrap();
-
     let start_time: u64 = embassy_time::Instant::now().as_secs();
 
     info!("{} : Entering main loop",TASK_ID);

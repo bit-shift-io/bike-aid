@@ -6,7 +6,7 @@ static TASK_ID : &str = "TEMPERATURE";
 
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn temperature () {
     let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
 
     info!("{} : Entering main loop",TASK_ID);

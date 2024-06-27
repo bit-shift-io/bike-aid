@@ -5,7 +5,7 @@ static TASK_ID : &str = "BLUETOOTH";
 
 
 #[embassy_executor::task]
-pub async fn init () {
+pub async fn bluetooth () {
     /*
     //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
 

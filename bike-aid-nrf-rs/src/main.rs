@@ -1,28 +1,35 @@
-//! TWI/i2c - SDA to P0.03, SCL to P0.04
+/*
+
+Pin Guide
+
+P1.11 - LED
+P1.15 - SPEED
+P0.03 - TWI SDA
+P0.04 - TWI SCL
+
+*/
 
 #![no_std]
 #![no_main]
 
 // modules/creates
-mod system;
 mod signals;
 mod task_clock;
-mod task_twm;
+mod task_twi_manager;
 mod task_led;
 mod task_temperature;
 mod task_speed;
 mod task_battery;
 mod task_alarm;
 mod task_throttle;
-
-use embassy_nrf::gpio::Pin;
-use embassy_time::Timer;
-// imports
-use system::System;
+mod task_bluetooth;
 
 // external imports
+use embassy_nrf::gpio::Pin;
+use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
+use {defmt_rtt as _, panic_probe as _};
 
 
 #[embassy_executor::main]
@@ -31,7 +38,6 @@ async fn main(spawner: Spawner) {
 
     // DEBUG: add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
-
 
     // Clock Task
     use crate::task_clock::clock;
@@ -43,26 +49,41 @@ async fn main(spawner: Spawner) {
         p.P1_11.degrade() // label 111 - D14
     ));
 
-
     // Speed Task
     use crate::task_speed::speed;
     spawner.must_spawn(speed(
         p.P1_15.degrade() // label 115
     ));
 
+    // Battery Task
+    use crate::task_battery::battery;
+    spawner.must_spawn(battery());
 
-    /*
+    // Temperature Task
+    use crate::task_temperature::temperature;
+    spawner.must_spawn(temperature());
 
-    // spawn tasks
-    spawner.spawn(task_twm::init()).unwrap();
-    spawner.spawn(task_clock::init()).unwrap();
-    spawner.spawn(task_led::init()).unwrap();
-    spawner.spawn(task_manager::init()).unwrap();
-    spawner.spawn(task_temperature::init()).unwrap();
-    spawner.spawn(task_speed::init()).unwrap();
-    spawner.spawn(task_battery::init()).unwrap();
-    spawner.spawn(task_alarm::init()).unwrap();
-    spawner.spawn(task_throttle::init()).unwrap();
+    // Alarm Task
+    use crate::task_alarm::alarm;
+    spawner.must_spawn(alarm());
+
+    // Throttle Task
+    use crate::task_throttle::throttle;
+    spawner.must_spawn(throttle());
+
+    // Bluetooth Task
+    use crate::task_bluetooth::bluetooth;
+    spawner.must_spawn(bluetooth());
+ 
+ /*
+    // TWI
+    use crate::task_twi_manager::twi_manager;
+    spawner.must_spawn(twi_manager(
+        p.TWISPI0,
+        p.P0_03.degrade(),
+        p.P0_04.degrade()
+    ));
+
  */
     // test loop
     // loop
