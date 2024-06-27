@@ -3,9 +3,7 @@ use defmt::*;
 
 // twim is two wire interface master
 // twis is twire interface slave
-static TASK_ID : &str = "TWI MANAGER";
-
-const ADDRESS: u8 = 0x50;
+static TASK_ID : &str = "TWI";
 
 
 #[embassy_executor::task]
@@ -23,28 +21,30 @@ pub async fn twi_manager (
 
     let config = twim::Config::default();
     let mut twi = Twim::new(twi_io, Irqs, pin_sda, pin_scl, config);
-    let mut buf = [0u8; 16];
- 
+    let mut read_buffer = [0u8; 16];
+    let write_buffer = &mut [0x00];
+
     // Start Scan at Address 1 going up to 127
     info!("{} : Scan TWI", TASK_ID);
-    for addr in 1..=127 {
-        // Scan Address
-        //let res = i2c0.read(addr as u8, &mut [0]); // old esp32
-        unwrap!(twi.blocking_write_read(addr, &mut [0x00], &mut buf));
-        info!("Read: {=[u8]:x}", buf);
+    for address in 1..=127 {
+        //let mut result: Result<(), twim::Error> = Ok(());
+        let mut result: Result<(), twim::Error> = Err(twim::Error::AddressNack);
 
-        /*
+        let _ = embassy_futures::poll_once(async {
+            result = twi.write_read(address, write_buffer, &mut read_buffer).await;
+        });
+
+        //info!("Read: {=[u8]:x}", read_buffer);
+
         // Check and Print Result
-        match res {
-            Ok(_) => info!("I2C Device Found at Address {}", addr as u8),
+        match result {
+            Ok(_) => info!("I2C Device Found at Address {}", address as u8),
             Err(_) => {},
         }
-         */
     };
     info!("{} : End scan TWI", TASK_ID);
-
-
-    info!("{} : Entering main loop",TASK_ID);
+     
+    info!("{} : Entering main loop", TASK_ID);
     loop {
     }
 

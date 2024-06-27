@@ -101,14 +101,14 @@ async fn on_off_fast<'a>(led: &mut Output<'a,AnyPin>) {
     Timer::after(Duration::from_millis(100)).await;
 
     led.set_low(); // Medium low
-    Timer::after(Duration::from_millis(100)).await;
+    Timer::after(Duration::from_millis(200)).await;
 }
 
 #[allow(unused)]
 async fn on_off_slow<'a>(led: &mut Output<'a,AnyPin>) {
-    led.set_high(); // Short high
-    Timer::after(Duration::from_millis(100)).await;
+    led.set_high(); // Meium high
+    Timer::after(Duration::from_millis(200)).await;
 
-    led.set_low(); // Medium low
-    Timer::after(Duration::from_millis(100)).await;
+    led.set_low(); // Slow low
+    Timer::after(Duration::from_millis(1000)).await;
 }

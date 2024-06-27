@@ -75,7 +75,7 @@ async fn main(spawner: Spawner) {
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth());
  
- /*
+    /*
     // TWI
     use crate::task_twi_manager::twi_manager;
     spawner.must_spawn(twi_manager(
@@ -83,15 +83,23 @@ async fn main(spawner: Spawner) {
         p.P0_03.degrade(),
         p.P0_04.degrade()
     ));
+     */
 
- */
-    // test loop
-    // loop
-    let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
+    // todo: flash led boot complete
     let mut pub_led = signals::LED_MODE.publisher().unwrap();
+    /*
+    pub_led.publish_immediate(task_led::LedMode::ThreeFast);
+    let _ = embassy_futures::poll_once(async {
+        pub_led.publish(task_led::LedMode::ThreeFast).await;
+    });
+     */
+    
+
+    // loop for testing
+    let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
-        pub_led.publish_immediate(task_led::LedMode::ThreeFast);
+        pub_led.publish_immediate(task_led::LedMode::OnOffSlow);
         info!("{:02}", val);
     }
  
