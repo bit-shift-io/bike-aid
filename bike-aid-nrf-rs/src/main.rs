@@ -4,8 +4,8 @@ Pin Guide
 
 P1.11 - LED
 P1.15 - SPEED
-P0.03 - TWI SDA
-P0.04 - TWI SCL
+P0.29 - TWI SDA
+P0.31 - TWI SCL
 
 */
 
@@ -79,8 +79,8 @@ async fn main(spawner: Spawner) {
     use crate::task_twi_manager::twi_manager;
     spawner.must_spawn(twi_manager(
         p.TWISPI0,
-        p.P0_03.degrade(),
-        p.P0_04.degrade()
+        p.P0_29.degrade(),
+        p.P0_31.degrade()
     ));
     
 

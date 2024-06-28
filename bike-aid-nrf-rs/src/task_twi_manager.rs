@@ -1,5 +1,4 @@
-use embassy_nrf::{bind_interrupts, gpio::AnyPin, pac::TWI1, peripherals::{self, TWISPI0}, twim::{self, Twim}};
-use embassy_nrf::twim::Error;
+use embassy_nrf::{bind_interrupts, gpio::AnyPin, peripherals::{self, TWISPI0}, twim::{self, Twim}};
 use defmt::*;
 
 // twim is two wire interface master
@@ -25,56 +24,20 @@ pub async fn twi_manager (
     let mut read_buffer = [0u8; 16];
     let write_buffer = &mut [0x00];
 
-    //scan_devices(&mut twi).await;
+    //scan_devices
     for address in 0..128 {
         match twi.write(address, &[]).await {
             Ok(_) => {
-                println!("Device found at address: 0x{:X}", address);
+                info!("Device found at address: 0x{:X}", address);
             }
             Err(_) => continue,
         }
     }
 
-    /*
-    // Start Scan at Address 1 going up to 127
-    info!("{} : Scan TWI", TASK_ID);
-    for address in 1..=127 {
-        //let mut result: Result<(), twim::Error> = Ok(());
-        let mut result: Result<(), twim::Error> = Err(twim::Error::AddressNack);
-
-        let _ = embassy_futures::poll_once(async {
-            result = twi.write_read(address, write_buffer, &mut read_buffer).await;
-        });
-
-        //info!("Read: {=[u8]:x}", read_buffer);
-
-        // Check and Print Result
-        match result {
-            Ok(_) => info!("I2C Device Found at Address {}", address as u8),
-            Err(_) => {},
-        }
-    };
-    info!("{} : End scan TWI", TASK_ID);
-     
+     /*
     info!("{} : Entering main loop", TASK_ID);
     loop {
     }
      */
 
 }
-
-/* 
-async fn scan_devices (
-    twi: &mut Twim<TWISPI0>
-) -> Result<(), Error> {
-    for address in 0..128 {
-        match twi.write(address, &[], 0).await {
-            Ok(_) => {
-                println!("Device found at address: 0x{:X}", address);
-            }
-            Err(_) => continue,
-        }
-    }
-
-    Ok(())
-}*/
