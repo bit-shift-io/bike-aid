@@ -1,0 +1,12 @@
+{
+    "rust-analyzer.cargo.target": "thumbv7em-none-eabi",
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.procMacro.attributes.enable": false,
+    "editor.formatOnSave": false,
+    "cSpell.words": [
+        "baudrate",
+        "consts",
+        "defmt",
+        "mapf",
+    ]
+}
