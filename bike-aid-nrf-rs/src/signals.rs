@@ -22,3 +22,6 @@ pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChann
 
 pub type LedModeType = crate::task_led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubChannel::new();
+
+// Internal
+pub static THROTTLE: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();

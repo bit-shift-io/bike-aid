@@ -2,6 +2,7 @@
 
 Pin Guide
 
+P0.06 - Throttle
 P1.11 - LED
 P1.15 - SPEED
 P0.29 - TWI SDA
@@ -103,15 +104,26 @@ async fn main(spawner: Spawner) {
     use crate::task_alarm::alarm;
     spawner.must_spawn(alarm());
 
-    // Throttle Task
-    use crate::task_throttle::throttle;
-    spawner.must_spawn(throttle());
-
     // Bluetooth Task
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth());
  
-    
+    // Throttle Task
+    let saadc = {
+        use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
+        use embassy_nrf::{bind_interrupts, saadc};
+        bind_interrupts!(struct Irqs {
+            SAADC => saadc::InterruptHandler;
+        });
+        let config = Config::default();
+        let mut pin = p.P0_02;
+        let channel_config = ChannelConfig::single_ended(&mut pin);
+        Saadc::new(p.SAADC, Irqs, config, [channel_config])   
+    };
+    use crate::task_throttle::throttle;
+    spawner.must_spawn(throttle(
+        saadc
+    ));
 
     // loop for testing
     let pub_led = signals::LED_MODE.publisher().unwrap();
