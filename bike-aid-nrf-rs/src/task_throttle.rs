@@ -16,7 +16,7 @@ pub async fn throttle (
         let mut buf = [0; 1];
         saadc.sample(&mut buf).await;
         pub_throttle.publish_immediate(buf[0]); // TODO: check if these can be negative values, the dac only takes positive values
-        info!("sample: {=i16}", &buf[0]);
+        //info!("sample: {=i16}", &buf[0]);
         Timer::after_millis(100).await;
     }
 }

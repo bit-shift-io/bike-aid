@@ -1,6 +1,5 @@
 use crate::signals;
 use embassy_nrf::twim::Twim;
-use embassy_time::{Duration, Timer};
 use defmt::*;
 use mcp4725::MCP4725;
 
@@ -21,7 +20,7 @@ pub async fn dac (
     loop {
         let val = sub_throttle.next_message_pure().await;
         let _ = dac.set_dac(mcp4725::PowerDown::Normal, val as u16);
-        let read = dac.read().unwrap();
-        info!("{}", read.data());
+        //let read = dac.read().unwrap();
+        //info!("{}", read.data());
     }
 }

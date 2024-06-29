@@ -28,7 +28,7 @@ mod task_throttle;
 mod task_bluetooth;
 
 // external imports
-use embassy_nrf::gpio::Pin;
+use embassy_nrf::{gpio::Pin, temp::Temp};
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
@@ -97,8 +97,17 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(battery());
 
     // Temperature Task
+    let t = {
+        use embassy_nrf::{bind_interrupts, temp};
+        bind_interrupts!(struct Irqs {
+            TEMP => temp::InterruptHandler;
+        });
+        Temp::new(p.TEMP, Irqs)
+    };
     use crate::task_temperature::temperature;
-    spawner.must_spawn(temperature());
+    spawner.must_spawn(temperature(
+        t
+    ));
 
     // Alarm Task
     use crate::task_alarm::alarm;

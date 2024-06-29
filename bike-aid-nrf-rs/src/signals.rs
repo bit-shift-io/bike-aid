@@ -2,6 +2,8 @@ use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pubsub::PubSubC
 
 type ChannelMutex = CriticalSectionRawMutex;
 
+// External / reporting to user
+
 pub static SYSTEM_POWER: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
 
 pub static ALARM: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
@@ -14,14 +16,15 @@ pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u32, 2, 2, 2> = PubSubChann
 pub static WHEEL_ROTATIONS: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static ODOMETER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 
-pub static TEMPERATURE: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
+pub static TEMPERATURE: PubSubChannel<ChannelMutex, u16, 2, 2, 2> = PubSubChannel::new();
 
 pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 
+// Internal
+
 pub type LedModeType = crate::task_led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubChannel::new();
 
-// Internal
 pub static THROTTLE: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();
