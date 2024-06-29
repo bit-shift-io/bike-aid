@@ -14,6 +14,9 @@ P0.31 - TWI SCL
 
 // modules/creates
 mod signals;
+
+mod device_dac;
+
 mod task_clock;
 mod task_led;
 mod task_temperature;
@@ -39,7 +42,7 @@ async fn main(spawner: Spawner) {
     Timer::after_secs(2).await;
 
     // Configure and setup shared async I2C/TWI communication
-    let mut shared_i2c = {
+    let mut shared_twi = {
         use embassy_nrf::{bind_interrupts, peripherals::{self}, twim::{self, Twim}};
         bind_interrupts!(struct Irqs {
             SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
@@ -54,7 +57,7 @@ async fn main(spawner: Spawner) {
 
     // scan for i2c/twi devices
     for address in 1..128 {
-        match shared_i2c.write(address, &[]).await {
+        match shared_twi.write(address, &[]).await {
             Ok(_) => {
                 info!("Device found at address: 0x{:X}", address);
             }
@@ -63,7 +66,11 @@ async fn main(spawner: Spawner) {
     }
 
     // INIT DEVICES
-
+    use crate::device_dac::dac;
+    spawner.must_spawn(dac(
+        shared_twi,
+        0x60,
+    ));
     
 
     // INIT TASKS

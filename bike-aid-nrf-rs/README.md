@@ -61,7 +61,7 @@ https://github.com/joric/nrfmicro/wiki/Alternatives#supermini-nrf52840
 
 ## temp notes
 
-https://github.com/peterkrull/quad/blob/main/software/rusty-quad/src/task_blinker.rs
+https://github.com/peterkrull/quad/blob/main/software/rusty-quad/src/
 
 https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/src/bin/channel_sender_receiver.rs
 
@@ -70,3 +70,7 @@ https://dev.to/apollolabsbin/sharing-data-among-tasks-in-rust-embassy-synchroniz
 https://hegdenu.net/posts/understanding-async-await-3/
 
 https://github.com/embassy-rs/nrf-softdevice/blob/master/examples/src/bin/ble_bas_central.rs
+
+https://dev.to/theembeddedrustacean/embedded-rust-embassy-i2c-temperature-sensing-with-bmp180-6on
+
+https://github.com/tclarke/mcp4725/tree/master
