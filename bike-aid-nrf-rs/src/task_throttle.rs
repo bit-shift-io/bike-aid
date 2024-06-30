@@ -1,3 +1,16 @@
+/*
+For NRF52840
+Analog pin  GPIO pin
+AIN0        P0.02
+AIN1        P0.03
+AIN2        P0.04
+AIN3        P0.05
+AIN4        P0.28
+AIN5        P0.29
+AIN6        P0.30
+AIN7        P0.31
+*/
+
 use crate::signals;
 use crate::functions::*;
 use embassy_nrf::saadc::Saadc;
@@ -56,12 +69,41 @@ pub async fn throttle (
     let pub_throttle = signals::THROTTLE.publisher().unwrap();
     let mut output = 0;
 
+    // calibrate
+    saadc.calibrate().await;
+    Timer::after_millis(500).await;
+
     info!("{} : Entering main loop", TASK_ID);
     loop {
+        // defaults:
+        // 12 bit
+        // bypass no pull resistors
+        // gain 1/6
+        // reference internal (0.6v)
+        // Input range = (0.6 V)/(1/6) = 3.6 V
+
+        // the following formula is used by the chip
+        // RESULT = [V(P) - V(N)] * GAIN / REFERENCE * (2 ^ (RESOLUTION - m))
+        // or
+        // V(P) - V(N) = RESULT * REFERENCE / GAIN / (2 ^ (RESOLUTION - m))
+        //
+        // Result = sample/reading from saadc
+        // Voltage positive (P) = 3.6 V
+        // Voltage negative (N) = 0 V (single ended)
+        // Gain = 1/6
+        // Reference = 0.6 V
+        // Resolution = 12
+        // m = 0 (single ended) or 1 (differental mode)
+
         let mut buf = [0; 1];
         saadc.sample(&mut buf).await;
-
         let input = buf[0];
+
+        // clamp to positive values only
+        let input = clamp_positive(input);
+
+        // Debug: convert to voltage
+        let voltage = f32::from(input) * 3600.0 / 4096.0; // converted to mv
 
         // delta computer from last output value
         let delta = input - output;
@@ -87,11 +129,14 @@ pub async fn throttle (
         // throttle to output value map - mapping to controller range
         let mapped_output = map(output, &MAP_IN_MIN, &MAP_IN_MAX, &MAP_OUT_MIN, &MAP_OUT_MAX);
 
+        // DAC 0 - 4095 output - 12 bit
+        // SAADC -2048 to 2047 input - 12 bit
+
         // TODO:mapped_output values are 0-1023 for arduino, what do we use on the dac??
         // TODO: check if these can be negative values, the dac only takes positive values
 
-        pub_throttle.publish_immediate(mapped_output); 
-        info!("in:{} | out: {=i16} | map: {}", input, output, mapped_output);
+        //pub_throttle.publish_immediate(mapped_output); 
+        info!("mv: {} |in:{} | out: {} | map: {}", voltage, input, output, mapped_output);
 
         Timer::after_millis(100).await;
     }

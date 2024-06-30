@@ -29,7 +29,7 @@ mod task_throttle;
 //mod task_bluetooth;
 
 // external imports
-use embassy_nrf::{gpio::Pin, temp::Temp};
+use embassy_nrf::{gpio::Pin, pac::saadc::resolution, temp::Temp};
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
@@ -125,10 +125,10 @@ async fn main(spawner: Spawner) {
         bind_interrupts!(struct Irqs {
             SAADC => saadc::InterruptHandler;
         });
-        let config = Config::default();
+        let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
         let mut pin = p.P0_02;
         let channel_config = ChannelConfig::single_ended(&mut pin);
-        Saadc::new(p.SAADC, Irqs, config, [channel_config])   
+        Saadc::new(p.SAADC, Irqs, config, [channel_config])
     };
     use crate::task_throttle::throttle;
     spawner.must_spawn(throttle(
