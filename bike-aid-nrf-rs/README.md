@@ -48,6 +48,23 @@ probe-rs erase --chip nRF52840_xxAA
 reset to gnd 2x within 0.5s
 ```
 
+## Get latest rust toolchain
+```
+rustup update
+```
+
+## Update nrf42840 firmware for bluetooth
+Downloaded from 
+```
+https://www.nordicsemi.com/Products/Development-software/s140/download
+```
+
+Flash using the commands:
+```
+probe-rs erase --chip nrf52840_xxAA --allow-erase-all
+probe-rs download --verify --binary-format hex --chip nRF52840_xxAA s140_nrf52_7.3.0_softdevice.hex
+```
+
 
 ## Links
 https://github.com/joseph-montanez/pico-w-rust-starter-kit

@@ -4,7 +4,13 @@ name = "bike-aid-nrf-rs"
 version = "0.1.0"
 authors = ["bronsonmathews@gmail.com"]
 
+
+[features] 
+# todo softdevice
+
+
 [dependencies]
+# embassy
 embassy-futures = { version = "0.1.0"}
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
 embassy-executor = { version = "0.5.0", features = ["task-arena-size-32768", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
@@ -12,14 +18,15 @@ embassy-time = { version = "0.3.1", features = ["defmt", "defmt-timestamp-uptime
 embassy-nrf = { version = "0.1.0", features = ["defmt", "nrf52840", "time-driver-rtc1", "gpiote", "unstable-pac", "time"] }
 
 # log
-defmt = "0.3"
+defmt = "0.3.5"
 defmt-rtt = "0.4"
 
-cortex-m = { version = "0.7.6", features = ["inline-asm", "critical-section-single-core"] }
-cortex-m-rt = "0.7.0"
+# arm
+cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt = "0.7.3"
 
-static_cell = { version = "2" }
-panic-probe = { version = "0.3", features = ["print-defmt"] }
+# misc
+panic-probe = { version = "0.3.1", features = ["print-defmt"] }
 serde = { version = "1.0.136", default-features = false }
 
 # device driver
@@ -27,6 +34,18 @@ mcp4725 = "0.4.2"
 
 # maths
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
+
+# nrf softdevice bluetooth
+#nrf-softdevice = { version = "0.1.0", features = ["defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
+nrf-softdevice-s140 = { version = "0.1.2", optional = true }
+embedded-storage = "0.3.1"
+embedded-storage-async = "0.4.1"
+futures = { version = "0.3.29", default-features = false }
+fixed = "1.24.0"
+heapless = "0.8.0"
+atomic-pool = "1.0.1"
+static_cell = "2.0.0"
+
 
 [profile.release]
 debug = 2

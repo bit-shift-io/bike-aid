@@ -26,7 +26,7 @@ mod task_speed;
 mod task_battery;
 mod task_alarm;
 mod task_throttle;
-mod task_bluetooth;
+//mod task_bluetooth;
 
 // external imports
 use embassy_nrf::{gpio::Pin, temp::Temp};
@@ -113,11 +113,11 @@ async fn main(spawner: Spawner) {
     // Alarm Task
     use crate::task_alarm::alarm;
     spawner.must_spawn(alarm());
-
+/*
     // Bluetooth Task
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth());
- 
+  */
     // Throttle Task
     let saadc = {
         use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
