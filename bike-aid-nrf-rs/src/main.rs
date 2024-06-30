@@ -15,6 +15,7 @@ P0.31 - TWI SCL
 
 // modules/creates
 mod signals;
+mod functions;
 
 mod device_dac;
 
