@@ -71,7 +71,26 @@ pub async fn throttle (
     let LIMIT_MAP_OUT_MAX = 1023;
 
     /* 
-    ===========================
+    SAADC defaults
+    =========================== 
+    12 bit
+    bypass no pull resistors
+    gain 1/6
+    reference internal (0.6v)
+    Input range = (0.6 V)/(1/6) = 3.6 V
+
+    the following formula is used by the chip
+    RESULT = [V(P) - V(N)] * GAIN / REFERENCE * (2 ^ (RESOLUTION - m))
+    or
+    V(P) - V(N) = RESULT * REFERENCE / GAIN / (2 ^ (RESOLUTION - m))
+
+    Result = sample/reading from saadc
+    Voltage positive (P) = adc reading
+    Voltage negative (N) = 0 V (single ended)
+    Gain = 1/6
+    Reference = 0.6 V
+    Resolution = 12
+    m = 0 (single ended) or 1 (differental mode)
     */
 
     bind_interrupts!(struct Irqs {
@@ -87,26 +106,6 @@ pub async fn throttle (
 
     info!("{} : Entering main loop", TASK_ID);
     loop {
-        // defaults:
-        // 12 bit
-        // bypass no pull resistors
-        // gain 1/6
-        // reference internal (0.6v)
-        // Input range = (0.6 V)/(1/6) = 3.6 V
-
-        // the following formula is used by the chip
-        // RESULT = [V(P) - V(N)] * GAIN / REFERENCE * (2 ^ (RESOLUTION - m))
-        // or
-        // V(P) - V(N) = RESULT * REFERENCE / GAIN / (2 ^ (RESOLUTION - m))
-        //
-        // Result = sample/reading from saadc
-        // Voltage positive (P) = 3.6 V
-        // Voltage negative (N) = 0 V (single ended)
-        // Gain = 1/6
-        // Reference = 0.6 V
-        // Resolution = 12
-        // m = 0 (single ended) or 1 (differental mode)
-
         let mut buf = [0; 1];
         adc.sample(&mut buf).await;
         let input = buf[0];
@@ -140,7 +139,7 @@ pub async fn throttle (
 
         output += adjustment;
 
-        // throttle to output value map - mapping to controller range
+        //throttle to output value map - mapping to controller range
         let mapped_output = map(output, &MAP_IN_MIN, &MAP_IN_MAX, &MAP_OUT_MIN, &MAP_OUT_MAX);
 
         // DAC 0 - 4095 output - 12 bit
