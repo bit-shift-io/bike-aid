@@ -36,8 +36,8 @@ mcp4725 = "0.4.2"
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
 
 # nrf softdevice bluetooth
+nrf-softdevice-s140 = { version = "0.1.2", optional = false }
 #nrf-softdevice = { version = "0.1.0", features = ["defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
-nrf-softdevice-s140 = { version = "0.1.2", optional = true }
 embedded-storage = "0.3.1"
 embedded-storage-async = "0.4.1"
 futures = { version = "0.3.29", default-features = false }

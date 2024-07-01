@@ -2,11 +2,11 @@
 
 Pin Guide
 
-P0.06 - Throttle
+P0.31 - Throttle
 P1.11 - LED
 P1.15 - SPEED
-P0.29 - TWI SDA
-P0.31 - TWI SCL
+P0.06 - TWI SDA
+P0.08 - TWI SCL
 
 */
 
@@ -29,7 +29,7 @@ mod task_throttle;
 //mod task_bluetooth;
 
 // external imports
-use embassy_nrf::{gpio::Pin, pac::saadc::resolution, temp::Temp};
+use embassy_nrf::gpio::Pin;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
@@ -50,8 +50,8 @@ async fn main(spawner: Spawner) {
             SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
         });
         let port_twi = p.TWISPI0;
-        let pin_sda = p.P0_29.degrade();
-        let pin_scl = p.P0_31.degrade();
+        let pin_sda = p.P0_06.degrade();
+        let pin_scl = p.P0_08.degrade();
         let config = twim::Config::default();
         Twim::new(port_twi, Irqs, pin_sda, pin_scl, config)
         //SHARED_ASYNC_I2C.init(Mutex::new(i2c))
@@ -98,16 +98,9 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(battery());
 
     // Temperature Task
-    let t = {
-        use embassy_nrf::{bind_interrupts, temp};
-        bind_interrupts!(struct Irqs {
-            TEMP => temp::InterruptHandler;
-        });
-        Temp::new(p.TEMP, Irqs)
-    };
     use crate::task_temperature::temperature;
     spawner.must_spawn(temperature(
-        t
+        p.TEMP
     ));
 
     // Alarm Task
@@ -118,21 +111,12 @@ async fn main(spawner: Spawner) {
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth());
   */
+
     // Throttle Task
-    let saadc = {
-        use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
-        use embassy_nrf::{bind_interrupts, saadc};
-        bind_interrupts!(struct Irqs {
-            SAADC => saadc::InterruptHandler;
-        });
-        let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
-        let mut pin = p.P0_02;
-        let channel_config = ChannelConfig::single_ended(&mut pin);
-        Saadc::new(p.SAADC, Irqs, config, [channel_config])
-    };
     use crate::task_throttle::throttle;
     spawner.must_spawn(throttle(
-        saadc
+        p.P0_31.into(),
+        p.SAADC
     ));
 
     // loop for testing

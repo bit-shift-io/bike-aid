@@ -13,7 +13,10 @@ AIN7        P0.31
 
 use crate::signals;
 use crate::functions::*;
-use embassy_nrf::saadc::Saadc;
+use embassy_nrf::peripherals::SAADC;
+use embassy_nrf::saadc::AnyInput;
+use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
+use embassy_nrf::{bind_interrupts, saadc};
 use embassy_time::Timer;
 use defmt::*;
 
@@ -21,7 +24,9 @@ static TASK_ID : &str = "THROTTLE";
 
 #[embassy_executor::task]
 pub async fn throttle (
-    mut saadc: Saadc<'static, 1>,
+    //mut saadc: Saadc<'static, 1>,
+    pin_adc: AnyInput,
+    saadc: SAADC,
 ) {
     /* 
     Deadband / Deadzone
@@ -65,13 +70,20 @@ pub async fn throttle (
     let LIMIT_MAP_OUT_MIN = 100;
     let LIMIT_MAP_OUT_MAX = 1023;
 
+    /* 
+    ===========================
+    */
 
+    bind_interrupts!(struct Irqs {
+        SAADC => saadc::InterruptHandler;
+    });
+    let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
+    let channel_config = ChannelConfig::single_ended(pin_adc);
+    let mut adc = Saadc::new(saadc, Irqs, config, [channel_config]);
+    adc.calibrate().await; // calibrate
+    Timer::after_millis(500).await;
     let pub_throttle = signals::THROTTLE.publisher().unwrap();
     let mut output = 0;
-
-    // calibrate
-    saadc.calibrate().await;
-    Timer::after_millis(500).await;
 
     info!("{} : Entering main loop", TASK_ID);
     loop {
@@ -96,8 +108,10 @@ pub async fn throttle (
         // m = 0 (single ended) or 1 (differental mode)
 
         let mut buf = [0; 1];
-        saadc.sample(&mut buf).await;
+        adc.sample(&mut buf).await;
         let input = buf[0];
+
+        info!("{}", input);
 
         // clamp to positive values only
         let input = clamp_positive(input);
@@ -141,3 +155,24 @@ pub async fn throttle (
         Timer::after_millis(100).await;
     }
 }
+
+
+/*
+Note: The old method was to create this in main, then pass the whole value into the task.
+We may need to do this in the future if we have multiple adc in use??
+
+    /*
+    let saadc = {
+        use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
+        use embassy_nrf::{bind_interrupts, saadc};
+        bind_interrupts!(struct Irqs {
+            SAADC => saadc::InterruptHandler;
+        });
+        let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
+        let mut pin = p.P0_31;
+        let channel_config = ChannelConfig::single_ended(&mut pin);
+        Saadc::new(p.SAADC, Irqs, config, [channel_config])
+    };
+     */
+
+*/
