@@ -1,15 +1,28 @@
+
 use crate::signals;
+use defmt::{*};
+use embassy_executor::Spawner;
+
+
+/*
 use nrf_softdevice::ble::advertisement_builder::{
     Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16,
 };
-use nrf_softdevice::ble::peripheral;
+use nrf_softdevice::ble::peripheral; // this causes linker compile issue
 use nrf_softdevice::{raw, Softdevice};
+use core::mem; // this causes linker compile issue
+ */
 
 static TASK_ID : &str = "BLUETOOTH";
 
 #[embassy_executor::task]
-pub async fn bluetooth () {
+pub async fn bluetooth (
+    spawner: Spawner
+) {
+    info!("{} : Starting task", TASK_ID);
 
+        /*
+    // softdevice config
     let config = nrf_softdevice::Config {
         clock: Some(raw::nrf_clock_lf_cfg_t {
             source: raw::NRF_CLOCK_LF_SRC_RC as u8,
@@ -42,9 +55,11 @@ pub async fn bluetooth () {
         ..Default::default()
     };
 
+    // spawn softdevice task
     let sd = Softdevice::enable(&config);
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
+    // change config    
     let mut config = peripheral::Config::default();
     config.interval = 50;
 
@@ -63,7 +78,7 @@ pub async fn bluetooth () {
         scan_data: &SCAN_DATA,
     };
     unwrap!(peripheral::advertise(sd, adv, &config).await);
-
+ */
 
     //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
 /* 
@@ -72,3 +87,10 @@ pub async fn bluetooth () {
     }
     */
 }
+
+/* 
+#[embassy_executor::task]
+async fn softdevice_task(sd: &'static Softdevice) -> ! {
+    sd.run().await
+}
+    */

@@ -6,7 +6,24 @@ authors = ["bronsonmathews@gmail.com"]
 
 
 [features] 
-# todo softdevice
+default = [
+    "ble-l2cap",
+    "ble-gatt-server",
+    "ble-gatt-client",
+    "ble-sec",
+]
+
+ble-l2cap = ["nrf-softdevice/ble-l2cap"]
+ble-gatt-server = ["nrf-softdevice/ble-gatt-server"]
+ble-gatt-client = ["nrf-softdevice/ble-gatt-client"]
+ble-sec = ["nrf-softdevice/ble-sec"]
+
+nrf52840 = [
+  "embassy-nrf/nrf52840",
+  "nrf-softdevice/nrf52840",
+  "nrf-softdevice/s140",
+  "dep:nrf-softdevice-s140"
+]
 
 
 [dependencies]
@@ -31,13 +48,14 @@ serde = { version = "1.0.136", default-features = false }
 
 # device driver
 mcp4725 = "0.4.2"
+ads1x1x = "0.2.2"
 
 # maths
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
 
 # nrf softdevice bluetooth
-nrf-softdevice-s140 = { version = "0.1.2", optional = false }
-#nrf-softdevice = { version = "0.1.0", features = ["defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
+nrf-softdevice-s140 = { version = "0.1.2", optional = true }
+nrf-softdevice = { version = "0.1.0", features = ["nrf52840", "s140", "defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
 embedded-storage = "0.3.1"
 embedded-storage-async = "0.4.1"
 futures = { version = "0.3.29", default-features = false }
@@ -45,6 +63,7 @@ fixed = "1.24.0"
 heapless = "0.8.0"
 atomic-pool = "1.0.1"
 static_cell = "2.0.0"
+
 
 
 [profile.release]

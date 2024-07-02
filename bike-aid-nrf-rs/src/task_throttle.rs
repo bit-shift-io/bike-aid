@@ -13,12 +13,19 @@ AIN7        P0.31
 
 use crate::signals;
 use crate::functions::*;
+use embassy_nrf::pac::saadc::oversample;
 use embassy_nrf::peripherals::SAADC;
 use embassy_nrf::saadc::AnyInput;
+use embassy_nrf::saadc::Oversample;
+use embassy_nrf::saadc::Resolution;
 use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
+use embassy_nrf::PeripheralRef;
 use embassy_nrf::{bind_interrupts, saadc};
+use embassy_sync::channel;
 use embassy_time::Timer;
 use defmt::*;
+
+use embassy_nrf::saadc::{Gain, Reference, Resistor, Time};
 
 static TASK_ID : &str = "THROTTLE";
 
@@ -96,9 +103,19 @@ pub async fn throttle (
     bind_interrupts!(struct Irqs {
         SAADC => saadc::InterruptHandler;
     });
-    let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
-    let channel_config = ChannelConfig::single_ended(pin_adc);
+
+    let mut config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
+    config.oversample = Oversample::BYPASS;
+    config.resolution = Resolution::_14BIT;
+    
+    let mut channel_config = ChannelConfig::single_ended(pin_adc);
+    channel_config.gain = Gain::GAIN1_4;
+    channel_config.resistor = Resistor::BYPASS;
+    channel_config.time = Time::_10US;  
+    channel_config.reference = Reference::VDD1_4;
+    
     let mut adc = Saadc::new(saadc, Irqs, config, [channel_config]);
+
     adc.calibrate().await; // calibrate
     Timer::after_millis(500).await;
     let pub_throttle = signals::THROTTLE.publisher().unwrap();
@@ -175,3 +192,7 @@ We may need to do this in the future if we have multiple adc in use??
      */
 
 */
+
+fn convert_to_peripheral_ref(input: AnyInput) -> PeripheralRef<'static, AnyInput> {
+    PeripheralRef::new(input)
+}
