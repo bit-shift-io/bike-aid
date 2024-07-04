@@ -17,7 +17,8 @@ P0.08 - TWI SCL
 mod signals;
 mod functions;
 
-mod device_dac;
+mod device_throttle_dac;
+mod device_throttle_adc;
 
 mod task_clock;
 mod task_led;
@@ -28,52 +29,77 @@ mod task_alarm;
 mod task_throttle;
 mod task_bluetooth;
 
+use core::cell::RefCell;
+
 // external imports
-use embassy_nrf::gpio::Pin;
+use embassy_nrf::{gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
 use {defmt_rtt as _, panic_probe as _};
 
+// Static i2c/twi mutex for shared-bus functionality
+use static_cell::StaticCell;
+use embassy_nrf::twim::{self, Twim};
+use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
+use embassy_sync::blocking_mutex::NoopMutex;
+use embedded_hal::i2c::I2c;
+
+// blocking mutex for shared-bus
+static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new();
+
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    let p = embassy_nrf::init(Default::default());
+    // configure for softdevice
+    // interrupt levels 0, 1 and 4 are reserved by the softdevice
+    let mut config = embassy_nrf::config::Config::default();
+    config.gpiote_interrupt_priority = Priority::P2;
+    config.time_interrupt_priority = Priority::P2;
+    let p = embassy_nrf::init(config);
+
+    //let p = embassy_nrf::init(Default::default());
 
     // DEBUG: add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
 
-    // Configure and setup shared async I2C/TWI communication
-    let mut shared_twi = {
-        use embassy_nrf::{bind_interrupts, peripherals::{self}, twim::{self, Twim}};
-        bind_interrupts!(struct Irqs {
-            SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;
-        });
-        let port_twi = p.TWISPI0;
-        let pin_sda = p.P0_06.degrade();
-        let pin_scl = p.P0_08.degrade();
+
+    let i2c_bus = {
+        use embassy_nrf::{bind_interrupts, peripherals::{self}};
+        bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
         let config = twim::Config::default();
-        Twim::new(port_twi, Irqs, pin_sda, pin_scl, config)
-        //SHARED_ASYNC_I2C.init(Mutex::new(i2c))
+        let i2c = Twim::new(p.TWISPI0, Irqs, p.P0_06, p.P0_08, config); // sda: p0.06, scl: p0.08
+        let i2c_bus = NoopMutex::new(RefCell::new(i2c));
+        I2C_BUS.init(i2c_bus)
     };
+ 
 
     // scan for i2c/twi devices
+    let mut i2c_dev1 = I2cDevice::new(i2c_bus);
     for address in 1..128 {
-        match shared_twi.write(address, &[]).await {
-            Ok(_) => {
-                info!("Device found at address: 0x{:X}", address);
-            }
+        let result = i2c_dev1.write(address, &[]);
+        match result {
+            Ok(_) => {info!("I2C/TWI found device: 0x{:X}", address);}
             Err(_) => continue,
         }
     }
-
+ 
+ 
     // INIT DEVICES
-    use crate::device_dac::dac;
-    spawner.must_spawn(dac(
-        shared_twi,
-        0x60,
+
+    // Throttle ADC (input)
+    use crate::device_throttle_adc::adc;
+    spawner.must_spawn(adc(
+        I2cDevice::new(i2c_bus)
     ));
-    
+
+    // Throttle ADC (output)
+    use crate::device_throttle_dac::dac;
+    spawner.must_spawn(dac(
+        I2cDevice::new(i2c_bus)
+    ));
+
+
 
     // INIT TASKS
 
@@ -114,11 +140,13 @@ async fn main(spawner: Spawner) {
         p.SAADC
     ));
 
+    /*
     // Bluetooth Task
     use crate::task_bluetooth::bluetooth;
     spawner.must_spawn(bluetooth(
         spawner
     ));
+     */
 
     // loop for testing
     let pub_led = signals::LED_MODE.publisher().unwrap();

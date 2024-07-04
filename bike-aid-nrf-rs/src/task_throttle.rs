@@ -105,14 +105,14 @@ pub async fn throttle (
     });
 
     let mut config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
-    config.oversample = Oversample::BYPASS;
-    config.resolution = Resolution::_14BIT;
+    //config.oversample = Oversample::BYPASS;
+    //config.resolution = Resolution::_12BIT;
     
     let mut channel_config = ChannelConfig::single_ended(pin_adc);
-    channel_config.gain = Gain::GAIN1_4;
-    channel_config.resistor = Resistor::BYPASS;
-    channel_config.time = Time::_10US;  
-    channel_config.reference = Reference::VDD1_4;
+    //channel_config.gain = Gain::GAIN1_4;
+    //channel_config.resistor = Resistor::PULLDOWN; //Resistor::BYPASS;
+    //channel_config.time = Time::_40US;  
+    //channel_config.reference = Reference::VDD1_4;
     
     let mut adc = Saadc::new(saadc, Irqs, config, [channel_config]);
 
@@ -127,7 +127,7 @@ pub async fn throttle (
         adc.sample(&mut buf).await;
         let input = buf[0];
 
-        info!("{}", input);
+        //info!("{}", input);
 
         // clamp to positive values only
         let input = clamp_positive(input);
