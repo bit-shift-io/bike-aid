@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use num_traits::Num;
 
 pub fn map<T : Num + Copy>(num: T, in_min: &T, in_max: &T, out_min: &T, out_max: &T) -> T {

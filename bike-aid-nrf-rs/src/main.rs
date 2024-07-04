@@ -2,11 +2,10 @@
 
 Pin Guide
 
-P0.31 - Throttle
 P1.11 - LED
 P1.15 - SPEED
-P0.06 - TWI SDA
-P0.08 - TWI SCL
+P0.06 - I2C/TWI SDA
+P0.08 - I2C/TWI SCL
 
 */
 
@@ -63,7 +62,7 @@ async fn main(spawner: Spawner) {
     // DEBUG: add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
 
-
+    // shared i2c/twi bus
     let i2c_bus = {
         use embassy_nrf::{bind_interrupts, peripherals::{self}};
         bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
@@ -74,7 +73,7 @@ async fn main(spawner: Spawner) {
     };
  
 
-    // scan for i2c/twi devices
+    // Debug: scan for i2c/twi devices
     let mut i2c_dev1 = I2cDevice::new(i2c_bus);
     for address in 1..128 {
         let result = i2c_dev1.write(address, &[]);
@@ -98,7 +97,6 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(dac(
         I2cDevice::new(i2c_bus)
     ));
-
 
 
     // INIT TASKS
@@ -135,10 +133,7 @@ async fn main(spawner: Spawner) {
 
     // Throttle Task
     use crate::task_throttle::throttle;
-    spawner.must_spawn(throttle(
-        p.P0_31.into(),
-        p.SAADC
-    ));
+    spawner.must_spawn(throttle());
 
     /*
     // Bluetooth Task

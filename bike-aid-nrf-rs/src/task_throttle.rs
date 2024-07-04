@@ -1,39 +1,16 @@
-/*
-For NRF52840
-Analog pin  GPIO pin
-AIN0        P0.02
-AIN1        P0.03
-AIN2        P0.04
-AIN3        P0.05
-AIN4        P0.28
-AIN5        P0.29
-AIN6        P0.30
-AIN7        P0.31
-*/
+#![allow(non_snake_case)]
 
 use crate::signals;
 use crate::functions::*;
-use embassy_nrf::pac::saadc::oversample;
-use embassy_nrf::peripherals::SAADC;
-use embassy_nrf::saadc::AnyInput;
-use embassy_nrf::saadc::Oversample;
-use embassy_nrf::saadc::Resolution;
-use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
-use embassy_nrf::PeripheralRef;
-use embassy_nrf::{bind_interrupts, saadc};
-use embassy_sync::channel;
-use embassy_time::Timer;
 use defmt::*;
-
-use embassy_nrf::saadc::{Gain, Reference, Resistor, Time};
 
 static TASK_ID : &str = "THROTTLE";
 
 #[embassy_executor::task]
 pub async fn throttle (
     //mut saadc: Saadc<'static, 1>,
-    pin_adc: AnyInput,
-    saadc: SAADC,
+    //pin_adc: AnyInput,
+    //saadc: SAADC,
 ) {
     /* 
     Deadband / Deadzone
@@ -77,63 +54,23 @@ pub async fn throttle (
     let LIMIT_MAP_OUT_MIN = 100;
     let LIMIT_MAP_OUT_MAX = 1023;
 
-    /* 
-    SAADC defaults
-    =========================== 
-    12 bit
-    bypass no pull resistors
-    gain 1/6
-    reference internal (0.6v)
-    Input range = (0.6 V)/(1/6) = 3.6 V
 
-    the following formula is used by the chip
-    RESULT = [V(P) - V(N)] * GAIN / REFERENCE * (2 ^ (RESOLUTION - m))
-    or
-    V(P) - V(N) = RESULT * REFERENCE / GAIN / (2 ^ (RESOLUTION - m))
-
-    Result = sample/reading from saadc
-    Voltage positive (P) = adc reading
-    Voltage negative (N) = 0 V (single ended)
-    Gain = 1/6
-    Reference = 0.6 V
-    Resolution = 12
-    m = 0 (single ended) or 1 (differental mode)
-    */
-
-    bind_interrupts!(struct Irqs {
-        SAADC => saadc::InterruptHandler;
-    });
-
-    let mut config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
-    //config.oversample = Oversample::BYPASS;
-    //config.resolution = Resolution::_12BIT;
-    
-    let mut channel_config = ChannelConfig::single_ended(pin_adc);
-    //channel_config.gain = Gain::GAIN1_4;
-    //channel_config.resistor = Resistor::PULLDOWN; //Resistor::BYPASS;
-    //channel_config.time = Time::_40US;  
-    //channel_config.reference = Reference::VDD1_4;
-    
-    let mut adc = Saadc::new(saadc, Irqs, config, [channel_config]);
-
-    adc.calibrate().await; // calibrate
-    Timer::after_millis(500).await;
-    let pub_throttle = signals::THROTTLE.publisher().unwrap();
+    let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
+    let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output = 0;
 
     info!("{} : Entering main loop", TASK_ID);
     loop {
-        let mut buf = [0; 1];
-        adc.sample(&mut buf).await;
-        let input = buf[0];
+        let input = sub_throttle.next_message_pure().await;
 
         //info!("{}", input);
 
         // clamp to positive values only
-        let input = clamp_positive(input);
+        //let input = clamp_positive(input);
 
         // Debug: convert to voltage
-        let voltage = f32::from(input) * 3600.0 / 4096.0; // converted to mv
+        // ADC - 6.144 / 32768 = 0.0001875V (15 bit)
+        let voltage = (f32::from(input) * 0.1875) as u16; // converted to mv
 
         // delta computer from last output value
         let delta = input - output;
@@ -160,39 +97,11 @@ pub async fn throttle (
         let mapped_output = map(output, &MAP_IN_MIN, &MAP_IN_MAX, &MAP_OUT_MIN, &MAP_OUT_MAX);
 
         // DAC 0 - 4095 output - 12 bit
-        // SAADC -2048 to 2047 input - 12 bit
 
         // TODO:mapped_output values are 0-1023 for arduino, what do we use on the dac??
         // TODO: check if these can be negative values, the dac only takes positive values
 
-        //pub_throttle.publish_immediate(mapped_output); 
-        info!("mv: {} |in:{} | out: {} | map: {}", voltage, input, output, mapped_output);
-
-        Timer::after_millis(100).await;
+        pub_throttle.publish_immediate(mapped_output); 
+        info!("in:{} | out: {} | map: {} | mv: {}", input, output, mapped_output, voltage);
     }
-}
-
-
-/*
-Note: The old method was to create this in main, then pass the whole value into the task.
-We may need to do this in the future if we have multiple adc in use??
-
-    /*
-    let saadc = {
-        use embassy_nrf::saadc::{ChannelConfig, Config, Saadc};
-        use embassy_nrf::{bind_interrupts, saadc};
-        bind_interrupts!(struct Irqs {
-            SAADC => saadc::InterruptHandler;
-        });
-        let config = Config::default(); // default 12 bit, bypass no pull resistors, gain 1/6, reference internal
-        let mut pin = p.P0_31;
-        let channel_config = ChannelConfig::single_ended(&mut pin);
-        Saadc::new(p.SAADC, Irqs, config, [channel_config])
-    };
-     */
-
-*/
-
-fn convert_to_peripheral_ref(input: AnyInput) -> PeripheralRef<'static, AnyInput> {
-    PeripheralRef::new(input)
 }
