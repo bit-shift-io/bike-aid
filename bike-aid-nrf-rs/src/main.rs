@@ -15,6 +15,7 @@ P0.08 - I2C/TWI SCL
 // modules/creates
 mod signals;
 mod functions;
+mod store;
 
 mod device_throttle_dac;
 mod device_throttle_adc;
@@ -74,6 +75,7 @@ async fn main(spawner: Spawner) {
  
 
     // Debug: scan for i2c/twi devices
+    // this crashes with 5v on the dac for some reason?
     let mut i2c_dev1 = I2cDevice::new(i2c_bus);
     for address in 1..128 {
         let result = i2c_dev1.write(address, &[]);
@@ -82,7 +84,6 @@ async fn main(spawner: Spawner) {
             Err(_) => continue,
         }
     }
- 
  
     // INIT DEVICES
 
@@ -149,7 +150,7 @@ async fn main(spawner: Spawner) {
     loop {
         let val = sub_minutes.next_message_pure().await;
         pub_led.publish_immediate(task_led::LedMode::OnOffSlow);
-        info!("{:02}", val);
+        info!("Clock: {:02}", val);
     }
  
 }

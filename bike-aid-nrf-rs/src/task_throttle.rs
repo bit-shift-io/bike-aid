@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::store;
 use crate::signals;
 use crate::functions::*;
 use defmt::*;
@@ -7,11 +8,7 @@ use defmt::*;
 static TASK_ID : &str = "THROTTLE";
 
 #[embassy_executor::task]
-pub async fn throttle (
-    //mut saadc: Saadc<'static, 1>,
-    //pin_adc: AnyInput,
-    //saadc: SAADC,
-) {
+pub async fn throttle () {
     /* 
     Deadband / Deadzone
     ===========================
@@ -31,28 +28,27 @@ pub async fn throttle (
 
     Then verify the output with a multimeter also to tweak the ranges MAP_OUT_MIN, and MAP_OUT_MAX
     */
+    let DEADBAND_IN_MIN = store::THROTTLE_DEADBAND_IN_MIN.lock().await.clone();
+    let DEADBAND_IN_MAX = store::THROTTLE_DEADBAND_IN_MAX.lock().await.clone();
+    let DEADBAND_OUT_MIN = store::THROTTLE_DEADBAND_OUT_MIN.lock().await.clone();
+    let DEADBAND_OUT_MAX = store::THROTTLE_DEADBAND_OUT_MAX.lock().await.clone();
 
-    // supply voltage - 4.36v
-    let MAP_IN_MIN = 199; // 0.847v no throttle
-    let MAP_IN_MAX = 840; // 3.58v full throttle
-    let MAP_OUT_MIN = 288; // 1.23v just before motor active
-    let MAP_OUT_MAX = 1023; //620 // 2.6v just after max speed
     /* 
     Smoothing - Jerkiness Mitigation
     ===========================
     how quickly to adjust output, larger values are slower
     smoothing over time
     */
-    let INCREASE_SMOOTH_FACTOR = 4000;
-    let DECREASE_SMOOTH_FACTOR = 100;
+    let INCREASE_SMOOTH_FACTOR = store::THROTTLE_INCREASE_SMOOTH_FACTOR.lock().await.clone();
+    let DECREASE_SMOOTH_FACTOR = store::THROTTLE_DECREASE_SMOOTH_FACTOR.lock().await.clone();
 
     /* 
     Speed Limit
     ===========================
     adjusts throttle output speed limit
     */
-    let LIMIT_MAP_OUT_MIN = 100;
-    let LIMIT_MAP_OUT_MAX = 1023;
+    let LIMIT_MIN = store::THROTTLE_LIMIT_MIN.lock().await.clone();
+    let LIMIT_MAX = store::THROTTLE_LIMIT_MAX.lock().await.clone();
 
 
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
@@ -68,10 +64,16 @@ pub async fn throttle (
         // clamp to positive values only
         //let input = clamp_positive(input);
 
-        // Debug: convert to voltage
-        // ADC - 6.144 / 32768 = 0.0001875V (15 bit)
-        let voltage = (f32::from(input) * 0.1875) as u16; // converted to mv
+        // convert to voltage at pin ADC
+        // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
+        let input_voltage: u16 = (f32::from(input) * 6144.0 / 32768.0) as u16; // converted to mv
 
+        // voltage of the actual throttle before the resitor divider
+        // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
+        //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
+
+        // TODO: convert to use mv, not raw ADC value
+        
         // delta computer from last output value
         let delta = input - output;
 
@@ -87,14 +89,14 @@ pub async fn throttle (
         let limit_input = 1023;
 
         // apply speed limit - allow increase  only if bellow limit
-        if output > map(limit_input, &0, &1023, &LIMIT_MAP_OUT_MIN, &LIMIT_MAP_OUT_MAX) {
+        if output > map(limit_input, &0, &1023, &LIMIT_MIN, &LIMIT_MAX) {
             adjustment = min(adjustment, 0); // always allow decrease
         }
 
         output += adjustment;
 
-        //throttle to output value map - mapping to controller range
-        let mapped_output = map(output, &MAP_IN_MIN, &MAP_IN_MAX, &MAP_OUT_MIN, &MAP_OUT_MAX);
+        // throttle to output value map - mapping to controller range
+        let mapped_output = map(output, &DEADBAND_IN_MIN, &DEADBAND_IN_MAX, &DEADBAND_OUT_MIN, &DEADBAND_OUT_MAX);
 
         // DAC 0 - 4095 output - 12 bit
 
@@ -102,6 +104,6 @@ pub async fn throttle (
         // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output); 
-        info!("in:{} | out: {} | map: {} | mv: {}", input, output, mapped_output, voltage);
+        info!("in:{} | out: {} | map: {} | mv: {}", input, output, mapped_output, input_voltage);
     }
 }
