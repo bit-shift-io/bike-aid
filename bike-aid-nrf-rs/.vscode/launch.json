@@ -16,8 +16,24 @@
         "chip": "nRF52840_xxAA",
         "coreConfigs": [
           {
-            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs"
-          }
+            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            "coreIndex": 0,
+            "rttEnabled": true,
+          "rttChannelFormats": [
+            {
+              "channelNumber": 0,
+              // Format RTT data as String data
+              "dataFormat": "String",
+              // Include host-side timestamps for every line of data transferred from the target RTT output
+              "showTimestamps": false
+            },
+            {
+              "channelNumber": 1,
+              // Treat data as raw binary data, and do not format in any way
+              "dataFormat": "BinaryLE"
+            }
+          ]
+          },
         ],
         "env": {
           //"RUST_LOG": "info",
