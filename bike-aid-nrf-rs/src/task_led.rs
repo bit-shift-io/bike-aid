@@ -1,11 +1,9 @@
 use embassy_time::{Duration, Timer};
 use defmt::*;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
-
 use crate::signals;
 
 static TASK_ID : &str = "LED";
-
 
 #[embassy_executor::task]
 pub async fn led (
@@ -15,10 +13,9 @@ pub async fn led (
     let mut led_mode = LedMode::None;
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
 
-    info!("{} : Entering main loop",TASK_ID);
+    info!("{} : Entering main loop", TASK_ID);
     loop { 
-
-        // Try to read new blinker mode
+        // Try to read new mode
         if let Some(b) = in_led_mode.try_next_message_pure() {led_mode = b}
 
         match led_mode {
@@ -35,7 +32,6 @@ pub async fn led (
     }
 }
 
-
 #[allow(unused)]
 #[derive(Clone,Copy)]
 pub enum LedMode {
@@ -46,8 +42,6 @@ pub enum LedMode {
     OnOffFast,
     OnOffSlow,
 }
-
-
 
 #[allow(unused)]
 async fn one_fast<'a>(led: &mut Output<'a,AnyPin>) {

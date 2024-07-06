@@ -71,6 +71,8 @@ async fn main(spawner: Spawner) {
     // shared i2c/twi bus
     let i2c_bus = {
         use embassy_nrf::{bind_interrupts, peripherals::{self}};
+        //use embassy_nrf::interrupt::Interrupt;
+        //embassy_nrf::interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0::set_priority(interrupt::Priority::P2);
         bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
         let config = twim::Config::default();
         let i2c = Twim::new(p.TWISPI0, Irqs, p.P0_06, p.P0_08, config); // sda: p0.06, scl: p0.08
