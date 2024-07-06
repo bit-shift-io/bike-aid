@@ -57,21 +57,7 @@ pub async fn throttle () {
 
     info!("{} : Entering main loop", TASK_ID);
     loop {
-        let input = sub_throttle.next_message_pure().await;
-
-        //info!("{}", input);
-
-        // clamp to positive values only
-        //let input = clamp_positive(input);
-
-        // convert to voltage at pin ADC
-        // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-        let input_voltage: u16 = (f32::from(input) * 6144.0 / 32768.0) as u16; // converted to mv
-
-        // voltage of the actual throttle before the resitor divider
-        // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
-        //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
-
+        let input = sub_throttle.next_message_pure().await; // millivolts
         // TODO: convert to use mv, not raw ADC value
         
         // delta computer from last output value
@@ -104,6 +90,6 @@ pub async fn throttle () {
         // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output); 
-        info!("in:{} | out: {} | map: {} | mv: {}", input, output, mapped_output, input_voltage);
+        info!("mv_in:{} | out: {} | map: {}", input, output, mapped_output);
     }
 }

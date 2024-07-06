@@ -86,6 +86,7 @@ async fn main(spawner: Spawner) {
         }
     }
      */
+    
 
     // INIT DEVICES
 
@@ -95,12 +96,13 @@ async fn main(spawner: Spawner) {
         I2cDevice::new(i2c_bus)
     ));
 
+    /*
     // Throttle ADC (output)
     use crate::device_throttle_dac::dac;
     spawner.must_spawn(dac(
         I2cDevice::new(i2c_bus)
     ));
-
+ */
 
     // INIT TASKS
 
