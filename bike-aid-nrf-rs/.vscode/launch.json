@@ -19,12 +19,11 @@
             "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs"
           }
         ],
-        /*
         "env": {
-          "RUST_LOG": "info"
+          //"RUST_LOG": "info",
+          "DEFMT_LOG": "info"
         },
-        "consoleLogLevel": "Console"
-        */
+        //"consoleLogLevel": "Console"
       },
 
       {
@@ -48,7 +47,7 @@
         "env": {
           //!MODIFY (or remove)
           // If you set this variable, check the VSCode console log window for the location of the log file.
-          "RUST_LOG": "info"
+          //"RUST_LOG": "info"
         },
         // Info, Debug
         "consoleLogLevel": "Console"

@@ -20,6 +20,7 @@ mod store;
 mod device_throttle_dac;
 mod device_throttle_adc;
 
+mod task_store;
 mod task_clock;
 mod task_led;
 mod task_temperature;
@@ -33,6 +34,7 @@ use core::cell::RefCell;
 
 // external imports
 use embassy_nrf::{gpio::Pin, interrupt::{self, Priority}, peripherals::TWISPI0};
+use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
@@ -65,6 +67,7 @@ async fn main(spawner: Spawner) {
     // DEBUG: add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
 
+  
     // shared i2c/twi bus
     let i2c_bus = {
         use embassy_nrf::{bind_interrupts, peripherals::{self}};
@@ -74,7 +77,8 @@ async fn main(spawner: Spawner) {
         let i2c_bus = NoopMutex::new(RefCell::new(i2c));
         I2C_BUS.init(i2c_bus)
     };
- 
+  
+
     /*
     // Debug: scan for i2c/twi devices
     // this crashes with 5v on the dac for some reason?
@@ -107,6 +111,12 @@ async fn main(spawner: Spawner) {
  */
 
     // INIT TASKS
+
+    // Store Task
+    use crate::task_store::store;
+    spawner.must_spawn(store(
+        Nvmc::new(p.NVMC)
+    ));
 
     // Clock Task
     use crate::task_clock::clock;
@@ -149,6 +159,7 @@ async fn main(spawner: Spawner) {
         spawner
     ));
      */
+    
      
 
     // loop for testing
