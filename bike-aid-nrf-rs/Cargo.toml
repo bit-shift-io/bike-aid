@@ -11,6 +11,7 @@ default = [
     "ble-gatt-server",
     "ble-gatt-client",
     "ble-sec",
+    "nrf52840"
 ]
 
 ble-l2cap = ["nrf-softdevice/ble-l2cap"]
@@ -66,10 +67,6 @@ heapless = "0.8.0"
 atomic-pool = "1.0.1"
 static_cell = "2.0.0"
 nb = "1.1.0"
-
-
-
-
 
 [profile.release]
 debug = 2

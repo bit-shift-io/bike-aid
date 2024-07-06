@@ -32,11 +32,12 @@ mod task_bluetooth;
 use core::cell::RefCell;
 
 // external imports
-use embassy_nrf::{gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
+use embassy_nrf::{gpio::Pin, interrupt::{self, Priority}, peripherals::TWISPI0};
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
 use {defmt_rtt as _, panic_probe as _};
+//use rtt_target::{rprintln, rtt_init_print};
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
@@ -57,6 +58,7 @@ async fn main(spawner: Spawner) {
     config.gpiote_interrupt_priority = Priority::P2;
     config.time_interrupt_priority = Priority::P2;
     let p = embassy_nrf::init(config);
+
 
     //let p = embassy_nrf::init(Default::default());
 
@@ -86,7 +88,7 @@ async fn main(spawner: Spawner) {
         }
     }
      */
-    
+    /*
 
     // INIT DEVICES
 
@@ -95,7 +97,7 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(adc(
         I2cDevice::new(i2c_bus)
     ));
-
+ */
     /*
     // Throttle ADC (output)
     use crate::device_throttle_dac::dac;
@@ -147,6 +149,7 @@ async fn main(spawner: Spawner) {
         spawner
     ));
      */
+     
 
     // loop for testing
     let pub_led = signals::LED_MODE.publisher().unwrap();
