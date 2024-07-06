@@ -16,7 +16,13 @@ pub async fn adc (
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
-    let _ = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
+    let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
+    match result {
+        Ok(()) => {},
+        Err(e) => {
+            info!("{} : device error", DEVICE_ID);
+            return}, // unable to communicate with device
+    }
 
     info!("{} : Entering main loop", DEVICE_ID);
     loop {

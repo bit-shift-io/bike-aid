@@ -73,9 +73,10 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
  
-
+    /*
     // Debug: scan for i2c/twi devices
     // this crashes with 5v on the dac for some reason?
+    // doesnt work with the logic converter either!
     let mut i2c_dev1 = I2cDevice::new(i2c_bus);
     for address in 1..128 {
         let result = i2c_dev1.write(address, &[]);
@@ -84,7 +85,8 @@ async fn main(spawner: Spawner) {
             Err(_) => continue,
         }
     }
- 
+     */
+
     // INIT DEVICES
 
     // Throttle ADC (input)
