@@ -1,3 +1,5 @@
+# https://github.com/embassy-rs/embassy/blob/462daeeb4927416ed817423e91adb71c0861a83d/embassy-nrf/Cargo.toml#L64
+
 [package]
 edition = "2021"
 name = "bike-aid-nrf-rs"
@@ -11,7 +13,7 @@ default = [
     "ble-gatt-server",
     "ble-gatt-client",
     "ble-sec",
-    "nrf52840"
+    "nrf52840",
 ]
 
 ble-l2cap = ["nrf-softdevice/ble-l2cap"]
@@ -25,6 +27,14 @@ nrf52840 = [
   "nrf-softdevice/s140",
   "dep:nrf-softdevice-s140"
 ]
+
+## Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on nRF52, P0_02/P0_03 on nRF53)
+nfc-pins-as-gpio = []
+
+## Allow using the RST pin as a regular GPIO pin.
+##  * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
+##  * nRF52820, nRF52833, nRF52840: P0_18
+reset-pin-as-gpio = []
 
 
 [dependencies]
