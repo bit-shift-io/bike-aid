@@ -37,7 +37,7 @@ mod task_relay_power;
 use core::cell::RefCell;
 
 // external imports
-use embassy_nrf::{config::{DcdcConfig, Reg0Voltage}, gpio::{Level, Output, OutputDrive, Pin}, interrupt::{self, Priority}, peripherals::TWISPI0};
+use embassy_nrf::{bind_interrupts, config::{DcdcConfig, Reg0Voltage}, gpio::{Level, Output, OutputDrive, Pin}, interrupt::{self, Priority}, peripherals::TWISPI0, saadc::{self, ChannelConfig, Config, Saadc}};
 use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
@@ -58,77 +58,22 @@ static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new(
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    /*
-    // write REGOUT0 to set output voltage
-    // should only need to do this once
-    {
-        pub enum Reg0Voltage {
-            /// 1.8 V
-            _1V8 = 0,
-            /// 2.1 V
-            _2V1 = 1,
-            /// 2.4 V
-            _2V4 = 2,
-            /// 2.7 V
-            _2V7 = 3,
-            /// 3.0 V
-            _3V0 = 4,
-            /// 3.3 V
-            _3v3 = 5,
-            //ERASED = 7, means 1.8V
-        }
 
-        unsafe fn uicr_write_masked(address: *mut u32, value: u32, mask: u32) -> WriteResult {
-            let curr_val = address.read_volatile();
-            if curr_val & mask == value & mask {
-                return WriteResult::Noop;
-            }
-        
-            // We can only change `1` bits to `0` bits.
-            if curr_val & value & mask != value & mask {
-                return WriteResult::Failed;
-            }
-        
-            let nvmc = &*pac::NVMC::ptr();
-            nvmc.config.write(|w| w.wen().wen());
-            while nvmc.ready.read().ready().is_busy() {}
-            address.write_volatile(value | !mask);
-            while nvmc.ready.read().ready().is_busy() {}
-            nvmc.config.reset();
-            while nvmc.ready.read().ready().is_busy() {}
-        
-            WriteResult::Written
-        }
-
-        unsafe {
-            const UICR_REGOUT0: *mut u32 = 0x10001304 as *mut u32;
-            let value = Reg0Voltage::_3v3 as u32;
-            let res = uicr_write_masked(UICR_REGOUT0, value, 0b00000000_00000000_00000000_00000111);
-            needs_reset |= res == WriteResult::Written;
-            if res == WriteResult::Failed {
-                warn!(
-                    "Failed to set regulator voltage, as UICR is already programmed to some other setting, and can't be changed without erasing it.\n\
-                    To fix this, erase UICR manually, for example using `probe-rs erase` or `nrfjprog --eraseuicr`."
-                );
-            }
-        }
-    }
-    */
-    // configure for softdevice
-    // interrupt levels 0, 1 and 4 are reserved by the softdevice
     let mut config = embassy_nrf::config::Config::default();
+
+    // change interrupts for softdevice
+    // interrupt levels 0, 1 and 4 are reserved by the softdevice
     config.gpiote_interrupt_priority = Priority::P2;
     config.time_interrupt_priority = Priority::P2;
+
+    // change default pin voltage from 2.8v to 3.3v
     config.dcdc.reg0 = true;
     config.dcdc.reg0_voltage = Some(Reg0Voltage::_3v3);
+
     let p = embassy_nrf::init(config);
 
-
-    //let p = embassy_nrf::init(Default::default());
-
-    // DEBUG: add sleep incase we need to flash during debug and get a crash
+    // add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
-
   
     // shared i2c/twi bus
     let i2c_bus = {
@@ -201,7 +146,7 @@ async fn main(spawner: Spawner) {
     // Relay Power Task
     use crate::task_relay_power::relay_power;
     spawner.must_spawn(relay_power(
-        p.P0_11.degrade()
+        p.P0_04.degrade()
     ));
 
     // Speed Task
@@ -236,8 +181,47 @@ async fn main(spawner: Spawner) {
     ));
      */
     
-    // pin 13 controls vcc output on/off 3.3v apparently?
+
+    
+    // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
     //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
+
+
+/*
+/*
+For NRF52840
+Analog pin  GPIO pin
+AIN0        P0.02
+AIN1        P0.03
+AIN2        P0.04
+AIN3        P0.05
+AIN4        P0.28
+AIN5        P0.29
+AIN6        P0.30
+AIN7        P0.31
+*/
+
+    // test saadc with fixed voltage
+    bind_interrupts!(struct Irqs {
+        SAADC => saadc::InterruptHandler;
+    });
+    let config = Config::default();
+    let channel_config = ChannelConfig::single_ended(p.P0_02);
+    let mut saadc = Saadc::new(p.SAADC, Irqs, config, [channel_config]);
+    saadc.calibrate().await;
+    Timer::after_millis(500).await;
+
+    loop {
+        let mut buf = [0; 1];
+        saadc.sample(&mut buf).await;
+        let input = buf[0];
+        let voltage = f32::from(input) * 3600.0 / 4096.0; // converted to mv
+        info!("sample: {}", voltage);
+        Timer::after_millis(100).await;
+    }
+ */
+
+
 
     // loop for testing
     let pub_led = signals::LED_MODE.publisher().unwrap();
