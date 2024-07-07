@@ -27,10 +27,8 @@ pub async fn adc (
 
     info!("{} : Entering main loop", DEVICE_ID);
     loop {
-        info!("here");
-        let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
-        //let value = block!().unwrap();
-        info!("{} : {}", DEVICE_ID, value);
+        //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
+        let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
 
         // clamp to positive values only
         //let input = clamp_positive(input);

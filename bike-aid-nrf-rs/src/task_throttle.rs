@@ -50,6 +50,9 @@ pub async fn throttle () {
     let LIMIT_MIN = store::THROTTLE_LIMIT_MIN.lock().await.clone();
     let LIMIT_MAX = store::THROTTLE_LIMIT_MAX.lock().await.clone();
 
+    // disable throttle mapping, deadband etc. Pass input to output
+    let PASSTHROUGH = store::THROTTLE_PASSTHROUGH.lock().await.clone();
+
 
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
@@ -58,7 +61,12 @@ pub async fn throttle () {
     info!("{} : Entering main loop", TASK_ID);
     loop {
         let input = sub_throttle.next_message_pure().await; // millivolts
-        // TODO: convert to use mv, not raw ADC value
+
+        if PASSTHROUGH {
+            info!("mv: {} ", input);
+            pub_throttle.publish_immediate(input);
+            continue;
+        }
         
         // delta computer from last output value
         let delta = input - output;

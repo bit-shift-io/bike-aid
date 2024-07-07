@@ -15,6 +15,13 @@ pub fn min<T: PartialOrd>(a: T, b: T) -> T {
     }
 }
 
+pub fn max<T: PartialOrd>(a: T, b: T) -> T {
+    match a > b {
+        true => a,
+        false => b,
+    }
+}
+
 pub fn clamp_positive<T: Num + PartialOrd>(num: T) -> T {
     match num > T::zero() {
         true => num,

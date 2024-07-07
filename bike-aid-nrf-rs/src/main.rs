@@ -101,7 +101,7 @@ async fn main(spawner: Spawner) {
         }
     }
      */
-    /*
+
 
     // INIT DEVICES
 
@@ -110,14 +110,14 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(adc(
         I2cDevice::new(i2c_bus)
     ));
- */
-    /*
+ 
+
     // Throttle ADC (output)
     use crate::device_throttle_dac::dac;
     spawner.must_spawn(dac(
         I2cDevice::new(i2c_bus)
     ));
- */
+    
 
     // INIT TASKS
 
@@ -182,7 +182,7 @@ async fn main(spawner: Spawner) {
      */
     
 
-    
+
     // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
     //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
 

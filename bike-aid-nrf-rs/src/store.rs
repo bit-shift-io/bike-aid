@@ -11,6 +11,8 @@ pub static ALARM_ACTIVE: Mutex<SettingsMutex, bool> = Mutex::new(false);
 
 
 // THROTTLE
+pub static THROTTLE_PASSTHROUGH: Mutex<SettingsMutex, bool> = Mutex::new(true);
+
 pub static THROTTLE_INCREASE_SMOOTH_FACTOR: Mutex<SettingsMutex, i16> = Mutex::new(4000);
 pub static THROTTLE_DECREASE_SMOOTH_FACTOR: Mutex<SettingsMutex, i16> = Mutex::new(100);
 
