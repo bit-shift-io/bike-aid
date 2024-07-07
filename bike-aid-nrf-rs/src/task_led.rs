@@ -44,7 +44,7 @@ pub enum LedMode {
 }
 
 #[allow(unused)]
-async fn one_fast<'a>(led: &mut Output<'a,AnyPin>) {
+async fn one_fast<'a>(led: &mut Output<'a>) {
 
     led.set_high(); // Short high
     Timer::after(Duration::from_millis(50)).await;
@@ -54,7 +54,7 @@ async fn one_fast<'a>(led: &mut Output<'a,AnyPin>) {
 }
 
 #[allow(unused)]
-async fn two_fast<'a>(led: &mut Output<'a,AnyPin>) {
+async fn two_fast<'a>(led: &mut Output<'a>) {
     led.set_high(); // Short high
     Timer::after(Duration::from_millis(50)).await;
 
@@ -69,7 +69,7 @@ async fn two_fast<'a>(led: &mut Output<'a,AnyPin>) {
 }
 
 #[allow(unused)]
-async fn three_fast<'a>(led: &mut Output<'a,AnyPin>) {
+async fn three_fast<'a>(led: &mut Output<'a>) {
     led.set_high(); // Short high
     Timer::after(Duration::from_millis(50)).await;
 
@@ -90,7 +90,7 @@ async fn three_fast<'a>(led: &mut Output<'a,AnyPin>) {
 }
 
 #[allow(unused)]
-async fn on_off_fast<'a>(led: &mut Output<'a,AnyPin>) {
+async fn on_off_fast<'a>(led: &mut Output<'a>) {
     led.set_high(); // Short high
     Timer::after(Duration::from_millis(100)).await;
 
@@ -99,7 +99,7 @@ async fn on_off_fast<'a>(led: &mut Output<'a,AnyPin>) {
 }
 
 #[allow(unused)]
-async fn on_off_slow<'a>(led: &mut Output<'a,AnyPin>) {
+async fn on_off_slow<'a>(led: &mut Output<'a>) {
     led.set_high(); // Meium high
     Timer::after(Duration::from_millis(200)).await;
 

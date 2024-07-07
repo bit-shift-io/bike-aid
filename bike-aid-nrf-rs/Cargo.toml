@@ -29,12 +29,12 @@ nrf52840 = [
 
 [dependencies]
 # embassy
-embassy-futures = { version = "0.1.0"}
-embassy-sync = { version = "0.5.0", features = ["defmt"] }
+embassy-futures = { version = "0.1.0" }
+embassy-sync = { version = "0.6.0", features = ["defmt"] }
 embassy-executor = { version = "0.5.0", features = ["task-arena-size-32768", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
 embassy-time = { version = "0.3.1", features = ["defmt", "defmt-timestamp-uptime"] }
 embassy-nrf = { version = "0.1.0", features = ["defmt", "nrf52840", "time-driver-rtc1", "gpiote", "unstable-pac", "time"] }
-embassy-embedded-hal = "0.1.0"
+embassy-embedded-hal = { version = "0.1.0" }
 
 # log
 defmt = "0.3.8"
@@ -70,3 +70,16 @@ nb = "1.1.0"
 
 [profile.release]
 debug = 2
+
+[patch.crates-io]
+# make sure to get the latest git rev from github, you can see the latest one here:
+# https://github.com/embassy-rs/embassy/commits/main/
+embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+
+nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
+nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
