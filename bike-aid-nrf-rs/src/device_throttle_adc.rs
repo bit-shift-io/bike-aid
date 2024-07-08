@@ -21,7 +21,8 @@ pub async fn adc (
         Ok(()) => {},
         Err(e) => {
             info!("{} : device error", DEVICE_ID);
-            return}, // unable to communicate with device
+            return
+        }, // unable to communicate with device
     }
     //let _ = adc.set_data_rate(DataRate16Bit::Sps8);
 

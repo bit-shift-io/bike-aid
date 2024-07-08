@@ -5,9 +5,17 @@ Pin Guide
 P1.11 - LED
 P1.06 - Button
 P1.15 - Speed
+P0.09 - Piezo
+P0.10 - Alarm
 P0.06 - I2C/TWI SDA
 P0.08 - I2C/TWI SCL
 P1.04 - Relay Power
+
+nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on nRF52, P0_02/P0_03 on nRF53)
+reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
+ * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
+ * nRF52820, nRF52833, nRF52840: P0_18
+
 
 */
 
@@ -32,25 +40,26 @@ mod task_alarm;
 mod task_throttle;
 mod task_bluetooth;
 mod task_button;
-mod task_relay_power;
+mod task_switch_power;
+mod task_piezo;
+mod device_gyroscope;
+mod test_i2c_scan;
 
 use core::cell::RefCell;
 
 // external imports
-use embassy_nrf::{bind_interrupts, config::{DcdcConfig, Reg0Voltage}, gpio::{Level, Output, OutputDrive, Pin}, interrupt::{self, Priority}, peripherals::TWISPI0, saadc::{self, ChannelConfig, Config, Saadc}};
+use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
 use {defmt_rtt as _, panic_probe as _};
-//use rtt_target::{rprintln, rtt_init_print};
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
 use embassy_nrf::twim::{self, Twim};
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_sync::blocking_mutex::NoopMutex;
-use embedded_hal::i2c::I2c;
 
 // blocking mutex for shared-bus
 static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new();
@@ -86,21 +95,12 @@ async fn main(spawner: Spawner) {
         let i2c_bus = NoopMutex::new(RefCell::new(i2c));
         I2C_BUS.init(i2c_bus)
     };
-  
 
-    /*
-    // Debug: scan for i2c/twi devices
-    // this crashes with 5v on the dac for some reason?
-    // doesnt work with the logic converter either!
-    let mut i2c_dev1 = I2cDevice::new(i2c_bus);
-    for address in 1..128 {
-        let result = i2c_dev1.write(address, &[]);
-        match result {
-            Ok(_) => {info!("I2C/TWI found device: 0x{:X}", address);}
-            Err(_) => continue,
-        }
-    }
-     */
+    // Debug
+    use crate::test_i2c_scan::scan;
+    spawner.must_spawn(scan(
+        I2cDevice::new(i2c_bus)
+    ));
 
 
     // INIT DEVICES
@@ -110,11 +110,16 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(adc(
         I2cDevice::new(i2c_bus)
     ));
- 
 
     // Throttle ADC (output)
     use crate::device_throttle_dac::dac;
     spawner.must_spawn(dac(
+        I2cDevice::new(i2c_bus)
+    ));
+
+    // Gyroscope
+    use crate::device_gyroscope::gyroscope;
+    spawner.must_spawn(gyroscope(
         I2cDevice::new(i2c_bus)
     ));
     
@@ -144,7 +149,7 @@ async fn main(spawner: Spawner) {
     ));
 
     // Relay Power Task
-    use crate::task_relay_power::relay_power;
+    use crate::task_switch_power::relay_power;
     spawner.must_spawn(relay_power(
         p.P0_04.degrade()
     ));
@@ -165,9 +170,18 @@ async fn main(spawner: Spawner) {
         p.TEMP
     ));
 
+    // Piezo Task
+    use crate::task_piezo::piezo;
+    spawner.must_spawn(piezo(
+        p.PWM0,
+        p.P0_09.degrade()
+    ));
+
     // Alarm Task
     use crate::task_alarm::alarm;
-    spawner.must_spawn(alarm());
+    spawner.must_spawn(alarm(
+        p.P0_10.degrade()
+    ));
 
     // Throttle Task
     use crate::task_throttle::throttle;
@@ -181,47 +195,8 @@ async fn main(spawner: Spawner) {
     ));
      */
     
-
-
     // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
     //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
-
-
-/*
-/*
-For NRF52840
-Analog pin  GPIO pin
-AIN0        P0.02
-AIN1        P0.03
-AIN2        P0.04
-AIN3        P0.05
-AIN4        P0.28
-AIN5        P0.29
-AIN6        P0.30
-AIN7        P0.31
-*/
-
-    // test saadc with fixed voltage
-    bind_interrupts!(struct Irqs {
-        SAADC => saadc::InterruptHandler;
-    });
-    let config = Config::default();
-    let channel_config = ChannelConfig::single_ended(p.P0_02);
-    let mut saadc = Saadc::new(p.SAADC, Irqs, config, [channel_config]);
-    saadc.calibrate().await;
-    Timer::after_millis(500).await;
-
-    loop {
-        let mut buf = [0; 1];
-        saadc.sample(&mut buf).await;
-        let input = buf[0];
-        let voltage = f32::from(input) * 3600.0 / 4096.0; // converted to mv
-        info!("sample: {}", voltage);
-        Timer::after_millis(100).await;
-    }
- */
-
-
 
     // loop for testing
     let pub_led = signals::LED_MODE.publisher().unwrap();
