@@ -11,6 +11,7 @@ const TASK_ID: &str = "BLUETOOTH";
 pub async fn bluetooth (
     spawner: Spawner
 ) {
+    return;
     info!("{}: start", TASK_ID);
  
     // softdevice config
