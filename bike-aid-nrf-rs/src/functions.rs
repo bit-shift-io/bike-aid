@@ -21,17 +21,3 @@ pub fn max<T: PartialOrd>(a: T, b: T) -> T {
         false => b,
     }
 }
-
-pub fn clamp_positive<T: Num + PartialOrd>(num: T) -> T {
-    match num > T::zero() {
-        true => num,
-        false => T::zero(),
-    }
-}
-
-pub fn clamp_min<T: Num + PartialOrd>(num: T, min: T) -> T {
-    match num > min {
-        true => num,
-        false => min,
-    }
-}

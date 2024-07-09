@@ -3,7 +3,7 @@ use embassy_nrf::gpio::AnyPin;
 use embassy_nrf::gpio::{Input, Pull};
 use defmt::*;
 
-const TASK_ID: &str = "BUTTON";
+const TASK_ID: &str = "BRAKE";
 
 #[embassy_executor::task]
 pub async fn button (

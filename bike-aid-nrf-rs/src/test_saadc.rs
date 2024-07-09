@@ -28,6 +28,7 @@ pub async fn saadc (
     */
 
     // test saadc with fixed voltage
+    embassy_nrf::interrupt::typelevel::SAADC::set_priority(Priority::P2);
     bind_interrupts!(struct Irqs {
         SAADC => saadc::InterruptHandler;
     });

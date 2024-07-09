@@ -2,7 +2,7 @@ use crate::signals;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
-use ads1x1x::{Ads1x1x, ChannelSelection, DataRate16Bit, DynamicOneShot, FullScaleRange, SlaveAddr};
+use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::Timer;
 use nb::block;
@@ -20,7 +20,7 @@ pub async fn adc (
     let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
     match result {
         Ok(()) => {},
-        Err(e) => {
+        Err(_e) => {
             info!("{} : device error", TASK_ID);
             return
         }, // unable to communicate with device

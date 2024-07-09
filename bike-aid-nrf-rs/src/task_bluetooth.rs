@@ -47,7 +47,7 @@ pub async fn bluetooth (
     };
 
     // spawn softdevice task
-    let sd = Softdevice::enable(&config);
+    let sd = Softdevice::enable(&config); // <- this causes locked up crash!
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
     // change config    

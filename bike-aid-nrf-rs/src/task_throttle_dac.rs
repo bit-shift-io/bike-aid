@@ -3,7 +3,6 @@ use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_time::Timer;
 use mcp4725::MCP4725;
 
 const TASK_ID : &str = "THROTTLE DAC";
@@ -20,7 +19,7 @@ pub async fn dac (
     let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
     match result {
         Ok(()) => {},
-        Err(e) => {
+        Err(_e) => {
             info!("{} : device error", TASK_ID);
             return}, // unable to communicate with device
     }
