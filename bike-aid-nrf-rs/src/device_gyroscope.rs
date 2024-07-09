@@ -7,12 +7,13 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::{Delay, Timer};
 use mpu6050::{*, device::MOT_DETECT_STATUS};
 
-static DEVICE_ID : &str = "GYROSCOPE";
+const TASK_ID : &str = "GYROSCOPE";
 
 #[embassy_executor::task]
 pub async fn gyroscope (
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
+    info!("{}: start", TASK_ID);
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let mut mpu = Mpu6050::new(i2c);
     let mut delay = Delay;
@@ -20,7 +21,7 @@ pub async fn gyroscope (
     match result {
         Ok(()) => {},
         Err(e) => {
-            info!("{} : device error", DEVICE_ID);
+            info!("{} : device error", TASK_ID);
             return
         }, // unable to communicate with device
     }
@@ -42,7 +43,6 @@ pub async fn gyroscope (
     let mut warn_count = 0;
     let mut warn_interval_count = 0;
 
-    info!("{} : Entering main loop", DEVICE_ID);
     loop {
         Timer::after_millis(10).await;
 

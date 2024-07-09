@@ -5,13 +5,13 @@ use nrf_softdevice::ble::peripheral;
 use nrf_softdevice::{raw, Softdevice};
 use core::mem;
 
-static TASK_ID : &str = "BLUETOOTH";
+const TASK_ID: &str = "BLUETOOTH";
 
 #[embassy_executor::task]
 pub async fn bluetooth (
     spawner: Spawner
 ) {
-    info!("{} : Starting task", TASK_ID);
+    info!("{}: start", TASK_ID);
  
     // softdevice config
     let config = nrf_softdevice::Config {

@@ -2,16 +2,15 @@ use crate::signals;
 use embassy_time::{Duration, Timer};
 use defmt::*;
 
-static TASK_ID : &str = "CLOCK";
-
+const TASK_ID: &str = "CLOCK";
 
 #[embassy_executor::task]
 pub async fn clock () {
+    info!("{}: start", TASK_ID);
     let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
     let pub_minutes = signals::CLOCK_MINUTES.publisher().unwrap();
     let start_time: u64 = embassy_time::Instant::now().as_secs();
 
-    info!("{} : Entering main loop",TASK_ID);
     loop {
         let current_time: u64 = embassy_time::Instant::now().as_secs();
         let all_minutes: u64 = (current_time - start_time) / 60;

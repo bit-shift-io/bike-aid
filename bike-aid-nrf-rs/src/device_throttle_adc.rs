@@ -7,12 +7,13 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::Timer;
 use nb::block;
 
-static DEVICE_ID : &str = "THROTTLE ADC";
+const TASK_ID : &str = "THROTTLE ADC";
 
 #[embassy_executor::task]
 pub async fn adc (
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
+    info!("{}: start", TASK_ID);
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
@@ -20,13 +21,12 @@ pub async fn adc (
     match result {
         Ok(()) => {},
         Err(e) => {
-            info!("{} : device error", DEVICE_ID);
+            info!("{} : device error", TASK_ID);
             return
         }, // unable to communicate with device
     }
     //let _ = adc.set_data_rate(DataRate16Bit::Sps8);
 
-    info!("{} : Entering main loop", DEVICE_ID);
     loop {
         //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
         let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();

@@ -67,7 +67,7 @@ static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new(
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-
+    info!("======== Starting ========");
     let mut config = embassy_nrf::config::Config::default();
 
     // change interrupts for softdevice
@@ -180,6 +180,7 @@ async fn main(spawner: Spawner) {
     // Alarm Task
     use crate::task_alarm::alarm;
     spawner.must_spawn(alarm(
+        spawner,
         p.P0_10.degrade()
     ));
 

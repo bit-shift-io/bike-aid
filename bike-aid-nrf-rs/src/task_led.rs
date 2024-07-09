@@ -3,17 +3,17 @@ use defmt::*;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
 use crate::signals;
 
-static TASK_ID : &str = "LED";
+const TASK_ID: &str = "LED";
 
 #[embassy_executor::task]
 pub async fn led (
-    pin : AnyPin
+    pin: AnyPin
 ) {
+    info!("{}: start", TASK_ID);
     let mut in_led_mode = signals::LED_MODE.subscriber().unwrap();
     let mut led_mode = LedMode::None;
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
 
-    info!("{} : Entering main loop", TASK_ID);
     loop { 
         // Try to read new mode
         if let Some(b) = in_led_mode.try_next_message_pure() {led_mode = b}

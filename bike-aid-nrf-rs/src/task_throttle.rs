@@ -5,10 +5,11 @@ use crate::signals;
 use crate::functions::*;
 use defmt::*;
 
-static TASK_ID : &str = "THROTTLE";
+const TASK_ID: &str = "THROTTLE";
 
 #[embassy_executor::task]
 pub async fn throttle () {
+    info!("{}: start", TASK_ID);
     /* 
     Deadband / Deadzone
     ===========================
@@ -58,7 +59,6 @@ pub async fn throttle () {
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output = 0;
 
-    info!("{} : Entering main loop", TASK_ID);
     loop {
         let input = sub_throttle.next_message_pure().await; // millivolts
 

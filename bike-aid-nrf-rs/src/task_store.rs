@@ -4,12 +4,13 @@ use embassy_time::{Duration, Timer};
 use embassy_nrf::nvmc::Nvmc;
 use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
 
-static TASK_ID : &str = "STORE";
+const TASK_ID: &str = "STORE";
 
 #[embassy_executor::task]
 pub async fn store (
-    mut flash : Nvmc<'static>
+    mut flash: Nvmc<'static>
 ) {
+    info!("{}: start", TASK_ID);
     // https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/src/bin/nvmc.rs
 
     /*

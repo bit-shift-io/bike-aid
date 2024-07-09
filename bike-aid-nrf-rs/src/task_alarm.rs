@@ -2,64 +2,90 @@ use crate::signals;
 use embassy_executor::Spawner;
 use embassy_nrf::gpio::AnyPin;
 use embassy_nrf::gpio::{Input, Pull};
-use embassy_time::{Duration, Timer};
+use embassy_time::Timer;
+use embassy_sync::channel::Channel;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex::Mutex;
 use defmt::*;
 
-static TASK_ID : &str = "ALARM";
+const TASK_ID: &str = "ALARM";
+const WARN_INTERVAL: u64 = 10000; // 10 sec
+const WARNINGS: u8 = 3;
+const MOTION_SENSITIVITY: u16 = 40; // to account for sensor vibration
+const MOTION_TIMEOUT: u64 = 2000; // ms to reset motion sensitivity
+
+static MOTION_DETECTED: Channel<ThreadModeRawMutex, bool, 1> = Channel::new();
+static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 
 #[embassy_executor::task]
 pub async fn alarm (
-    pin : AnyPin
+    spawner: Spawner,
+    pin: AnyPin
 ) {
-    let INTERVAL = 1000; // 1 sec
-    let WARN_INTERVAL = 10; // 10 x 1 sec = 10 sec
-    let SENSITIVITY = 40;
-    let WARNINGS = 3;
+    info!("{}: start", TASK_ID);
+    let pub_alarm = signals::ALARM.publisher().unwrap();
+    
+    // spawn sub tasks
+    spawner.must_spawn(warning_cooldown());
+    spawner.must_spawn(motion_detection(pin));
+    
+    loop {
+        // motion detected
+        if MOTION_DETECTED.receive().await {
+            let warn_count = WARNING_COUNT.lock().await;
 
-    let mut trigger_count: u8 = 0;
-    let mut warn_count = 0;
-    let mut warn_interval_count = 0;
+            if *warn_count > WARNINGS {
+                info!("ALARM!");
+                pub_alarm.publish_immediate(true);
+            } 
 
-    //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
+            // reset motion detected
+            MOTION_DETECTED.send(false).await;
+        };
+    }
+}
+
+
+#[embassy_executor::task]
+async fn motion_detection (
+    pin: AnyPin
+) {
+    // all this task does it detect motion
+    let mut trigger_count = 0;
+    let mut last_time = 0;
     let mut pin_state = Input::new(pin, Pull::Down); // low
 
-    info!("{} : Entering main loop",TASK_ID);
     loop {
         pin_state.wait_for_high().await;
         trigger_count += 1;
+        let time = embassy_time::Instant::now().as_millis();
 
-        // sensitivity here
-        if trigger_count > SENSITIVITY {
-            warn_count += 1;
-            info!("warn");
+          // every interval check
+        if time - last_time > MOTION_TIMEOUT {
+            last_time = time;
+
+            // sensitivity here
+            if trigger_count > MOTION_SENSITIVITY {
+                // increment mutex
+                let mut warn_count = WARNING_COUNT.lock().await;
+                *warn_count += 1;
+                // send signal / notify
+                MOTION_DETECTED.send(true).await;
+            }
+
+            trigger_count = 0;
         }
+    }
+}
 
-        // no warnings
-        if warn_count == 0 {
-            continue;
+
+#[embassy_executor::task]
+async fn warning_cooldown() {
+    loop {
+        Timer::after_millis(WARN_INTERVAL).await;
+        let mut warn_count = WARNING_COUNT.lock().await;
+        if *warn_count > 0 {
+            *warn_count -= 1;
         }
-
-        // check the warn count
-        if warn_count > WARNINGS {
-            //todo: set active alarm, play till user resets
-            info!("ALARM!");
-        }
-
-        // TODO: need a future joiner thing to continue the count down if there is no motion!
-        // give some time before checking again
-        info!("delay 1s cooldown");
-        Timer::after_millis(INTERVAL).await;
-        
-
-        // increment warn interval count
-        warn_interval_count += 1;
-
-        // reduce warn count if within time
-        if warn_interval_count >= WARN_INTERVAL {
-            warn_count -= 1;
-            warn_interval_count = 0;
-        }
-
-        info!("warn interval:{}", warn_interval_count);
     }
 }

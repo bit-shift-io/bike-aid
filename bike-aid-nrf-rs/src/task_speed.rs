@@ -4,15 +4,16 @@ use embassy_time::{Duration, Timer};
 use embassy_nrf::gpio::{Input, Pull};
 use defmt::*;
 
-static TASK_ID : &str = "SPEED";
-static WHEEL_CIRCUMFERENCE : f32 = 1105.0; // 12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference
-static SPEED_SMOOTH_FACTOR : f32 = 0.3;
-static TICKS_PER_ROTATION : u32 = 12; // TODO:how many times the sensor will tick per rotation
+const TASK_ID: &str = "SPEED";
+const WHEEL_CIRCUMFERENCE: f32 = 1105.0; // 12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference
+const SPEED_SMOOTH_FACTOR: f32 = 0.3;
+const TICKS_PER_ROTATION: u32 = 12; // TODO:how many times the sensor will tick per rotation
 
 #[embassy_executor::task]
 pub async fn speed (
-    pin : AnyPin
+    pin: AnyPin
 ) {
+    info!("{}: start", TASK_ID);
     let pub_instant_speed = signals::INSTANT_SPEED.publisher().unwrap();
     let pub_smooth_speed = signals::SMOOTH_SPEED.publisher().unwrap();
     let pub_wheel_rotations = signals::WHEEL_ROTATIONS.publisher().unwrap();
@@ -25,7 +26,6 @@ pub async fn speed (
     let mut smooth_speed = 0.0;
     let mut pin_state = Input::new(pin, Pull::Down); // low
 
-    info!("{} : Entering main loop",TASK_ID);
     loop {
         pin_state.wait_for_high().await;
         info!("Button pressed!");

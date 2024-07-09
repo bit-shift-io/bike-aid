@@ -6,12 +6,13 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::Timer;
 use mcp4725::MCP4725;
 
-static DEVICE_ID : &str = "THROTTLE DAC";
+const TASK_ID : &str = "THROTTLE DAC";
 
 #[embassy_executor::task]
 pub async fn dac (
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
+    info!("{}: start", TASK_ID);
     let address = 0x60;
     let supply_voltage = 4880; // TODO: mv supply for calibration
     let mut sub_throttle = signals::THROTTLE_OUT.subscriber().unwrap();
@@ -20,11 +21,10 @@ pub async fn dac (
     match result {
         Ok(()) => {},
         Err(e) => {
-            info!("{} : device error", DEVICE_ID);
+            info!("{} : device error", TASK_ID);
             return}, // unable to communicate with device
     }
 
-    info!("{} : Entering main loop", DEVICE_ID);
     loop {
         /*
         // for testing calibration

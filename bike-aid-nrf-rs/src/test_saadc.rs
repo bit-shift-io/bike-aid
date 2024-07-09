@@ -7,12 +7,13 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::Timer;
 use nb::block;
 
-static DEVICE_ID : &str = "SAADC";
+const TASK_ID: &str = "SAADC";
 
 #[embassy_executor::task]
 pub async fn saadc (
-    pin : AnyPin
+    pin: AnyPin
 ) {
+    info!("{}: start", TASK_ID);
     /*
     For NRF52840
     Analog pin  GPIO pin

@@ -5,15 +5,17 @@ use embassy_nrf::peripherals::PWM0;
 use embassy_nrf::pwm::{Prescaler, SimplePwm};
 use embassy_time::Timer;
 
-static TASK_ID : &str = "PIEZO";
+const TASK_ID: &str = "PIEZO";
 
 // https://dev.to/theembeddedrustacean/stm32f4-embedded-rust-at-the-hal-pwm-buzzer-3f1b
 // https://dev.to/theembeddedrustacean/embedded-rust-embassy-pwm-generation-15cf <- better?
 #[embassy_executor::task]
 pub async fn piezo (
-    pm : PWM0,
-    pin : AnyPin
+    pm: PWM0,
+    pin: AnyPin
 ) {
+    info!("{}: start", TASK_ID);
+
     // note, frequency (hz)
     let tones = [
         ('c', 261),
@@ -54,7 +56,7 @@ pub async fn piezo (
     pwm.set_duty(0, 32767 / 2); // 50% of max duty, this should be volume?
     pwm.enable();
 return;
-    info!("{} : Entering main loop", TASK_ID);
+
     loop {
         info!("loop start");
 
