@@ -68,6 +68,11 @@ probe-rs download --verify --binary-format hex --chip nRF52840_xxAA s140_nrf52_7
 ## Debug support
 Install probe-rs visual studio plugin
 
+## Reset device
+Double tap rest to ground within 0.5 seconds to reset board
+
+## Stuck in boot loop (bad flash)
+Reflash the firmware above
 
 ## Links
 https://github.com/joseph-montanez/pico-w-rust-starter-kit

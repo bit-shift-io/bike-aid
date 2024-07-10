@@ -1,22 +1,23 @@
 use crate::signals;
-use embassy_nrf::{interrupt::{typelevel::Interrupt, Priority}, peripherals::TEMP, temp::Temp};
+use embassy_nrf::{peripherals::TEMP, temp::Temp};
 use embassy_time::Timer;
-use embassy_nrf::{bind_interrupts, temp};
+use embassy_nrf::{bind_interrupts, interrupt};
+use embassy_nrf::interrupt::InterruptExt;
+use embassy_nrf::temp;
 use defmt::*;
 
 const TASK_ID: &str = "TEMPERATURE";
 
 #[embassy_executor::task]
 pub async fn temperature (
-    test: TEMP
+    temp: TEMP
 ) {
+    return;
     info!("{}: start", TASK_ID);
     
-    embassy_nrf::interrupt::typelevel::TEMP::set_priority(Priority::P2);
-    bind_interrupts!(struct Irqs {
-        TEMP => temp::InterruptHandler;
-    });
-    let mut t = Temp::new(test, Irqs);
+    bind_interrupts!(struct Irqs {TEMP => temp::InterruptHandler;});
+    interrupt::TEMP.set_priority(interrupt::Priority::P3);
+    let mut t = Temp::new(temp, Irqs);
     let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
 
     loop {

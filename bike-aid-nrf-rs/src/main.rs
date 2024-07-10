@@ -46,7 +46,7 @@ mod test_i2c_scan;
 
 // external imports
 use core::cell::RefCell;
-use embassy_nrf::interrupt::typelevel::Interrupt;
+use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_nrf::peripherals::{self};
 use embassy_nrf::nvmc::Nvmc;
@@ -67,6 +67,7 @@ static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new(
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     info!("======== Starting ========");
+    
     let mut config = embassy_nrf::config::Config::default();
 
     // change interrupts for softdevice
@@ -82,17 +83,19 @@ async fn main(spawner: Spawner) {
 
     // add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
-  
+
     // shared i2c/twi bus
     let i2c_bus = {
-        embassy_nrf::interrupt::typelevel::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0::set_priority(Priority::P2);
         bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
+        interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
         let config = twim::Config::default();
         let i2c = Twim::new(p.TWISPI0, Irqs, p.P0_06, p.P0_08, config); // sda: p0.06, scl: p0.08
         let i2c_bus = NoopMutex::new(RefCell::new(i2c));
         I2C_BUS.init(i2c_bus)
     };
 
+/*
+        
     // Debug
     use crate::test_i2c_scan::scan;
     spawner.must_spawn(scan(
@@ -114,11 +117,13 @@ async fn main(spawner: Spawner) {
         I2cDevice::new(i2c_bus)
     ));
 
+
     // Gyroscope
     use crate::task_gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
         I2cDevice::new(i2c_bus)
     ));
+   */
     
 
     // INIT TASKS
@@ -202,5 +207,4 @@ async fn main(spawner: Spawner) {
         pub_led.publish_immediate(task_led::LedMode::OnOffSlow);
         info!("Clock: {:02}", val);
     }
- 
 }

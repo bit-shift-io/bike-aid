@@ -28,10 +28,8 @@ pub async fn saadc (
     */
 
     // test saadc with fixed voltage
-    embassy_nrf::interrupt::typelevel::SAADC::set_priority(Priority::P2);
-    bind_interrupts!(struct Irqs {
-        SAADC => saadc::InterruptHandler;
-    });
+    bind_interrupts!(struct Irqs {SAADC => saadc::InterruptHandler;});
+    interrupt::SAADC.set_priority(interrupt::Priority::P3);
     let config = Config::default();
     let channel_config = ChannelConfig::single_ended(p.P0_02);
     let mut saadc = Saadc::new(p.SAADC, Irqs, config, [channel_config]);
