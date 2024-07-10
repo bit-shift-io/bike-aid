@@ -8,6 +8,10 @@ use embassy_time::{Delay, Timer};
 use mpu6050::{*, device::MOT_DETECT_STATUS};
 
 const TASK_ID : &str = "GYROSCOPE";
+// TODO: move these to settings?
+const ACC_SENSITIVITY: f32 = 0.9;
+const GYRO_SENSITIVITY: f32 = 0.8;
+const ANGLE_SENSITIVITY: f32 = 0.1;
 
 #[embassy_executor::task]
 pub async fn gyroscope (
@@ -30,81 +34,49 @@ pub async fn gyroscope (
     //let _ = mpu.set_gyro_range(GyroRange::D250); // default GyroRange::D250
     //let _ = mpu.set_accel_range(AccelRange::G2); // default AccelRange::G2
     //let _ = mpu.set_accel_hpf(ACCEL_HPF::_RESET); // default ACCEL_HPF::_RESET
+    //mpu.setup_motion_detection().unwrap();
 
-
-    mpu.setup_motion_detection().unwrap();
-
-    let INTERVAL = 1000; // 1 sec
-    let WARN_INTERVAL = 10; // 10 x 1 sec = 10 sec
-    let SENSITIVITY = 2;
-    let WARNINGS = 3;
-
-    let mut trigger_count: u8 = 0;
-    let mut warn_count = 0;
-    let mut warn_interval_count = 0;
+    let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
+    let mut last_gyro = mpu.get_gyro().unwrap();
+    let mut last_acc_angles = mpu.get_acc_angles().unwrap();
 
     loop {
-        Timer::after_millis(10).await;
+        Timer::after_millis(500).await;
 
-        // check for motion
-        if mpu.get_motion_detected().unwrap() {
-            info!("Motion by axes: {:b}", mpu.read_byte(MOT_DETECT_STATUS::ADDR).unwrap());
-            trigger_count += 1;
-        }
-        /*
-        // sensitivity here, or use the gyro settings
-        if trigger_count > SENSITIVITY {
-            warn_count += 1;
-            info!("warn");
-        }
-
-        // check the warn count
-        if warn_count > WARNINGS {
-            //todo: set active alarm, play till user resets
-            info!("ALARM!");
+        // get temp
+        let temp = mpu.get_temp().unwrap();
+        pub_temperature.publish_immediate(temp as u16); // in degrees C, no decimals
+        
+        // get roll and pitch estimate
+        let acc_angles = mpu.get_acc_angles().unwrap();
+        let x_acc_delta = acc_angles.x - last_acc_angles.x;
+        let y_acc_delta = acc_angles.y - last_acc_angles.y;
+        if x_acc_delta > ANGLE_SENSITIVITY || y_acc_delta > ANGLE_SENSITIVITY {
+            info!("{}: angles detected", TASK_ID);
         }
 
-        if warn_count == 0 {
-            continue;
+        // get gyro data, scaled with sensitivity
+        let gyro = mpu.get_gyro().unwrap();
+        let x_gyro_delta = gyro.x - last_gyro.x;
+        let y_gyro_delta = gyro.y - last_gyro.y;
+        let z_gyro_delta = gyro.z - last_gyro.z;
+        if x_gyro_delta > GYRO_SENSITIVITY || y_gyro_delta > GYRO_SENSITIVITY || z_gyro_delta > GYRO_SENSITIVITY {
+            info!("{}: gyro detected", TASK_ID);
+        }
+        
+        // get accelerometer data, scaled with sensitivity
+        let acc = mpu.get_acc().unwrap(); // in G's
+        if acc.abs().amax() > ACC_SENSITIVITY {
+            info!("{}: acc detected", TASK_ID);
         }
 
-        // increment warn interval count
-        warn_interval_count += 1;
+        // for debug
+        //info!("{} | {}", x_acc_delta, y_acc_delta);
+        //info!("{} | {} | {}", x_gyro_delta, y_gyro_delta, z_gyro_delta);
+        //info!("{} | {}", acc.abs().amin(), acc.abs().amax());
+        //info!("acc: {} | gyro: {} | r/p: {}", Debug2Format(&acc), Debug2Format(&gyro), Debug2Format(&acc_angles));
 
-        // reduce warn count if within time
-        warn_interval_count += 1;
-        if warn_interval_count >= WARN_INTERVAL {
-            warn_count -= 1;
-            warn_interval_count = 0;
-        }
-
-         */
-
-        /*
-        // not sure what this is for?
-        if count > 5 {
-            mpu.reset_device(&mut delay).unwrap();
-            break;
-        }
-         */
+        last_gyro = gyro;
+        last_acc_angles = acc_angles;
     }
-
-    /*
-    
-    // get roll and pitch estimate
-    let acc = mpu.get_acc_angles().unwrap();
-    defmt::info!("r/p: {}", defmt::Debug2Format(&acc));
-
-    // get temp
-    let temp = mpu.get_temp().unwrap();
-    defmt::info!("temp: {}°C", defmt::Debug2Format(&temp));
-
-    // get gyro data, scaled with sensitivity
-    let gyro = mpu.get_gyro().unwrap();
-    defmt::info!("gyro: {}", defmt::Debug2Format(&gyro));
-
-    // get accelerometer data, scaled with sensitivity
-    let acc = mpu.get_acc().unwrap();
-    defmt::info!("acc: {}", defmt::Debug2Format(&acc));
-     */
 }

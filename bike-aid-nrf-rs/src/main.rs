@@ -15,8 +15,7 @@ nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on n
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
  * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
  * nRF52820, nRF52833, nRF52840: P0_18
-
-
+ * 
 */
 
 #![no_std]
@@ -94,14 +93,14 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-/*
+
         
     // Debug
     use crate::test_i2c_scan::scan;
     spawner.must_spawn(scan(
         I2cDevice::new(i2c_bus)
     ));
-
+/*
 
     // INIT DEVICES
 
@@ -116,14 +115,13 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(dac(
         I2cDevice::new(i2c_bus)
     ));
+ */
 
-
-    // Gyroscope
+    // Gyroscope + Temperature
     use crate::task_gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
         I2cDevice::new(i2c_bus)
     ));
-   */
     
 
     // INIT TASKS
