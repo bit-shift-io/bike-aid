@@ -31,7 +31,6 @@ mod task_throttle_adc;
 mod task_store;
 mod task_clock;
 mod task_led;
-mod task_temperature;
 mod task_speed;
 mod task_battery;
 mod task_alarm;
@@ -164,12 +163,6 @@ async fn main(spawner: Spawner) {
     use crate::task_battery::battery;
     spawner.must_spawn(battery());
 
-    // Temperature Task
-    use crate::task_temperature::temperature;
-    spawner.must_spawn(temperature(
-        p.TEMP
-    ));
-
     // Piezo Task
     use crate::task_piezo::piezo;
     spawner.must_spawn(piezo(
@@ -180,8 +173,7 @@ async fn main(spawner: Spawner) {
     // Alarm Task
     use crate::task_alarm::alarm;
     spawner.must_spawn(alarm(
-        spawner,
-        p.P0_10.degrade()
+        spawner
     ));
 
     // Throttle Task

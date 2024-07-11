@@ -8,8 +8,6 @@ type ChannelMutex = CriticalSectionRawMutex;
 
 pub static SYSTEM_POWER: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
 
-pub static ALARM: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
-
 pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 
@@ -31,5 +29,11 @@ pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubC
 
 pub static BUTTON_ON: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
 
+// alarm
+pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
+pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
+pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
+
+// throttle
 pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();
 pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();
