@@ -4,8 +4,11 @@ use nrf_softdevice::ble::gatt_server::RegisterError;
 use nrf_softdevice::ble::Uuid;
 use nrf_softdevice::Softdevice;
 
-const SERIAL_NUMBER_STRING: &str = "0000";
-const MODEL_NUMBER_STRING: &str = "0001";
+const SERIAL_NUMBER_STRING: &str = "007-awesome";
+const MODEL_NUMBER_STRING: &str = "diy-scooter";
+const FIRMWARE_REVISION_STRING: &str = "1.0";
+const HARDWARE_REVISION_STRING: &str = "1.0";
+const SOFTWARE_REVISION_STRING: &str = "1.0";
 const MANUFACTURER_NAME_STRING: &str = "Bronson Mathews";
 const EMAIL_STRING: &str = "bronsonmathews@gmail.com";
 
@@ -55,21 +58,21 @@ impl DeviceInformationService {
 
         let hw_revision = service_builder.add_characteristic(
             HARDWARE_REVISION,
-            Attribute::new("1.0"),
+            Attribute::new(HARDWARE_REVISION_STRING),
             Metadata::new(Properties::new().read()),
         )?;
         let hw_revision_handle = hw_revision.build();
 
         let fw_revision = service_builder.add_characteristic(
             FIRMWARE_REVISION,
-            Attribute::new("1.0"),
+            Attribute::new(FIRMWARE_REVISION_STRING),
             Metadata::new(Properties::new().read()),
         )?;
         let fw_revision_handle = fw_revision.build();
 
         let sw_revision = service_builder.add_characteristic(
             SOFTWARE_REVISION,
-            Attribute::new("1.0"),
+            Attribute::new(SOFTWARE_REVISION_STRING),
             Metadata::new(Properties::new().read()),
         )?;
         let sw_revision_handle = sw_revision.build();

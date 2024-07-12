@@ -3,10 +3,11 @@
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pubsub::PubSubChannel};
 
 type ChannelMutex = CriticalSectionRawMutex;
+// <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
 
 // External / reporting to user
 
-pub static SYSTEM_POWER: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
+pub static POWER_SWITCH: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
@@ -35,5 +36,6 @@ pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubS
 pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
 
 // throttle
-pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();
-pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 2, 2, 2> = PubSubChannel::new();
+pub static THROTTLE_SETTINGS_CHANGE: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();

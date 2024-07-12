@@ -5,6 +5,8 @@ use nrf_softdevice::ble::gatt_server::RegisterError;
 use nrf_softdevice::ble::Uuid;
 use nrf_softdevice::Softdevice;
 
+use crate::signals;
+
 
 // TODO: proper uids?
 const SERVICE_ID: Uuid = Uuid::new_16(1000u16);
@@ -32,7 +34,7 @@ impl SettingsService {
 
         let power_switch = service_builder.add_characteristic(
             POWER_SWITCH,
-            Attribute::new([true_u8]),
+            Attribute::new([false_u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let power_switch_handle = power_switch.build();
@@ -76,40 +78,13 @@ impl SettingsService {
         })
     }
 
-        /*
-    pub fn on_write(&self, conn: &Connection, handle: u16, data: &[u8]) {
-        let val = &[
-            0, // Modifiers (Shift, Ctrl, Alt, GUI, etc.)
-            0, // Reserved
-            0x0E, 0, 0, 0, 0, 0, // Key code array - 0x04 is 'a' and 0x1d is 'z' - for example
-        ];
-        // gatt_server::notify_value(conn, self.input_keyboard_cccd, val).unwrap();
-        // gatt_server::notify_value(conn, self.input_keyboard_descriptor, val).unwrap();
-        if handle == self.input_keyboard_cccd {
-            info!("HID input keyboard notify: {:?}", data);
-        } else if handle == self.output_keyboard {
-            // Fires if a keyboard output is changed - e.g. the caps lock LED
-            info!("HID output keyboard: {:?}", data);
-
-            if *data.get(0).unwrap() == 1 {
-                gatt_server::notify_value(conn, self.input_keyboard, val).unwrap();
-                info!("Keyboard report sent");
-            } else {
-                gatt_server::notify_value(conn, self.input_keyboard, &[0u8; 8]).unwrap();
-                info!("Keyboard report cleared");
-            }
-        } else if handle == self.input_media_keys_cccd {
-            info!("HID input media keys: {:?}", data);
-        }
-    }
-     */
-
     pub fn on_write(&self, handle: u16, data: &[u8]) {
         if data.is_empty() {
             return;
         }
 
         if handle == self.alarm_enabled {
+            
             info!("alarm enabled: {:?}", data);
         }
 
@@ -118,7 +93,10 @@ impl SettingsService {
         }
 
         if handle == self.power_switch {
-            info!("power switch: {:?}", data);
+            let message = if data[0] == 1 { true } else { false };
+            signals::POWER_SWITCH.dyn_immediate_publisher().publish_immediate(message);
+            // TODO: do i need to set self power switch here?
+            //self.power_switch = 
         }   
 
         if handle == self.light_switch {

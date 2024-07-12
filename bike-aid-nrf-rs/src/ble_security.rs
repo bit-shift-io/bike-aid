@@ -30,8 +30,9 @@ impl Default for Bonder {
 
 impl SecurityHandler for Bonder {
     fn io_capabilities(&self) -> IoCapabilities {
+        IoCapabilities::None
         //IoCapabilities::DisplayOnly
-        IoCapabilities::KeyboardOnly
+        //IoCapabilities::KeyboardOnly
     }
 
     fn can_bond(&self, _conn: &Connection) -> bool {

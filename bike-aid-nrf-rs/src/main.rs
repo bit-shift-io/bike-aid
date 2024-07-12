@@ -6,10 +6,9 @@ P1.11 - LED
 P1.06 - Button
 P1.15 - Speed
 P0.09 - Piezo
-P0.10 - Alarm
 P0.06 - I2C/TWI SDA
 P0.08 - I2C/TWI SCL
-P1.04 - Relay Power
+P1.11 - Power Switch
 
 nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on nRF52, P0_02/P0_03 on nRF53)
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
@@ -154,10 +153,10 @@ async fn main(spawner: Spawner) {
         p.P1_06.degrade()
     ));
 
-    // Relay Power Task
+    // Power Switch Task
     use crate::task_switch_power::switch_power;
     spawner.must_spawn(switch_power(
-        p.P0_04.degrade()
+        p.P0_11.degrade()
     ));
 
     // Speed Task
