@@ -2,7 +2,7 @@
 use defmt::{info, *};
 use core::cell::{Cell, RefCell};
 use nrf_softdevice::ble::security::{IoCapabilities, SecurityHandler};
-use nrf_softdevice::ble::{Connection, EncryptionInfo, IdentityKey, MasterId};
+use nrf_softdevice::ble::{Connection, EncryptionInfo, IdentityKey, MasterId, PasskeyReply};
 use nrf_softdevice::ble::gatt_server;
 
 
@@ -30,15 +30,25 @@ impl Default for Bonder {
 
 impl SecurityHandler for Bonder {
     fn io_capabilities(&self) -> IoCapabilities {
-        IoCapabilities::DisplayOnly
+        //IoCapabilities::DisplayOnly
+        IoCapabilities::KeyboardOnly
     }
 
     fn can_bond(&self, _conn: &Connection) -> bool {
         true
     }
 
+    /// Display `passkey` to the user for confirmation on the remote device.
+    /// Must be implemented if [`io_capabilities()`][Self::io_capabilities] is one of `DisplayOnly`, `DisplayYesNo`, or `KeyboardDisplay`.
     fn display_passkey(&self, passkey: &[u8; 6]) {
         info!("The passkey is \"{:a}\"", passkey)
+    }
+
+    /// Allow the user to enter a passkey displayed on the remote device.
+    /// Must be implemented if [`io_capabilities()`][Self::io_capabilities] is one of `KeyboardOnly` or `KeyboardDisplay`.
+    fn enter_passkey(&self, _reply: PasskeyReply) {
+        info!("todo: passkey fixed here?");
+        //PasskeyReply::from("1234");
     }
 
     fn on_bonded(&self, _conn: &Connection, master_id: MasterId, key: EncryptionInfo, peer_id: IdentityKey) {

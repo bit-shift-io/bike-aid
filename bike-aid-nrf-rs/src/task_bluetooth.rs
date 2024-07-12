@@ -53,8 +53,8 @@ pub async fn bluetooth (
         }),
         gap_device_name: Some(raw::ble_gap_cfg_device_name_t {
             p_value: b"Bronson Scooter" as *const u8 as _, // TODO: use device name here
-            current_len: 9,
-            max_len: 9,
+            current_len: 15,
+            max_len: 15,
             write_perm: unsafe { mem::zeroed() },
             _bitfield_1: raw::ble_gap_cfg_device_name_t::new_bitfield_1(raw::BLE_GATTS_VLOC_STACK as u8),
         }),

@@ -27,37 +27,40 @@ impl SettingsService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
         let mut service_builder = ServiceBuilder::new(sd, SERVICE_ID)?;
 
+        let true_u8 = true as u8;
+        let false_u8 = false as u8;
+
         let power_switch = service_builder.add_characteristic(
             POWER_SWITCH,
-            Attribute::new([0x11u8, 0x1u8, 0x00u8, 0x01u8]),
+            Attribute::new([true_u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let power_switch_handle = power_switch.build();
 
         let light_switch = service_builder.add_characteristic(
             LIGHT_SWITCH,
-            Attribute::new([0x11u8, 0x1u8, 0x00u8, 0x01u8]),
+            Attribute::new([false_u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let light_switch_handle = light_switch.build();
 
         let horn_switch = service_builder.add_characteristic(
             HORN_SWITCH,
-            Attribute::new([0x11u8, 0x1u8, 0x00u8, 0x01u8]),
+            Attribute::new([false_u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let horn_switch_handle = horn_switch.build();
 
         let alarm_enabled = service_builder.add_characteristic(
             ALARM_ENABLED,
-            Attribute::new([0x11u8, 0x1u8, 0x00u8, 0x01u8]),
+            Attribute::new([false_u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let alarm_enabled_handle = alarm_enabled.build();
 
         let throttle_smoothing = service_builder.add_characteristic(
             THROTTLE_SMOOTHING,
-            Attribute::new([0x11u8, 0x1u8, 0x00u8, 0x01u8]),
+            Attribute::new([255u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
         let throttle_smoothing_handle = throttle_smoothing.build();

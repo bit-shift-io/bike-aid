@@ -1,51 +1,35 @@
-
-use crate::ble_information_service::{DeviceInformation, DeviceInformationService, PnPID, VidSource};
-use crate::ble_battery_service::BatteryService;
-use crate::ble_settings_service::SettingsService;
-
+use crate::ble_service_data::DataService;
+use crate::ble_service_device:: DeviceInformationService;
+use crate::ble_service_battery::BatteryService;
+use crate::ble_service_settings::SettingsService;
+use crate::ble_service_uart::UARTService;
 use nrf_softdevice::ble::gatt_server::{RegisterError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::Softdevice;
 
-
-const SERIAL_NUMBER_STRING: &str = "0000";
-const MODEL_NUMBER_STRING: &str = "0001";
-const MANUFACTURER_NAME_STRING: &str = "Bronson Mathews";
-const EMAIL_STRING: &str = "bronsonmathews@gmail.com";
-
-
-// server
 pub struct Server {
-    _dis: DeviceInformationService,
-    bas: BatteryService,
+    _device_informaton: DeviceInformationService,
+    battery: BatteryService,
     settings: SettingsService,
+    _data: DataService,
+    uart: UARTService,
 }
 
 impl Server {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
-        // TODO: move device info to its file
-        let dis = DeviceInformationService::new(
-            sd,
-            &PnPID {
-                vid_source: VidSource::UsbIF,
-                vendor_id: 0xDEAD,
-                product_id: 0xBEEF,
-                product_version: 0x0000,
-            },
-            DeviceInformation {
-                manufacturer_name: Some(MANUFACTURER_NAME_STRING),
-                model_number: Some(MODEL_NUMBER_STRING),
-                serial_number: Some(SERIAL_NUMBER_STRING),
-                email: Some(EMAIL_STRING),
-                ..Default::default()
-            },
-        )?;
-
-        let bas = BatteryService::new(sd)?;
-
+        let device_informaton = DeviceInformationService::new(sd)?;
+        let battery = BatteryService::new(sd)?;
         let settings = SettingsService::new(sd)?;
+        let data = DataService::new(sd)?;
+        let uart = UARTService::new(sd)?;
 
-        Ok(Self { _dis: dis, bas, settings })
+        Ok(Self {
+            _device_informaton: device_informaton,
+            battery,
+            settings,
+            _data: data,
+            uart,
+        })
     }
 }
 
@@ -60,8 +44,9 @@ impl gatt_server::Server for Server {
         _offset: usize,
         data: &[u8],
     ) -> Option<Self::Event> {
-        self.bas.on_write(handle, data);
+        self.battery.on_write(handle, data);
         self.settings.on_write(handle, data);
+        self.uart.on_write(handle, data);
         None
     }
 }
