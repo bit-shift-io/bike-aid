@@ -46,7 +46,9 @@ mod task_brake;
 mod task_switch_power;
 mod task_piezo;
 mod task_gyroscope;
+
 mod test_i2c_scan;
+mod test_fake_signals;
 
 // external imports
 use core::cell::RefCell;
@@ -191,6 +193,10 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(bluetooth(
         spawner
     ));
+
+    // debug
+    use crate::test_fake_signals::debug_signals;
+    spawner.must_spawn(debug_signals());
     
     // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
     //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);

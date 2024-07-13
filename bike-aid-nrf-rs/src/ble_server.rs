@@ -7,12 +7,13 @@ use nrf_softdevice::ble::gatt_server::{RegisterError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::Softdevice;
 
+
 pub struct Server {
-    _device_informaton: DeviceInformationService,
-    battery: BatteryService,
-    settings: SettingsService,
-    _data: DataService,
-    uart: UARTService,
+    pub _device_informaton: DeviceInformationService,
+    pub battery: BatteryService,
+    pub settings: SettingsService,
+    pub _data: DataService,
+    pub uart: UARTService,
 }
 
 impl Server {

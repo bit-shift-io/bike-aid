@@ -1,6 +1,9 @@
 #![allow(unused)]
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pubsub::PubSubChannel};
+use nrf_softdevice::ble::Connection;
+
+use crate::ble_server::Server;
 
 type ChannelMutex = CriticalSectionRawMutex;
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
@@ -39,3 +42,13 @@ pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = P
 pub static THROTTLE_SETTINGS_CHANGE: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+
+/*
+// ble
+#[derive(Clone)]
+pub struct BleSettings {
+    pub server: Server,
+    pub connection: Connection,
+}
+pub static BLE_SETTINGS: PubSubChannel<ChannelMutex, BleSettings, 1, 2, 2> = PubSubChannel::new();
+ */
