@@ -1,4 +1,6 @@
-use defmt::info;
+use crate::ble_server::{self, *};
+use crate::functions::shift_split_u16;
+use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{self, RegisterError};
@@ -43,12 +45,25 @@ impl DataService {
         })
     }
 
-    pub fn throttle_input_voltage_set(&self, sd: &Softdevice, val: u8) -> Result<(), gatt_server::SetValueError> {
-        gatt_server::set_value(sd, self.throttle_input_voltage, &[val])
+    /*
+    // from example
+    pub fn throttle_input_voltage_set(&self, sd: &Softdevice, val: i16) -> Result<(), gatt_server::SetValueError> {
+        let split = shift_split_u16(val);
+        gatt_server::set_value(sd, self.throttle_input_voltage, &split)
+    }
+     */
+
+    // bypassed new
+    pub fn throttle_input_voltage_set(&self, val: i16) -> Result<(), gatt_server::SetValueError> {
+        //let split = shift_split_u16(val);
+        let split = [12 as u8];
+        ble_server::set_value(self.throttle_input_voltage, &split)
     }
     
-    pub fn throttle_input_voltage_notify(&self, conn: &Connection, val: u8) -> Result<(), gatt_server::NotifyValueError> {
-        gatt_server::notify_value(conn, self.throttle_input_voltage, &[val])
+    pub fn throttle_input_voltage_notify(&self, conn: &Connection, val: i16) -> Result<(), gatt_server::NotifyValueError> {
+        //let split = shift_split_u16(val);
+        let split = [12 as u8];
+        ble_server::notify_value(conn, self.throttle_input_voltage, &split)
     }
 
 }

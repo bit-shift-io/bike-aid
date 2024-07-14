@@ -3,16 +3,18 @@ use crate::ble_service_device:: DeviceInformationService;
 use crate::ble_service_battery::BatteryService;
 use crate::ble_service_settings::SettingsService;
 use crate::ble_service_uart::UARTService;
-use nrf_softdevice::ble::gatt_server::{RegisterError, WriteOp};
+use defmt::info;
+use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
-use nrf_softdevice::Softdevice;
+use nrf_softdevice::{RawError, Softdevice};
+use nrf_softdevice::raw;
 
 
 pub struct Server {
     pub _device_informaton: DeviceInformationService,
     pub battery: BatteryService,
     pub settings: SettingsService,
-    pub _data: DataService,
+    pub data: DataService,
     pub uart: UARTService,
 }
 
@@ -28,7 +30,7 @@ impl Server {
             _device_informaton: device_informaton,
             battery,
             settings,
-            _data: data,
+            data: data,
             uart,
         })
     }
@@ -37,6 +39,7 @@ impl Server {
 impl gatt_server::Server for Server {
     type Event = ();
 
+    // notify_value
     fn on_write(
         &self,
         _conn: &Connection,
@@ -52,3 +55,21 @@ impl gatt_server::Server for Server {
     }
 }
 
+
+pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
+    //info!("notify_value {}", val);
+    gatt_server::notify_value(conn, handle, val)
+}
+
+// bypass gatt_server::set_value due to it using unused sd reference
+pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
+    let mut value = raw::ble_gatts_value_t {
+        p_value: val.as_ptr() as _,
+        len: val.len() as _,
+        offset: 0,
+    };
+    let ret = unsafe { raw::sd_ble_gatts_value_set(raw::BLE_CONN_HANDLE_INVALID as u16, handle, &mut value) };
+    RawError::convert(ret)?;
+
+    Ok(())
+}

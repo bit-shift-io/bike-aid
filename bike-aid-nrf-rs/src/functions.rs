@@ -21,3 +21,8 @@ pub fn max<T: PartialOrd>(a: T, b: T) -> T {
         false => b,
     }
 }
+
+// bitshift a 16 bit number into two 8 bit numbers
+pub fn shift_split_u16(short_16: i16) -> [u8; 2] {
+    [(short_16 >> 8) as u8, (short_16 & 0xff) as u8]
+}
