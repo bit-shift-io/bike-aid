@@ -3,12 +3,10 @@ use crate::ble_service_device:: DeviceInformationService;
 use crate::ble_service_battery::BatteryService;
 use crate::ble_service_settings::SettingsService;
 use crate::ble_service_uart::UARTService;
-use defmt::info;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
 use nrf_softdevice::raw;
-
 
 pub struct Server {
     pub _device_informaton: DeviceInformationService,
@@ -42,23 +40,21 @@ impl gatt_server::Server for Server {
     // notify_value
     fn on_write(
         &self,
-        _conn: &Connection,
+        conn: &Connection,
         handle: u16,
         _op: WriteOp,
         _offset: usize,
         data: &[u8],
     ) -> Option<Self::Event> {
         self.battery.on_write(handle, data);
-        self.settings.on_write(handle, data);
+        self.settings.on_write(conn, handle, data);
         self.uart.on_write(handle, data);
         None
     }
 }
 
-
+// shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
-    //info!("notify_value {}", val);
-
     gatt_server::notify_value(conn, handle, val)
 }
 

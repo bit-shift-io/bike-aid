@@ -5,9 +5,9 @@ use nrf_softdevice::ble::gatt_server::RegisterError;
 use nrf_softdevice::ble::Uuid;
 use nrf_softdevice::Softdevice;
 
-const SERVICE_ID: Uuid = Uuid::new_16(1000u16);
-const RX: Uuid = Uuid::new_16(10001u16);
-const TX: Uuid = Uuid::new_16(10001u16);
+const SERVICE_ID: Uuid = Uuid::new_16(0x5000);
+const RX: Uuid = Uuid::new_16(0x5001);
+const TX: Uuid = Uuid::new_16(0x5002);
 
 pub struct UARTService {
     rx: u16,
@@ -18,21 +18,25 @@ impl UARTService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
         let mut service_builder = ServiceBuilder::new(sd, SERVICE_ID)?;
 
-        let true_u8 = true as u8;
-        let false_u8 = false as u8;
-
-        let power_switch = service_builder.add_characteristic(
+        let rx = service_builder.add_characteristic(
             RX,
-            Attribute::new([true_u8]),
+            Attribute::new([0x11u8, 0x1u8]),
             Metadata::new(Properties::new().read().write()),
         )?;
-        let power_switch_handle = power_switch.build();
+        let rx_handle = rx.build();
+
+        let tx = service_builder.add_characteristic(
+            TX,
+            Attribute::new([0x22u8, 0x2u8]),
+            Metadata::new(Properties::new().read().write()),
+        )?;
+        let tx_handle = tx.build();
 
         let _service_handle = service_builder.build();
         
         Ok(UARTService {
-            rx: power_switch_handle.value_handle,
-            tx: power_switch_handle.value_handle,
+            rx: rx_handle.value_handle,
+            tx: tx_handle.value_handle,
         })
     }
 

@@ -1,20 +1,20 @@
 use defmt::info;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
-use nrf_softdevice::ble::gatt_server::RegisterError;
-use nrf_softdevice::ble::Uuid;
+use nrf_softdevice::ble::gatt_server::{self, RegisterError};
+use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
 use crate::signals;
 
 
 // TODO: proper uids?
-const SERVICE_ID: Uuid = Uuid::new_16(1000u16);
-const POWER_SWITCH: Uuid = Uuid::new_16(10001u16);
-const LIGHT_SWITCH: Uuid = Uuid::new_16(10002u16);
-const HORN_SWITCH: Uuid = Uuid::new_16(10003u16);
-const ALARM_ENABLED: Uuid = Uuid::new_16(10004u16);
-const THROTTLE_SMOOTHING: Uuid = Uuid::new_16(10005u16);
+const SERVICE_ID: Uuid = Uuid::new_16(0x1000);
+const POWER_SWITCH: Uuid = Uuid::new_16(0x1001);
+const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
+const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
+const ALARM_ENABLED: Uuid = Uuid::new_16(0x1004);
+const THROTTLE_SMOOTHING: Uuid = Uuid::new_16(0x1005);
 
 // TODO: all user modified settings here
 pub struct SettingsService {
@@ -78,7 +78,7 @@ impl SettingsService {
         })
     }
 
-    pub fn on_write(&self, handle: u16, data: &[u8]) {
+    pub fn on_write(&self, conn: &Connection, handle: u16, data: &[u8]) {
         if data.is_empty() {
             return;
         }
@@ -94,6 +94,7 @@ impl SettingsService {
 
         if handle == self.power_switch {
             let message = if data[0] == 1 { true } else { false };
+            //gatt_server::notify_value(conn, self.input_keyboard, val).unwrap(); // todo: need to notify server?
             signals::POWER_SWITCH.dyn_immediate_publisher().publish_immediate(message);
             // TODO: do i need to set self power switch here?
             //self.power_switch = 

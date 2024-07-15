@@ -17,6 +17,7 @@ const DEVICE_NAME: &str = "Bronson Scooter";
 const PERIPHERAL_REQUESTS_SECURITY: bool = false;
 
 
+
 // softdevice task
 #[embassy_executor::task]
 async fn softdevice_task(sd: &'static Softdevice) {
@@ -30,22 +31,11 @@ async fn update_task<'a>(server: &'a Server, connection: &'a Connection) {
     loop {
         let val = sub_throttle_in.next_message_pure().await;
 
-        // set the value
-        let test2 = server.data.throttle_input_voltage_set(val);
-        info!("set result: {}", test2);
-
-        // then notify will only work if the user has specified a callback
-        let test1 = server.data.throttle_input_voltage_notify(connection, val);
-        info!("notify result: {}", test1);
-
-
-
-        /*
-        match server.data.throttle_input_voltage_notify(connection, val) {
-            Ok(_) => info!("notified client"),
-            Err(_) => unwrap!(server.data.throttle_input_voltage_set(val)),
+        // try notify, if fails due to other device not allowing, then just set the data
+        match server.data.throttle_input_voltage_notify(connection, &val) {
+            Ok(_) => (),
+            Err(_) => unwrap!(server.data.throttle_input_voltage_set(&val)),
         };
-         */
     }
 }
 

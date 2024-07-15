@@ -1,9 +1,9 @@
 use defmt::{*};
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
-use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
+use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Presentation, Properties};
 use nrf_softdevice::ble::gatt_server::RegisterError;
 use nrf_softdevice::ble::{gatt_server, Connection, SecurityMode, Uuid};
-use nrf_softdevice::Softdevice;
+use nrf_softdevice::{raw, Softdevice};
 
 const BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);
 const BATTERY_LEVEL: Uuid = Uuid::new_16(0x2a19);
@@ -19,8 +19,14 @@ impl BatteryService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
         let mut service_builder = ServiceBuilder::new(sd, BATTERY_SERVICE)?;
 
-        let attr = Attribute::new(&[0u8]).security(SecurityMode::JustWorks);
-        let metadata = Metadata::new(Properties::new().read().notify());
+        let attr = Attribute::new(&[0u8]);
+        let metadata = Metadata::new(Properties::new().read().notify()).presentation(Presentation {
+            format: raw::BLE_GATT_CPF_FORMAT_UINT8 as u8, // unsigned uint 8
+            exponent: 0,  /* Value * 10 ^ 0 */
+            unit: 0x27AD, /* Percentage */
+            name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
+            description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
+        });
         let characteristic_builder = service_builder.add_characteristic(BATTERY_LEVEL, attr, metadata)?;
         let characteristic_handles = characteristic_builder.build();
 

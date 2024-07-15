@@ -30,6 +30,33 @@ pub const ASABRANCA: [isize; 184] = [
 ];
 
 
+pub const RYDE_OF_THE_WALKYRIES_TEMPO: i32 = 84;
+pub const RYDE_OF_THE_WALKYRIES: [isize; 78] = [
+    NOTE_B3, 4, NOTE_FS3, 8, NOTE_B3, 4, NOTE_D4, -1, NOTE_B3, -1, 
+    NOTE_D4, 4, NOTE_B3, 8, NOTE_D4, 4, NOTE_FS4, -1, NOTE_D4, -1, 
+    NOTE_FS4, 4, NOTE_D4, 8, NOTE_FS4, 4, NOTE_A4, -1, NOTE_A3, -1, 
+    NOTE_D4, 4, NOTE_A3, 8, NOTE_D4, 4, NOTE_FS4, 1,
+
+    NOTE_B3, 4, NOTE_D4, 8, NOTE_B3, 4, NOTE_D4, -1, NOTE_FS4, -1, 
+    NOTE_D4, 4, NOTE_FS4, 8, NOTE_D4, 4, NOTE_FS4, -1, NOTE_A4, -1, 
+    NOTE_FS4, 4, NOTE_A4, 8, NOTE_FS4, 4, NOTE_A4, -1, NOTE_CS5, -1, 
+    NOTE_CS4, 4, NOTE_FS4, 8, NOTE_CS4, 4, NOTE_FS4, 1,  NOTE_A4, 1
+];
+/*
+pub const Ryde_Of_The_Walkyries = [
+    4, 8, 4, 1.34, 1.34, 
+    4, 8, 4, 1.34, 1.34, 
+    4, 8, 4, 1.34, 1.34, 
+    4, 8, 4, 0.83, 
+
+    4, 4, 8, 4, 1.34, 1.34,
+    4, 8, 4, 1.34, 1.34,
+     4, 8, 4, 1.34, 1.34, 
+     4, 8, 4, 0.30
+]; */
+
+    
+
 pub const STAR_WARS_TEMPO: i32 = 108;
 pub const STAR_WARS: [isize; 176] = [
     // Dart Vader theme (Imperial March) - Star wars 
