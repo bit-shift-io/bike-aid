@@ -58,6 +58,7 @@ impl gatt_server::Server for Server {
 
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
     //info!("notify_value {}", val);
+
     gatt_server::notify_value(conn, handle, val)
 }
 

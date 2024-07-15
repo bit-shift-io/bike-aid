@@ -24,6 +24,8 @@ reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
 mod signals;
 mod functions;
 mod store;
+mod pitch;
+mod tune;
 mod ble_server;
 mod ble_security;
 mod ble_service_device;
