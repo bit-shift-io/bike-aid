@@ -24,8 +24,8 @@ reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
 mod signals;
 mod functions;
 mod store;
-mod pitch;
-mod tune;
+mod note;
+mod melody;
 mod ble_server;
 mod ble_security;
 mod ble_service_device;
@@ -125,12 +125,13 @@ async fn main(spawner: Spawner) {
         I2cDevice::new(i2c_bus)
     ));
  */
-
+/*
     // Gyroscope + Temperature
     use crate::task_gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
         I2cDevice::new(i2c_bus)
     ));
+    */
     
 
     // INIT TASKS
