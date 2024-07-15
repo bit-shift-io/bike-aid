@@ -37,20 +37,53 @@ impl Server {
 impl gatt_server::Server for Server {
     type Event = ();
 
-    // notify_value
-    fn on_write(
-        &self,
-        conn: &Connection,
-        handle: u16,
-        _op: WriteOp,
-        _offset: usize,
-        data: &[u8],
-    ) -> Option<Self::Event> {
+    fn on_write(&self, conn: &Connection, handle: u16, _op: WriteOp, _offset: usize, data: &[u8]) -> Option<Self::Event> {
         self.battery.on_write(handle, data);
         self.settings.on_write(conn, handle, data);
         self.uart.on_write(handle, data);
         None
     }
+    
+    fn on_deferred_read(&self, handle: u16, offset: usize, reply: nrf_softdevice::ble::DeferredReadReply) -> Option<Self::Event> {
+        let _ = (handle, offset, reply);
+        panic!("on_deferred_read needs to be implemented for this gatt server");
+    }
+    
+    fn on_deferred_write(
+        &self,
+        handle: u16,
+        op: WriteOp,
+        offset: usize,
+        data: &[u8],
+        reply: nrf_softdevice::ble::DeferredWriteReply,
+    ) -> Option<Self::Event> {
+        let _ = (handle, op, offset, data, reply);
+        panic!("on_deferred_write needs to be implemented for this gatt server");
+    }
+    
+    /// Callback to indicate that one or more characteristic notifications have been transmitted.
+    fn on_notify_tx_complete(&self, conn: &Connection, count: u8) -> Option<Self::Event> {
+        let _ = (conn, count);
+        None
+    }
+    
+    /// Callback to indicate that the services changed indication has been received by the client.
+    fn on_services_changed_confirm(&self, conn: &Connection) -> Option<Self::Event> {
+        let _ = conn;
+        None
+    }
+    
+    fn on_timeout(&self, conn: &Connection) -> Option<Self::Event> {
+        let _ = conn;
+        None
+    }
+
+    /// Callback to indicate that the indication of a characteristic has been received by the client.
+    fn on_indicate_confirm(&self, conn: &Connection, handle: u16) -> Option<Self::Event> {
+        let _ = (conn, handle);
+        None
+    }
+
 }
 
 // shortcut to gatt_server::notify_value

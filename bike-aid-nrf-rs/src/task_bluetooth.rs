@@ -5,7 +5,7 @@ use crate::signals;
 use defmt::{info, *};
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
+use nrf_softdevice::ble::advertisement_builder::{AdvertisementDataType, Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
 use nrf_softdevice::ble::{gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use static_cell::StaticCell;
@@ -84,13 +84,32 @@ pub async fn bluetooth (
     let server: Server = unwrap!(Server::new(sd));
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
+    let test = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+    let byte = test.as_bytes();
+    info!("UUID: {}", byte);
+
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
-        .services_16(ServiceList::Complete, &[ServiceUuid16::BATTERY])
+        .services_16(
+            ServiceList::Complete, // or complete
+            &[
+                ServiceUuid16::BATTERY, 
+                ServiceUuid16::USER_DATA, 
+                ServiceUuid16::DEVICE_INFORMATION, 
+            ]) // TODO: UART service id
         .full_name(DEVICE_NAME)
+        //.raw(AdvertisementDataType::APPEARANCE, &[0xC1, 0x03]) // TODO: research
         .build();
 
-    static SCAN_DATA: [u8; 0] = [];
+    static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
+        .services_16(
+            ServiceList::Complete,
+            &[
+                ServiceUuid16::DEVICE_INFORMATION,
+                ServiceUuid16::BATTERY,
+                ServiceUuid16::USER_DATA,
+            ])
+        .build();
 
     // bonder / security
     static BONDER: StaticCell<Bonder> = StaticCell::new();
