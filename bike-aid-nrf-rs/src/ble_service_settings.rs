@@ -5,6 +5,7 @@ use nrf_softdevice::ble::gatt_server::{self, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
+use crate::ble_server::Server;
 use crate::signals;
 
 
@@ -111,3 +112,7 @@ impl SettingsService {
     }
 }
 
+pub async fn run(connection: &Connection, server: &Server) {
+    info!("run settings service");
+
+}

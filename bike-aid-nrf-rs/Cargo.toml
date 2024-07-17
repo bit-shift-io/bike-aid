@@ -63,6 +63,7 @@ num-traits = { version = "0.2.19", default-features = false, features = ["libm"]
 # nrf softdevice bluetooth
 nrf-softdevice-s140 = { version = "0.1.2", optional = true }
 nrf-softdevice = { version = "0.1.0", features = ["nrf52840", "s140", "defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
+#nrf-softdevice-macro = "0.1.0"
 futures = { version = "0.3.29", default-features = false }
 heapless = "0.8.0"
 
@@ -75,6 +76,7 @@ nb = "1.1.0"
 mcp4725 = "0.4.2"
 ads1x1x = "0.2.2"
 mpu6050 = "0.1.6"
+
 
 [profile.release]
 debug = 2
@@ -91,3 +93,4 @@ embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "f
 
 nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
 nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
+#nrf-softdevice-macro = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}

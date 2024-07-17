@@ -43,12 +43,6 @@ pub static THROTTLE_SETTINGS_CHANGE: PubSubChannel<ChannelMutex, i16, 1, 2, 2> =
 pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
-/*
-// ble
-#[derive(Clone)]
-pub struct BleSettings {
-    pub server: Server,
-    pub connection: Connection,
-}
-pub static BLE_SETTINGS: PubSubChannel<ChannelMutex, BleSettings, 1, 2, 2> = PubSubChannel::new();
- */
+// ble uart
+pub static UART_RX: PubSubChannel<ChannelMutex, &[u8], 1, 2, 2> = PubSubChannel::new();
+pub static UART_TX: PubSubChannel<ChannelMutex, &[u8], 1, 2, 2> = PubSubChannel::new();

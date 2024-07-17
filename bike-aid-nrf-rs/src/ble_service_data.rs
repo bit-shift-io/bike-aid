@@ -1,5 +1,6 @@
 use crate::ble_server::{self, *};
 use crate::functions::shift_split_u16;
+use crate::signals;
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
@@ -63,5 +64,19 @@ impl DataService {
     pub fn throttle_input_voltage_notify(&self, conn: &Connection, val: &i16) -> Result<(), gatt_server::NotifyValueError> {
         let split = shift_split_u16(*val);
         ble_server::notify_value(conn, self.throttle_input_voltage, &split)
+    }
+}
+
+pub async fn run(connection: &Connection, server: &Server) {
+    let mut sub_throttle_in = signals::THROTTLE_IN.subscriber().unwrap();
+
+    loop {
+        let val = sub_throttle_in.next_message_pure().await;
+
+        // try notify, if fails due to other device not allowing, then just set the data
+        match server.data.throttle_input_voltage_notify(connection, &val) {
+            Ok(_) => (),
+            Err(_) => unwrap!(server.data.throttle_input_voltage_set(&val)),
+        };
     }
 }

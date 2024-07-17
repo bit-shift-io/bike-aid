@@ -1,8 +1,11 @@
-use crate::ble_service_data::DataService;
+use crate::ble_service_data::{self, DataService};
 use crate::ble_service_device:: DeviceInformationService;
 use crate::ble_service_battery::BatteryService;
-use crate::ble_service_settings::SettingsService;
-use crate::ble_service_uart::UARTService;
+use crate::ble_service_settings::{self, SettingsService};
+use crate::ble_service_uart::{self, UARTService};
+use embassy_futures::join::{join_array, JoinArray};
+use futures::future::{join, join3};
+use futures::pin_mut;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -86,10 +89,22 @@ impl gatt_server::Server for Server {
 
 }
 
+
+pub async fn run(connection: &Connection, server: &Server) {
+    // TODO: add services here
+    let data_future = ble_service_data::run(connection, server);
+    let settings_future = ble_service_settings::run(connection, server);
+    let uart_future = ble_service_uart::run(connection, server);
+    //pin_mut!(data_future, settings_future, uart_future);
+    join3(data_future, settings_future, uart_future).await;
+}
+
+
 // shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
     gatt_server::notify_value(conn, handle, val)
 }
+
 
 // bypass gatt_server::set_value due to it using unused sd reference
 pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
