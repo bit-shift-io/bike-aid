@@ -63,3 +63,16 @@ pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::ne
     deadband_out_min: 1230, // mv just before motor active
     deadband_out_max: 2600, // mv just after max speed, or supply voltage
 });
+
+
+
+// uart store of data
+pub struct UARTStore<'a> {
+    pub read: &'a [u8],
+    pub write: &'a [u8],
+}
+
+pub static UART_STORE: Mutex<SettingsMutex, UARTStore> = Mutex::new(UARTStore {
+    read: &[], 
+    write: &[],
+});

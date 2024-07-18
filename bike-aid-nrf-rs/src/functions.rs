@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use defmt::*;
-use heapless::String;
+use heapless::{String, Vec};
 use nrf_softdevice::ble::Uuid;
 use num_traits::Num;
 
@@ -84,8 +84,71 @@ pub fn print_bytes_array(bytes: &[u8; 16]) {
 }
 
 pub fn bytes_to_string(bytes: &[u8]) -> &str {
+    let mut length = bytes.len();
+
+    // Find the index of the first null character from the end of the byte array
+    // trim the null chars from the end of the string
+    while length > 0 && bytes[length - 1] == 0 {
+        length -= 1;
+    }
+
+    core::str::from_utf8(&bytes[..length]).unwrap_or_default()
+}
+
+/*
+pub fn bytes_to_string(bytes: &[u8]) -> &str {
     use core::str;
     unsafe {
         str::from_utf8_unchecked(bytes)
     }
+} */
+
+
+// copy a u8 slice into a heapless Vec with unknown size
+pub fn copy_u8_slice(slice: &[u8]) -> Result<Vec<u8, 64>, ()> {
+    let mut copied_vec = Vec::new();
+    for &byte in slice {
+        if copied_vec.push(byte).is_err() {
+            let mut new_vec = copied_vec.into_iter().collect::<Vec<u8, 64>>();
+            new_vec.push(byte).map_err(|_| ())?;
+            copied_vec = new_vec;
+        }
+    }
+    Ok(copied_vec)
+}
+
+
+pub fn str_to_array(input: &str) -> [u8; 32] {
+    let mut byte_array = [0u8; 32]; // Initialize a byte array of length 64 with zeros
+
+    // Copy the bytes from the input string to the byte array
+    let input_bytes = input.as_bytes();
+    let copy_length = input_bytes.len().min(32);
+    byte_array[..copy_length].copy_from_slice(&input_bytes[..copy_length]);
+
+    byte_array
+}
+
+pub fn bytes_to_array(input: &[u8]) -> [u8; 32] {
+    let mut padded_array = [0u8; 32]; // Initialize a byte array of length 64 with zeros
+
+    let input_len = input.len().min(32); // Get the minimum of input length and 64
+
+    // Copy the input slice to the padded array
+    padded_array[..input_len].copy_from_slice(&input[..input_len]);
+
+    padded_array
+}
+
+pub fn trim_null_characters(bytes: &[u8; 32]) -> &[u8] {
+    let mut length = bytes.len();
+
+    // Find the index of the first null character from the end of the byte array
+    while length > 0 && bytes[length - 1] == 0 {
+        length -= 1;
+    }
+
+    length +=1; // add 1 for the null character
+
+    &bytes[..length]
 }

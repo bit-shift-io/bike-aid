@@ -1,9 +1,10 @@
 #![allow(unused)]
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pubsub::PubSubChannel};
+use heapless::{pool::boxed::Box, String};
 use nrf_softdevice::ble::Connection;
 
-use crate::ble_server::Server;
+use crate::{ble_server::Server, ble_service_uart};
 
 type ChannelMutex = CriticalSectionRawMutex;
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
@@ -44,5 +45,6 @@ pub static THROTTLE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChanne
 pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
 // ble uart
-pub static UART_RX: PubSubChannel<ChannelMutex, &[u8], 1, 2, 2> = PubSubChannel::new();
-pub static UART_TX: PubSubChannel<ChannelMutex, &[u8], 1, 2, 2> = PubSubChannel::new();
+const MAX_LENGTH: usize = 32;
+pub static UART_WRITE: PubSubChannel<ChannelMutex, [u8; MAX_LENGTH], 1, 2, 2> = PubSubChannel::new();
+pub static UART_READ: PubSubChannel<ChannelMutex, [u8; MAX_LENGTH], 1, 2, 2> = PubSubChannel::new();

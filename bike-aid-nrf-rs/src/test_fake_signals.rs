@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::{functions::*, signals};
 use defmt::*;
 use embassy_time::Timer;
 
@@ -10,12 +10,15 @@ pub async fn debug_signals () {
 
     // change pub or sub here for testing
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
+    let pub_uart = signals::UART_WRITE.publisher().unwrap();
+    let padded_byte_array = str_to_array("Hello, World!");
 
     loop {
-        Timer::after_millis(1000).await;
+        Timer::after_millis(5000).await;
         // assign value here for testing (or random)
         let value = 1003;
         info!("{}: {}", TASK_ID, value);
         pub_throttle.publish_immediate(value);
+        pub_uart.publish_immediate(padded_byte_array);
     }
 }

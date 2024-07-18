@@ -69,16 +69,6 @@ pub async fn bluetooth (
     let server: Server = unwrap!(Server::new(sd));
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
-    // TODO: convert this to work with static consts? use ai helper on that one!
-    let uart_service_uuid = string_to_uuid("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
-    info!("{}: uart_service_uuid: {:?}", TASK_ID, uart_service_uuid);
-    print_bytes_array(&uart_service_uuid);
-    //const UART_SERIVCE: [u8; 16] = [0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0x9E, 0x0A, 0x93, 0xF3, 0x5A, 0x0B, 0x01, 0x00, 0x40, 0x6E];
-    //let service_id: Uuid = Uuid::new_128(&UART_SERIVCE);
-
-    // TODO: convert back to static?
-    //AdvertisementBuilder
-    // LegacyAdvertisementPayload
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
         /*.services_16(
@@ -95,7 +85,7 @@ pub async fn bluetooth (
                 UART_SERIVCE
             ]) */
         .full_name(DEVICE_NAME)
-        .raw(AdvertisementDataType::APPEARANCE, &[0xC1, 0x03]) // TODO: research, keyboard icon
+        .raw(AdvertisementDataType::APPEARANCE, &[0x023, 0x05]) // scooter icon
         .build();
 
     static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
