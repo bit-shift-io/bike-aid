@@ -198,8 +198,8 @@ async fn main(spawner: Spawner) {
     ));
 
     // debug
-    use crate::test_fake_signals::debug_signals;
-    spawner.must_spawn(debug_signals());
+    //use crate::test_fake_signals::debug_signals;
+    //spawner.must_spawn(debug_signals());
     
     // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
     //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);

@@ -48,3 +48,7 @@ pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChann
 const MAX_LENGTH: usize = 32;
 pub static UART_WRITE: PubSubChannel<ChannelMutex, [u8; MAX_LENGTH], 1, 2, 2> = PubSubChannel::new();
 pub static UART_READ: PubSubChannel<ChannelMutex, [u8; MAX_LENGTH], 1, 2, 2> = PubSubChannel::new();
+
+// settings changed, write to flash
+pub static STORE_WRITE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
