@@ -7,6 +7,15 @@ const TASK_ID: &str = "STORE";
 const FLASH_ADDRESS: u32 = 0x80000;
 const BYTE_SIZE: u32 = 8;
 
+enum ValueType {
+    Bool,
+    I16,
+    U16,
+    I32,
+    U32
+    // Add more value types as needed
+}
+
 #[embassy_executor::task]
 pub async fn store (
     flash_controller: Nvmc<'static>
@@ -18,7 +27,7 @@ pub async fn store (
     let mut flash = embassy_embedded_hal::adapter::BlockingAsync::new(flash_controller);
 
     // load store
-    load_store(&mut flash).await;
+    read_store(&mut flash).await;
 
     // erase flash
     // shoudnt need this?
@@ -35,6 +44,7 @@ pub async fn store (
     }
 }
 
+
 async fn write_store<E: defmt::Format>(
     flash: &mut impl MultiwriteNorFlash<Error = E>
 ) {
@@ -44,155 +54,86 @@ async fn write_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
-    let mut buf = [0u8; 1];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.passthrough != buf.iter().any(|&x| x != 0) { // bool
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &[throttle_settings.passthrough as u8]).await;
-        }
-    }
-    offset += 1; // bool
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.increase_smooth_factor != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.increase_smooth_factor.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.decrease_smooth_factor != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.decrease_smooth_factor.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.limit_min != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.limit_min.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.limit_max != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.limit_max.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.deadband_in_min != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.deadband_in_min.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.deadband_in_max != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.deadband_in_max.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.deadband_out_min != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.deadband_out_min.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        if throttle_settings.deadband_out_max != i16::from_le_bytes([buf[0], buf[1]]) { // i16
-            let _ = flash.write(FLASH_ADDRESS + (offset * BYTE_SIZE), &throttle_settings.deadband_out_max.to_le_bytes()).await;
-        }
-    }
-    offset += 2; // i16
-
+    write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.limit_min).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.limit_max).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.deadband_in_min).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.deadband_in_max).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.deadband_out_min).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.deadband_out_max).await;
     // == settings end ==
-
 
 }
 
 
-async fn load_store<E: defmt::Format>(
+async fn read_store<E: defmt::Format>(
     flash: &mut impl MultiwriteNorFlash<Error = E>
 ) {
-    info!("Loading store...");
+    info!("{}: read store", TASK_ID);
 
     let pub_updated = signals::STORE_UPDATED.immediate_publisher();
     let mut offset = 0; // address read offset
 
     // == settings begin ==
     let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-
-    let mut buf = [0u8; 1];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.passthrough = buf.iter().any(|&x| x != 0); // bool
-    }
-    offset += 1; // bool
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.increase_smooth_factor = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.decrease_smooth_factor = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.limit_min = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-    
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.limit_max = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.deadband_in_min = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.deadband_in_max = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.deadband_out_min = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
-    let mut buf = [0u8; 2];
-    if let Ok(_result) = flash.read(FLASH_ADDRESS + (offset * BYTE_SIZE), &mut buf).await {
-        throttle_settings.deadband_out_max = i16::from_le_bytes([buf[0], buf[1]]); // i16
-    }
-    offset += 2; // i16
-
+    read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.limit_min).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.limit_max).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.deadband_in_min).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.deadband_in_max).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.deadband_out_min).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.deadband_out_max).await;
     // == settings end ==
-
-
 
     // notify
     pub_updated.publish_immediate(true);
+}
+
+
+async fn write_bool(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut bool) {
+    let mut buf = [0u8; 1];
+    if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
+        if *setting != buf.iter().any(|&x| x != 0) { // bool
+            let _ = flash.write(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut [*setting as u8]).await;
+        }
+    }
+    *offset += 1; // bool
+}
+
+
+async fn write_i16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut i16) {
+    let mut buf = [0u8; 2];
+    if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
+        if *setting != i16::from_le_bytes([buf[0], buf[1]]) { // i16
+            let _ = flash.write(FLASH_ADDRESS + (*offset * BYTE_SIZE), &setting.to_le_bytes()).await;
+        }
+    }
+    *offset += 2; // i16
+}
+
+
+async fn read_bool(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut bool) {
+    let mut buf = [0u8; 1];
+    if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
+        *setting = buf.iter().any(|&x| x != 0) as bool; // Convert bool to usize
+    }
+    *offset += 1; // Increment offset for bool
+}
+
+
+async fn read_i16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut i16) {
+    let mut buf = [0u8; 2];
+    if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
+        let value = i16::from_le_bytes([buf[0], buf[1]]);
+        if value != 0 {
+            *setting = value; // Convert i16 to usize
+        }
+    }
+    *offset += 2; // Increment offset for i16
 }
