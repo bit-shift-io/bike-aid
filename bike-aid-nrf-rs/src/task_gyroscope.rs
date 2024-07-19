@@ -12,6 +12,7 @@ const TASK_ID : &str = "GYROSCOPE";
 const ACC_SENSITIVITY: f32 = 0.9;
 const GYRO_SENSITIVITY: f32 = 0.8;
 const ANGLE_SENSITIVITY: f32 = 0.1;
+const INTERVAL: u64 = 500;
 
 #[embassy_executor::task]
 pub async fn gyroscope (
@@ -42,7 +43,7 @@ pub async fn gyroscope (
     let mut last_acc_angles = mpu.get_acc_angles().unwrap();
 
     loop {
-        Timer::after_millis(500).await;
+        Timer::after_millis(INTERVAL).await;
 
         // get temp
         let temp = mpu.get_temp().unwrap();

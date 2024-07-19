@@ -95,14 +95,6 @@ pub fn bytes_to_string(bytes: &[u8]) -> &str {
     core::str::from_utf8(&bytes[..length]).unwrap_or_default()
 }
 
-/*
-pub fn bytes_to_string(bytes: &[u8]) -> &str {
-    use core::str;
-    unsafe {
-        str::from_utf8_unchecked(bytes)
-    }
-} */
-
 
 // copy a u8 slice into a heapless Vec with unknown size
 pub fn copy_u8_slice(slice: &[u8]) -> Result<Vec<u8, 64>, ()> {

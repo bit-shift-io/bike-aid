@@ -7,14 +7,6 @@ const TASK_ID: &str = "STORE";
 const FLASH_ADDRESS: u32 = 0x80000;
 const BYTE_SIZE: u32 = 8;
 
-enum ValueType {
-    Bool,
-    I16,
-    U16,
-    I32,
-    U32
-    // Add more value types as needed
-}
 
 #[embassy_executor::task]
 pub async fn store (
@@ -37,8 +29,7 @@ pub async fn store (
 
     info!("{} : Entering main loop",TASK_ID);
     loop {
-        let val = sub_write.next_message_pure().await;
-        if val {
+        if sub_write.next_message_pure().await {
             write_store(&mut flash).await;
         }
     }

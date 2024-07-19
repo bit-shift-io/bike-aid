@@ -23,11 +23,14 @@ pub static ODOMETER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::n
 
 pub static TEMPERATURE: PubSubChannel<ChannelMutex, u16, 2, 2, 2> = PubSubChannel::new();
 
-pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
-pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
-pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
+pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 
 // Internal
+
+pub static BATTERY_CURRENT_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_VOLTAGE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
 pub type LedModeType = crate::task_led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubChannel::new();

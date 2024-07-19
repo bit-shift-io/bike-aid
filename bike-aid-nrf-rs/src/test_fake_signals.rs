@@ -3,6 +3,7 @@ use defmt::*;
 use embassy_time::Timer;
 
 const TASK_ID : &str = "FAKE SIGNALS";
+const INTERVAL: u64 = 5000;
 
 #[embassy_executor::task]
 pub async fn debug_signals () {
@@ -14,7 +15,7 @@ pub async fn debug_signals () {
     let padded_byte_array = str_to_array("Hello, World!");
 
     loop {
-        Timer::after_millis(5000).await;
+        Timer::after_millis(INTERVAL).await;
         // assign value here for testing (or random)
         let value = 1003;
         info!("{}: {}", TASK_ID, value);

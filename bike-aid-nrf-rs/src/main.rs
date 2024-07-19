@@ -26,6 +26,7 @@ mod functions;
 mod store;
 mod note;
 mod melody;
+
 mod ble_server;
 mod ble_security;
 mod ble_service_device;
@@ -34,15 +35,16 @@ mod ble_service_settings;
 mod ble_service_uart;
 mod ble_service_data;
 
-mod task_throttle_dac;
-mod task_throttle_adc;
 mod task_store;
 mod task_clock;
 mod task_led;
 mod task_speed;
 mod task_battery;
+mod task_battery_adc;
 mod task_alarm;
 mod task_throttle;
+mod task_throttle_dac;
+mod task_throttle_adc;
 mod task_bluetooth;
 mod task_brake;
 mod task_switch_power;
@@ -114,14 +116,14 @@ async fn main(spawner: Spawner) {
     // INIT DEVICES
 
     // Throttle ADC (input)
-    use crate::task_throttle_adc::adc;
-    spawner.must_spawn(adc(
+    use crate::task_throttle_adc::throttle_adc;
+    spawner.must_spawn(throttle_adc(
         I2cDevice::new(i2c_bus)
     ));
 
     // Throttle ADC (output)
-    use crate::task_throttle_dac::dac;
-    spawner.must_spawn(dac(
+    use crate::task_throttle_dac::throttle_dac;
+    spawner.must_spawn(throttle_dac(
         I2cDevice::new(i2c_bus)
     ));
  */
@@ -129,6 +131,12 @@ async fn main(spawner: Spawner) {
     // Gyroscope + Temperature
     use crate::task_gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
+        I2cDevice::new(i2c_bus)
+    ));
+
+    // Battery ADC Task
+    use crate::task_battery_adc::battery_adc;
+    spawner.must_spawn(battery_adc(
         I2cDevice::new(i2c_bus)
     ));
     */
