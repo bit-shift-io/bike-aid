@@ -1,4 +1,6 @@
-https://www.aliexpress.com/item/1005006178179016.html?spm=a2g0o.order_list.order_list_main.5.45b61802edvlUA
+# Relay Control Module
+
+## Notes
 
 Specification:
 Certification: NONE
@@ -20,3 +22,7 @@ Features:
 4. Diode Continuity Protection: Equipped with diode continuity protection, optocoupler relay module can prevent any reverse current from dam aging the device and provide additional safety for your electronic projects.
 5. Fast Response Time &amp; Long Relay Life: With a response time of less than 20 milliseconds and a relay life of up to 100,000 continuous operations, high level driver module delivers fast and reliable performance for various automation and control applications.
 1 xIsolated Drive Control Board 
+
+## Information
+
+https://www.aliexpress.com/item/1005006178179016.html?spm=a2g0o.order_list.order_list_main.5.45b61802edvlUA

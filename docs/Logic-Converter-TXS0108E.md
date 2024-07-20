@@ -1,3 +1,7 @@
+# TXS0108E Logic Converter
+
+## Notes
+
 Module uses the chip: TXS0108E
 8-way high-speed full-duplex level conversion module
 Provide two-way communication capability
@@ -8,5 +12,7 @@ The main application, 5V and 3.3V microcontroller module with 5V 3.3V microcontr
 MCU and SD card communication level conversion
 SCM and iic, spi serial device level converter
 OE active high enable IO recommended by a low voltage side of the IO port
+
+## Information
 
 https://www.aliexpress.com/item/1005006191464937.html?spm=a2g0o.order_list.order_list_main.56.66251802PaTEXk
