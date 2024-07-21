@@ -1,13 +1,11 @@
-use crate::ble_server::{self, Server};
-use crate::ble_security::Bonder;
-use crate::functions::{print_bytes_array, string_to_uuid};
-use crate::signals;
+use crate::ble::server::{self, Server};
+use crate::ble::security::Bonder;
 
-use defmt::{info, *};
+use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{AdvertisementBuilder, AdvertisementDataType, AdvertisementPayload, ExtendedAdvertisementBuilder, ExtendedAdvertisementPayload, Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
-use nrf_softdevice::ble::{gatt_server, peripheral, Connection, Uuid};
+use nrf_softdevice::ble::advertisement_builder::{AdvertisementDataType, Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
+use nrf_softdevice::ble::{gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use static_cell::StaticCell;
 use futures::future::{select, Either};
@@ -125,7 +123,7 @@ pub async fn bluetooth (
         // Create two futures:
         //  - My server which allows services to listens for signals and processes them 
         //  - A GATT server listening for events from the connected client.
-        let server_future = ble_server::run(&conn, &server);
+        let server_future = server::run(&conn, &server);
         let gatt_future = gatt_server::run(&conn, &server, |_| {});
         pin_mut!(server_future, gatt_future);
 

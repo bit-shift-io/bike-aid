@@ -4,8 +4,6 @@ use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pubsub::PubSubC
 use heapless::{pool::boxed::Box, String};
 use nrf_softdevice::ble::Connection;
 
-use crate::{ble_server::Server, ble_service_uart};
-
 type ChannelMutex = CriticalSectionRawMutex;
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
 

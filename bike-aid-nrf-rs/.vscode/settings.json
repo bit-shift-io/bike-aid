@@ -1,7 +1,7 @@
 {
     "rust-analyzer.cargo.target": "thumbv7em-none-eabi",
     "rust-analyzer.checkOnSave.allTargets": false,
-    "rust-analyzer.procMacro.attributes.enable": false,
+    "rust-analyzer.procMacro.attributes.enable": true,
     "editor.formatOnSave": false,
     "cSpell.words": [
         "baudrate",

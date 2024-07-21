@@ -5,7 +5,7 @@ use nrf_softdevice::ble::gatt_server::{self, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
-use crate::ble_server::Server;
+use super::server::Server;
 use crate::signals;
 
 

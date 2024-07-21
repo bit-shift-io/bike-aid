@@ -1,5 +1,4 @@
 use crate::signals;
-use embassy_time::{Duration, Timer};
 use defmt::*;
 
 const TASK_ID: &str = "BATTERY";

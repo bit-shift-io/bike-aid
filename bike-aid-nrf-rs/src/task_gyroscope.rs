@@ -1,11 +1,10 @@
 use crate::signals;
-use device::{AccelRange, GyroRange, ACCEL_HPF, ACCEL_SENS};
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_time::{Delay, Timer};
-use mpu6050::{*, device::MOT_DETECT_STATUS};
+use mpu6050::*;
 
 const TASK_ID : &str = "GYROSCOPE";
 // TODO: move these to settings?
@@ -25,7 +24,7 @@ pub async fn gyroscope (
     let result = mpu.init(&mut delay);
     match result {
         Ok(()) => {},
-        Err(e) => {
+        Err(_e) => {
             info!("{} : device error", TASK_ID);
             return
         }, // unable to communicate with device

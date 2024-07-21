@@ -31,14 +31,6 @@ mod store;
 mod note;
 mod melody;
 
-mod ble_server;
-mod ble_security;
-mod ble_service_device;
-mod ble_service_battery;
-mod ble_service_settings;
-mod ble_service_uart;
-mod ble_service_data;
-
 mod task_store;
 mod task_clock;
 mod task_led;
@@ -56,8 +48,9 @@ mod task_switch_light;
 mod task_switch_horn;
 mod task_piezo;
 mod task_gyroscope;
-mod examples;
 
+mod examples;
+mod ble;
 
 // external imports
 use core::cell::RefCell;

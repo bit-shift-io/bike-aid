@@ -1,11 +1,11 @@
-use defmt::{info, unwrap};
+use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{self, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
-use crate::ble_server::{self, Server};
+use super::server::{self, Server};
 use crate::functions::*;
 use crate::signals;
 
@@ -73,13 +73,13 @@ impl UARTService {
 
     // bypassed gatt_server
     pub fn rx_set(&self, val: &[u8]) -> Result<(), gatt_server::SetValueError> {
-        ble_server::set_value(self.rx, &val)
+        server::set_value(self.rx, &val)
     }
     
     // bypassed gatt_server
     pub fn rx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
         info!("ble RX: {:?}", bytes_to_string(val));
-        ble_server::notify_value(conn, self.rx, &val)
+        server::notify_value(conn, self.rx, &val)
     }
 }
 

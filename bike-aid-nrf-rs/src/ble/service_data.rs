@@ -1,4 +1,4 @@
-use crate::ble_server::{self, *};
+use super::server::{self, *};
 use crate::functions::shift_split_u16;
 use crate::signals;
 use defmt::*;
@@ -57,13 +57,13 @@ impl DataService {
     // bypassed gatt_server
     pub fn throttle_input_voltage_set(&self, val: &i16) -> Result<(), gatt_server::SetValueError> {
         let split = shift_split_u16(*val);
-        ble_server::set_value(self.throttle_input_voltage, &split)
+        server::set_value(self.throttle_input_voltage, &split)
     }
     
     // bypassed gatt_server
     pub fn throttle_input_voltage_notify(&self, conn: &Connection, val: &i16) -> Result<(), gatt_server::NotifyValueError> {
         let split = shift_split_u16(*val);
-        ble_server::notify_value(conn, self.throttle_input_voltage, &split)
+        server::notify_value(conn, self.throttle_input_voltage, &split)
     }
 }
 

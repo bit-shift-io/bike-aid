@@ -1,8 +1,8 @@
-use crate::ble_service_data::{self, DataService};
-use crate::ble_service_device:: DeviceInformationService;
-use crate::ble_service_battery::BatteryService;
-use crate::ble_service_settings::{self, SettingsService};
-use crate::ble_service_uart::{self, UARTService};
+use super::service_data::{self, DataService};
+use super::service_device::DeviceInformationService;
+use super::service_battery::BatteryService;
+use super::service_settings::{self, SettingsService};
+use super::service_uart::{self, UARTService};
 use futures::future::join3;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
@@ -90,9 +90,9 @@ impl gatt_server::Server for Server {
 
 pub async fn run(connection: &Connection, server: &Server) {
     // TODO: add services here
-    let data_future = ble_service_data::run(connection, server);
-    let settings_future = ble_service_settings::run(connection, server);
-    let uart_future = ble_service_uart::run(connection, server);
+    let data_future = service_data::run(connection, server);
+    let settings_future = service_settings::run(connection, server);
+    let uart_future = service_uart::run(connection, server);
     //pin_mut!(data_future, settings_future, uart_future);
     join3(data_future, settings_future, uart_future).await;
 }
