@@ -18,8 +18,8 @@ pub async fn clock () {
         let run_minutes: u64 = all_minutes - (run_hours * 60);
     
         // publish
-        pub_minutes.publish(run_minutes.try_into().unwrap()).await;
-        pub_hours.publish(run_hours.try_into().unwrap()).await;
+        pub_minutes.publish_immediate(run_minutes.try_into().unwrap());
+        pub_hours.publish_immediate(run_hours.try_into().unwrap());
         Timer::after(Duration::from_secs(60)).await;
     }
 }

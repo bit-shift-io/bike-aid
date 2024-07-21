@@ -40,13 +40,13 @@ pub async fn speed (
         if delta_time > 20.0 && delta_time < 5000.0 {
             // mm per second -> kms (1mm/s = 0.0036km/s)
             let instant_speed: f32 = (1000.0 / delta_time) * SEGMENT_LENGTH * 0.0036;
-            pub_instant_speed.publish(instant_speed as u32).await; // round
+            pub_instant_speed.publish_immediate(instant_speed as u32); // round
 
             // calculate smooth speed
             let delta_speed : f32 = instant_speed - smooth_speed; // calc difference btween speeds
             let speed_adjust = delta_speed * SPEED_SMOOTH_FACTOR; // todo: multiply by delta time, so faster speeds are adjusted faster?
             smooth_speed += speed_adjust;
-            pub_smooth_speed.publish(smooth_speed as u32).await; // round
+            pub_smooth_speed.publish_immediate(smooth_speed as u32); // round
         }
 
         // odometer on full rotations
@@ -57,11 +57,11 @@ pub async fn speed (
 
             // increment wheel rotations
             rotation_count += 1;
-            pub_wheel_rotations.publish(rotation_count).await;
+            pub_wheel_rotations.publish_immediate(rotation_count);
 
             // odometer
             let odometer = (WHEEL_CIRCUMFERENCE * rotation_count as f32 * 0.0036) as u8;  // round mm to km
-            pub_odometer.publish(odometer).await;
+            pub_odometer.publish_immediate(odometer);
         };
 
     }

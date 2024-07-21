@@ -41,12 +41,13 @@ pub struct ThrottleSettings {
     pub passthrough: bool, // disable smoothing and limiting
     pub increase_smooth_factor: i16, // rate of smoothing to acceleration
     pub decrease_smooth_factor: i16, // rate of smoothing to deceleration
-    pub limit_min: i16, // mv min (cruise control?)
-    pub limit_max: i16, // mv max (speed limit) // TODO: change to use speed eg 20khr
+    pub limit_min: i16, // mv min (cruise control?) // TODO: remove
+    pub limit_max: i16, // mv max (speed limit) // TODO: remove
     pub deadband_in_min: i16, // mv no throttle
     pub deadband_in_max: i16, // mv full throttle
     pub deadband_out_min: i16, // mv just before motor active
-    pub deadband_out_max: i16, // mv just after max speed, or supply voltage
+    pub deadband_out_max: i16,
+    pub speed_limit: i32, // mv just after max speed, or supply voltage
 }
 
 /*
@@ -62,4 +63,5 @@ pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::ne
     deadband_in_max: 3580, // mv full throttle
     deadband_out_min: 1230, // mv just before motor active
     deadband_out_max: 2600, // mv just after max speed, or supply voltage
+    speed_limit: 20, // kmhr
 });

@@ -83,7 +83,7 @@ async fn read_store<E: defmt::Format>(
     // == settings end ==
 
     // notify
-    pub_updated.publish(true).await;
+    pub_updated.publish_immediate(true);
 }
 
 

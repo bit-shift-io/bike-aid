@@ -225,7 +225,7 @@ async fn main(spawner: Spawner) {
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
-        pub_led.publish(task_led::LedMode::OnOffSlow).await;
+        pub_led.publish_immediate(task_led::LedMode::OnOffSlow);
         info!("Clock: {:02}", val);
     }
 }
