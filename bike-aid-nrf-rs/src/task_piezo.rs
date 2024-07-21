@@ -1,10 +1,9 @@
 use crate::melody;
 
-use embassy_nrf::gpio::{AnyPin, OutputDrive};
+use embassy_nrf::gpio::AnyPin;
 use defmt::*;
 use embassy_nrf::peripherals::PWM0;
-use embassy_nrf::pwm::{Prescaler, SimplePwm};
-use embassy_nrf::qspi::Frequency;
+use embassy_nrf::pwm::SimplePwm;
 use embassy_time::Timer;
 
 const TASK_ID: &str = "PIEZO";

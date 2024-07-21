@@ -2,8 +2,6 @@ use crate::store;
 use crate::signals;
 use crate::functions::*;
 use defmt::*;
-use embassy_time::Duration;
-use embassy_time::Timer;
 
 const TASK_ID: &str = "THROTTLE";
 
@@ -16,10 +14,6 @@ pub async fn throttle () {
     let mut output = 0;
 
     loop {
-        // for testing without messages
-        //Timer::after(Duration::from_millis(100)).await; 
-        //let input = 100;
-
         let input = sub_throttle.next_message_pure().await; // millivolts
 
         // TODO: we could use a polled channel here instead of a mutex... Which is better?

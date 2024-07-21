@@ -56,9 +56,8 @@ mod task_switch_light;
 mod task_switch_horn;
 mod task_piezo;
 mod task_gyroscope;
+mod examples;
 
-mod test_i2c_scan;
-mod test_fake_signals;
 
 // external imports
 use core::cell::RefCell;
@@ -111,15 +110,15 @@ async fn main(spawner: Spawner) {
     };
 
 
-        
+
     // Debug
-    use crate::test_i2c_scan::scan;
+    use crate::examples::task_i2c_scan::scan;
     spawner.must_spawn(scan(
         I2cDevice::new(i2c_bus)
     ));
-/*
 
-    // INIT DEVICES
+
+    // == INIT DEVICES ==
 
     // Throttle ADC (input)
     use crate::task_throttle_adc::throttle_adc;
@@ -132,8 +131,7 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(throttle_dac(
         I2cDevice::new(i2c_bus)
     ));
- */
-/*
+
     // Gyroscope + Temperature
     use crate::task_gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
@@ -145,10 +143,9 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(battery_adc(
         I2cDevice::new(i2c_bus)
     ));
-    */
     
 
-    // INIT TASKS
+    // == INIT TASKS ==
 
     // Store Task
     use crate::task_store::store;

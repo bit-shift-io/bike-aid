@@ -1,4 +1,3 @@
-use crate::signals;
 use embassy_executor::Spawner;
 use embassy_nrf::gpio::AnyPin;
 use embassy_nrf::gpio::{Input, Pull};
@@ -23,7 +22,7 @@ pub async fn alarm (
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
-    let pub_alarm = signals::ALARM.publisher().unwrap();
+    //let pub_alarm = signals::ALARM.publisher().unwrap();
     
     // spawn sub tasks
     spawner.must_spawn(warning_cooldown());
@@ -36,7 +35,7 @@ pub async fn alarm (
 
             if *warn_count > WARNINGS {
                 info!("ALARM!");
-                pub_alarm.publish_immediate(true);
+                //pub_alarm.publish_immediate(true);
             } 
 
             // reset motion detected

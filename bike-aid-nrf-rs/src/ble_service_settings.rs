@@ -96,7 +96,7 @@ impl SettingsService {
         if handle == self.power_switch {
             let message = if data[0] == 1 { true } else { false };
             //gatt_server::notify_value(conn, self.input_keyboard, val).unwrap(); // todo: need to notify server?
-            signals::POWER_SWITCH.dyn_immediate_publisher().publish_immediate(message);
+            signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(message);
             // TODO: do i need to set self power switch here?
             //self.power_switch = 
         }   

@@ -11,7 +11,9 @@ type ChannelMutex = CriticalSectionRawMutex;
 
 // External / reporting to user
 
-pub static POWER_SWITCH: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+pub static SWITCH_POWER: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();
 pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::new();

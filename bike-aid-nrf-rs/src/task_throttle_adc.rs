@@ -44,6 +44,7 @@ pub async fn throttle_adc (
         // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
         //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
 
+        // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
         pub_throttle.publish_immediate(input_voltage);
         Timer::after_millis(INTERVAL).await;
     }

@@ -1,6 +1,6 @@
 use crate::signals;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
-use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
+use embassy_nrf::{bind_interrupts, gpio::AnyPin, interrupt::{self, InterruptExt}, peripherals::TWISPI0, saadc::{self, ChannelConfig, Config, Saadc}, twim::Twim};
 use defmt::*;
 use ads1x1x::{Ads1x1x, ChannelSelection, DataRate16Bit, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
@@ -26,7 +26,7 @@ pub async fn saadc (
     AIN6        P0.30
     AIN7        P0.31
     */
-
+/*
     // test saadc with fixed voltage
     bind_interrupts!(struct Irqs {SAADC => saadc::InterruptHandler;});
     interrupt::SAADC.set_priority(interrupt::Priority::P3);
@@ -44,5 +44,5 @@ pub async fn saadc (
         info!("sample: {}", voltage);
         Timer::after_millis(100).await;
     }
-
+ */
 }

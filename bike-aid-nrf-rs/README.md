@@ -12,7 +12,7 @@ RX/SD (yellow - input to I/O)       ->  DIO (yellow - SWD)
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
 
 # USB Permissions
-sudo usermod -aG dialout $USER
+sudo usermod -aG uucp $USER
 sudo cp 69-probe-rs.rules /etc/udev/rules.d/
 sudo udevadm control --reload
 sudo udevadm trigger

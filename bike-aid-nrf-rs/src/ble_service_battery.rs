@@ -2,7 +2,7 @@ use defmt::{*};
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Presentation, Properties};
 use nrf_softdevice::ble::gatt_server::RegisterError;
-use nrf_softdevice::ble::{gatt_server, Connection, SecurityMode, Uuid};
+use nrf_softdevice::ble::{gatt_server, Connection, Uuid};
 use nrf_softdevice::{raw, Softdevice};
 
 const BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);

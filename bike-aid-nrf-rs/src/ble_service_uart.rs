@@ -1,5 +1,4 @@
 use defmt::{info, unwrap};
-use heapless::String;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{self, RegisterError};
