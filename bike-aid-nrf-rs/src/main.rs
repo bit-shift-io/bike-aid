@@ -3,12 +3,16 @@
 Pin Guide
 
 P1.11 - LED
-P1.06 - Button
+P1.06 - Brake
 P1.15 - Speed
 P0.09 - Piezo
+
 P0.06 - I2C/TWI SDA
 P0.08 - I2C/TWI SCL
+
 P1.11 - Power Switch
+P1.04 - Light
+P1.00 - Horn
 
 nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on nRF52, P0_02/P0_03 on nRF53)
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
@@ -48,6 +52,8 @@ mod task_throttle_adc;
 mod task_bluetooth;
 mod task_brake;
 mod task_switch_power;
+mod task_switch_light;
+mod task_switch_horn;
 mod task_piezo;
 mod task_gyroscope;
 
@@ -160,9 +166,9 @@ async fn main(spawner: Spawner) {
         p.P1_11.degrade()
     ));
 
-    // Button Task
-    use crate::task_brake::button;
-    spawner.must_spawn(button(
+    // Brake Task
+    use crate::task_brake::brake;
+    spawner.must_spawn(brake(
         p.P1_06.degrade()
     ));
 
@@ -170,6 +176,18 @@ async fn main(spawner: Spawner) {
     use crate::task_switch_power::switch_power;
     spawner.must_spawn(switch_power(
         p.P0_11.degrade()
+    ));
+
+    // Horn Switch Task
+    use crate::task_switch_horn::switch_horn;
+    spawner.must_spawn(switch_horn(
+        p.P1_04.degrade()
+    ));
+
+    // Light Switch Task
+    use crate::task_switch_light::switch_light;
+    spawner.must_spawn(switch_light(
+        p.P1_00.degrade()
     ));
 
     // Speed Task

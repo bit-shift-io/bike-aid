@@ -6,7 +6,7 @@ use defmt::*;
 const TASK_ID: &str = "BRAKE";
 
 #[embassy_executor::task]
-pub async fn button (
+pub async fn brake (
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
