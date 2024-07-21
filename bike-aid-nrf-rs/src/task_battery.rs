@@ -17,5 +17,10 @@ pub async fn battery () {
     loop {
         let input_voltage = sub_voltage.next_message_pure().await; // millivolts
         let input_current = sub_current.next_message_pure().await; // millivolts
+        let power = input_voltage * input_current; // milliwatts P=IV
+        pub_power.publish(power).await;
+        pub_current.publish(input_current).await;
+        pub_voltage.publish(input_voltage).await;
+        info!("{}: current={} voltage={} power={}", TASK_ID, input_current, input_voltage, power);
     }
 }

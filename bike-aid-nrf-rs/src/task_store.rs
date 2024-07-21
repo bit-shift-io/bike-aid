@@ -66,7 +66,7 @@ async fn read_store<E: defmt::Format>(
 ) {
     info!("{}: read store", TASK_ID);
 
-    let pub_updated = signals::STORE_UPDATED.immediate_publisher();
+    let pub_updated = signals::STORE_UPDATED.publisher().unwrap();
     let mut offset = 0; // address read offset
 
     // == settings begin ==
@@ -83,7 +83,7 @@ async fn read_store<E: defmt::Format>(
     // == settings end ==
 
     // notify
-    pub_updated.publish_immediate(true);
+    pub_updated.publish(true).await;
 }
 
 

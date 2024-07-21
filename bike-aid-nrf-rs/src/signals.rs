@@ -23,9 +23,9 @@ pub static ODOMETER: PubSubChannel<ChannelMutex, u8, 2, 2, 2> = PubSubChannel::n
 
 pub static TEMPERATURE: PubSubChannel<ChannelMutex, u16, 2, 2, 2> = PubSubChannel::new();
 
-pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_POWER: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
 // Internal
 
