@@ -8,5 +8,9 @@
         "consts",
         "defmt",
         "mapf",
-    ]
+    ],
+    "files.exclude": {
+        "target/": true
+    },
+
 }

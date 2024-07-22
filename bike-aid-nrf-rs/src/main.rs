@@ -27,24 +27,7 @@ reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
 #![no_main]
 
 // modules/creates
-mod task_store;
-mod task_clock;
-mod task_led;
-mod task_speed;
-mod task_battery;
-mod task_battery_adc;
-mod task_alarm;
-mod task_throttle;
-mod task_throttle_dac;
-mod task_throttle_adc;
-mod task_bluetooth;
-mod task_brake;
-mod task_switch_power;
-mod task_switch_light;
-mod task_switch_horn;
-mod task_piezo;
-mod task_gyroscope;
-
+mod tasks;
 mod examples;
 mod ble;
 mod utils;
@@ -103,11 +86,11 @@ async fn main(spawner: Spawner) {
     // == DEBUG ==
 
     // send signals
-    use crate::examples::task_fake_signals::debug_signals;
+    use crate::examples::fake_signals::debug_signals;
     spawner.must_spawn(debug_signals());
     
     // scan i2c devices
-    use crate::examples::task_i2c_scan::scan;
+    use crate::examples::i2c_scan::scan;
     spawner.must_spawn(scan(
         I2cDevice::new(i2c_bus)
     ));
@@ -116,25 +99,25 @@ async fn main(spawner: Spawner) {
     // == INIT DEVICES ==
 
     // Throttle ADC (input)
-    use crate::task_throttle_adc::throttle_adc;
+    use crate::tasks::throttle_adc::throttle_adc;
     spawner.must_spawn(throttle_adc(
         I2cDevice::new(i2c_bus)
     ));
 
     // Throttle ADC (output)
-    use crate::task_throttle_dac::throttle_dac;
+    use crate::tasks::throttle_dac::throttle_dac;
     spawner.must_spawn(throttle_dac(
         I2cDevice::new(i2c_bus)
     ));
 
     // Gyroscope + Temperature
-    use crate::task_gyroscope::gyroscope;
+    use crate::tasks::gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
         I2cDevice::new(i2c_bus)
     ));
 
     // Battery ADC Task
-    use crate::task_battery_adc::battery_adc;
+    use crate::tasks::battery_adc::battery_adc;
     spawner.must_spawn(battery_adc(
         I2cDevice::new(i2c_bus)
     ));
@@ -143,74 +126,74 @@ async fn main(spawner: Spawner) {
     // == INIT TASKS ==
 
     // Store Task
-    use crate::task_store::store;
+    use crate::tasks::store::store;
     spawner.must_spawn(store(
         Nvmc::new(p.NVMC)
     ));
 
     // Clock Task
-    use crate::task_clock::clock;
+    use crate::tasks::clock::clock;
     spawner.must_spawn(clock());
 
     // LED Task
-    use crate::task_led::led;
+    use crate::tasks::led::led;
     spawner.must_spawn(led(
         p.P1_11.degrade()
     ));
 
     // Brake Task
-    use crate::task_brake::brake;
+    use crate::tasks::brake::brake;
     spawner.must_spawn(brake(
         p.P1_06.degrade()
     ));
 
     // Power Switch Task
-    use crate::task_switch_power::switch_power;
+    use crate::tasks::switch_power::switch_power;
     spawner.must_spawn(switch_power(
         p.P0_11.degrade()
     ));
 
     // Horn Switch Task
-    use crate::task_switch_horn::switch_horn;
+    use crate::tasks::switch_horn::switch_horn;
     spawner.must_spawn(switch_horn(
         p.P1_04.degrade()
     ));
 
     // Light Switch Task
-    use crate::task_switch_light::switch_light;
+    use crate::tasks::switch_light::switch_light;
     spawner.must_spawn(switch_light(
         p.P1_00.degrade()
     ));
 
     // Speed Task
-    use crate::task_speed::speed;
+    use crate::tasks::speed::speed;
     spawner.must_spawn(speed(
         p.P1_15.degrade()
     ));
 
     // Battery Task
-    use crate::task_battery::battery;
+    use crate::tasks::battery::battery;
     spawner.must_spawn(battery());
 
     // Piezo Task
-    use crate::task_piezo::piezo;
+    use crate::tasks::piezo::piezo;
     spawner.must_spawn(piezo(
         p.PWM0,
         p.P0_09.degrade()
     ));
 
     // Alarm Task
-    use crate::task_alarm::alarm;
+    use crate::tasks::alarm::alarm;
     spawner.must_spawn(alarm(
         spawner
     ));
 
     // Throttle Task
-    use crate::task_throttle::throttle;
+    use crate::tasks::throttle::throttle;
     spawner.must_spawn(throttle());
 
     // Bluetooth Task
-    use crate::task_bluetooth::bluetooth;
+    use crate::tasks::bluetooth::bluetooth;
     spawner.must_spawn(bluetooth(
         spawner
     ));
@@ -224,7 +207,7 @@ async fn main(spawner: Spawner) {
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
-        pub_led.publish_immediate(task_led::LedMode::OnOffSlow);
+        pub_led.publish_immediate(tasks::led::LedMode::OnOffSlow);
         info!("Clock: {:02}", val);
     }
 }

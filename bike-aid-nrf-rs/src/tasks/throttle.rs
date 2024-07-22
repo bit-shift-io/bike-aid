@@ -37,11 +37,12 @@ pub async fn throttle () {
             _ => delta / throttle_settings.decrease_smooth_factor,
         };
 
-        // speed limiter
+
+
+        /*
         // TODO: make based on speed option
         // as we get closer to the desired speed, we decrease the adjustment
         // apply speed limit - allow increase  only if bellow limit
-        /*
         let speed_limit = throttle_settings.speed_limit; // in kmhr
         if speed_limit > 0 {
             // get current speed
@@ -59,18 +60,23 @@ pub async fn throttle () {
         }
          */
 
-        // old method uses a min and max number
-        /*
-        let limit_input = 1023;
+        // speed limiter
+        // this could go at the end of this code and map to the range of the deadband?
+        // this method uses a min and max number
+        let limit_input = 1023; // this was pot value, should be a setting
 
         // apply speed limit - allow increase  only if bellow limit
-        if output > map(limit_input, &0, &1023, &throttle_settings.limit_min, &throttle_settings.limit_max) {
+        // if output_voltage is larger than speed limit... set adjustment to 0
+        // TODO: limit_min and limit_max were values for the trimpot. We dont need these with ble as we can just specify a limit
+        // so possibly change this to a percentage of max?
+        if output_voltage > map(limit_input, &0, &1023, &throttle_settings.limit_min, &throttle_settings.limit_max) {
             adjustment = min(adjustment, 0); // always allow decrease
         }
 
-        output += adjustment;
-         */
+        output_voltage += adjustment;
 
+
+        
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range

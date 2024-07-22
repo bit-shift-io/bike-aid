@@ -32,7 +32,7 @@ pub static BATTERY_POWER: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChan
 pub static BATTERY_CURRENT_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 pub static BATTERY_VOLTAGE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
-pub type LedModeType = crate::task_led::LedMode;
+pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubChannel::new();
 
 pub static BUTTON_ON: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();

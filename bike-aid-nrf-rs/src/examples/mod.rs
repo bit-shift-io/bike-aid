@@ -1,5 +1,5 @@
-pub mod task_alarm;
-pub mod task_fake_signals;
-pub mod task_i2c_scan;
-pub mod task_saadc;
-pub mod task_temperature;
+pub mod alarm;
+pub mod fake_signals;
+pub mod i2c_scan;
+pub mod saadc;
+pub mod temperature;
