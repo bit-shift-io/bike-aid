@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::note::*;
+use super::note::*;
 
 // songs: https://github.com/robsoncouto/arduino-songs/tree/master
 

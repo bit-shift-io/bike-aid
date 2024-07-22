@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use embassy_nrf::{peripherals::TEMP, temp::Temp};
 use embassy_time::Timer;
 use embassy_nrf::{bind_interrupts, interrupt};

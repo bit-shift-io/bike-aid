@@ -1,6 +1,6 @@
 use super::server::{self, *};
-use crate::functions::shift_split_u16;
-use crate::signals;
+use crate::utils::functions::shift_split_u16;
+use crate::utils::signals;
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};

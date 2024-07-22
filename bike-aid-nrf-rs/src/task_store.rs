@@ -1,4 +1,4 @@
-use crate::{signals, store};
+use crate::utils::{signals, store};
 use defmt::*;
 use embassy_nrf::nvmc::Nvmc;
 use embedded_storage_async::nor_flash::MultiwriteNorFlash;
@@ -18,8 +18,8 @@ pub async fn store (
 
     let mut flash = embassy_embedded_hal::adapter::BlockingAsync::new(flash_controller);
 
-    // load store
-    read_store(&mut flash).await;
+    // TODO: load store
+    //read_store(&mut flash).await;
 
     // erase flash
     // shoudnt need this?

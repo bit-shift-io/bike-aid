@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{bind_interrupts, gpio::AnyPin, interrupt::{self, InterruptExt}, peripherals::TWISPI0, saadc::{self, ChannelConfig, Config, Saadc}, twim::Twim};
 use defmt::*;

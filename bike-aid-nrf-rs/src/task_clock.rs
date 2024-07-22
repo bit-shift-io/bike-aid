@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use embassy_time::{Duration, Timer};
 use defmt::*;
 

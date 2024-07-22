@@ -18,19 +18,15 @@ nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on n
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
  * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
  * nRF52820, nRF52833, nRF52840: P0_18
- * 
+
+// TODO: test pin 13 controls vcc output on/off 3.3v apparently?
+//Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
 */
 
 #![no_std]
 #![no_main]
 
 // modules/creates
-mod signals;
-mod functions;
-mod store;
-mod note;
-mod melody;
-
 mod task_store;
 mod task_clock;
 mod task_led;
@@ -51,6 +47,7 @@ mod task_gyroscope;
 
 mod examples;
 mod ble;
+mod utils;
 
 // external imports
 use core::cell::RefCell;
@@ -103,8 +100,13 @@ async fn main(spawner: Spawner) {
     };
 
 
+    // == DEBUG ==
 
-    // Debug
+    // send signals
+    use crate::examples::task_fake_signals::debug_signals;
+    spawner.must_spawn(debug_signals());
+    
+    // scan i2c devices
     use crate::examples::task_i2c_scan::scan;
     spawner.must_spawn(scan(
         I2cDevice::new(i2c_bus)
@@ -213,14 +215,11 @@ async fn main(spawner: Spawner) {
         spawner
     ));
 
-    // debug
-    //use crate::test_fake_signals::debug_signals;
-    //spawner.must_spawn(debug_signals());
-    
-    // TODO: test pin 13 controls vcc output on/off 3.3v apparently?
-    //Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
+
+    // == TEST ==
 
     // loop for testing
+    use utils::signals;
     let pub_led = signals::LED_MODE.publisher().unwrap();
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {

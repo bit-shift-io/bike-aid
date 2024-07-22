@@ -6,8 +6,8 @@ use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
 use super::server::{self, Server};
-use crate::functions::*;
-use crate::signals;
+use crate::utils::functions::*;
+use crate::utils::signals;
 
 // https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-service
 // https://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v8.x.x/doc/8.0.0/s110/html/a00072.html

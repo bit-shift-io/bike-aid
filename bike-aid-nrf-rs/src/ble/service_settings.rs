@@ -6,7 +6,7 @@ use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
 use super::server::Server;
-use crate::signals;
+use crate::utils::signals;
 
 
 // TODO: proper uids?

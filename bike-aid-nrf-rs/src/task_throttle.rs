@@ -1,6 +1,6 @@
-use crate::store;
-use crate::signals;
-use crate::functions::*;
+use crate::utils::store;
+use crate::utils::signals;
+use crate::utils::functions::*;
 use defmt::*;
 
 const TASK_ID: &str = "THROTTLE";
@@ -12,21 +12,24 @@ pub async fn throttle () {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
-    let mut output = 0;
+    let mut output_voltage = 0;
+    let mut last_delta_speed = 0.0;
 
     loop {
-        let input = sub_throttle.next_message_pure().await; // millivolts
+        let input_voltage = sub_throttle.next_message_pure().await; // millivolts
 
         let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
+        info!("{}", throttle_settings.passthrough);
+
         if throttle_settings.passthrough {
-            info!("mv: {} ", input);
-            pub_throttle.publish_immediate(input);
+            info!("mv: {} ", input_voltage);
+            pub_throttle.publish_immediate(input_voltage);
             continue;
         }
         
         // delta computer from last output value
-        let delta = input - output;
+        let delta = input_voltage - output_voltage;
 
         // how much to change throttle this itteration (+/-)
         let mut adjustment = match delta {
@@ -38,19 +41,23 @@ pub async fn throttle () {
         // TODO: make based on speed option
         // as we get closer to the desired speed, we decrease the adjustment
         // apply speed limit - allow increase  only if bellow limit
+        /*
         let speed_limit = throttle_settings.speed_limit; // in kmhr
         if speed_limit > 0 {
             // get current speed
             // might need assert_eq!(sub0.try_next_message(), None);
             let instant_speed = sub_instant_speed.try_next_message(); // poll
+            let instant_speed = 15;
 
-            // as instant speed appraches current speed, we decrease the adjustment
-            if output > map(limit_input, &0, &instant_speed, &0, &speed_limit) {
-                adjustment = min(adjustment, 0); // always allow decrease
+            let delta_scale = 3;
+            let delta_speed = (speed_limit - instant_speed) * delta_scale;
+            if delta_speed > 0 {
+                adjustment = min(adjustment, delta_speed);
             }
 
-            output += adjustment;
+            output_voltage += adjustment;
         }
+         */
 
         // old method uses a min and max number
         /*
@@ -67,12 +74,12 @@ pub async fn throttle () {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = map(output, &throttle_settings.deadband_in_min, &throttle_settings.deadband_in_max, &throttle_settings.deadband_out_min, &throttle_settings.deadband_out_max);
+        let mapped_output = map(output_voltage, &throttle_settings.deadband_in_min, &throttle_settings.deadband_in_max, &throttle_settings.deadband_out_min, &throttle_settings.deadband_out_max);
 
         // TODO: check if these can be negative values, the dac only takes positive values
         // TODO: check we are converting to mv out. I think we are!
 
         pub_throttle.publish_immediate(mapped_output); 
-        info!("mv_in:{} | out: {} | map: {}", input, output, mapped_output);
+        info!("mv_in:{} | out: {} | map: {}", input_voltage, output_voltage, mapped_output);
     }
 }

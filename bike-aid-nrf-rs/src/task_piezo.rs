@@ -1,4 +1,4 @@
-use crate::melody;
+use crate::utils::melody;
 
 use embassy_nrf::gpio::AnyPin;
 use defmt::*;

@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use defmt::*;
 
 const TASK_ID: &str = "BATTERY";

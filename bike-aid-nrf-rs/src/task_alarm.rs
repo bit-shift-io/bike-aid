@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;

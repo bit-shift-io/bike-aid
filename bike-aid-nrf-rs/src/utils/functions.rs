@@ -144,3 +144,35 @@ pub fn trim_null_characters(bytes: &[u8; 32]) -> &[u8] {
 
     &bytes[..length]
 }
+
+pub fn sigmoid_simple (x: f64) -> f64 {
+    use num_traits::real::Real;
+    1.0 / (1.0 + (-x).exp())
+}
+
+pub fn ease_into_speed_limit(current_speed: f64, speed_limit: f64, acceleration: f64, time_microseconds: f64, transition_duration_seconds: f64) -> f64 {
+    let time = time_microseconds / (transition_duration_seconds * 1_000_000.0); // Convert seconds to microseconds
+    let target_speed = speed_limit - (speed_limit - current_speed) * sigmoid_simple(-time);
+    let new_speed = current_speed + acceleration * (time_microseconds / 1_000_000.0); // Convert microseconds to seconds
+    
+    if new_speed > target_speed {
+        target_speed
+    } else {
+        new_speed
+    }
+}
+
+pub fn sigmoid(x: f64, limit: f64, k: f64, x0: f64) -> f64 {
+    use num_traits::real::Real;
+    limit / ( 1.0 + (-k * (x - x0)).exp() )
+}
+
+pub fn hard_sigmoid(x: f64) -> f64 {
+    let slope = 0.5;
+    let offset = 0.5;
+    
+    let mut y = x * slope + offset;
+    y = if y < 0.0 { 0.0 } else { if y > 1.0 { 1.0 } else { y } };
+    
+    y
+}

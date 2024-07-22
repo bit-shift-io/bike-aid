@@ -1,7 +1,7 @@
 use embassy_time::{Duration, Timer};
 use defmt::*;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
-use crate::signals;
+use crate::utils::signals;
 
 const TASK_ID: &str = "LED";
 

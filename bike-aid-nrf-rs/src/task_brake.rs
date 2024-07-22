@@ -1,4 +1,4 @@
-use crate::signals;
+use crate::utils::signals;
 use embassy_nrf::gpio::AnyPin;
 use embassy_nrf::gpio::{Input, Pull};
 use defmt::*;
