@@ -52,19 +52,23 @@ impl UARTService {
     }
 
 
-    pub fn on_write(&self, handle: u16, data: &[u8]) {
+    pub fn on_write(&self, connection: &Connection, handle: u16, data: &[u8]) {
         if data.is_empty() {
             return;
         }
 
         if handle == self.tx.cccd_handle {
-            // cccd
+            // cccd unused
             info!("tx notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.rx.cccd_handle {
             // cccd
             info!("rx notifications: {}", (data[0] & 0x01) != 0);
+            let res = server::notify_value(connection, handle, data);
+            //let res = server::set_value(self.rx.cccd_handle, data);
+            info!("res: {:?}", res);
+            // TODO: somehow i need to return the noficiation??
         }
 
         if handle == self.rx.value_handle {
