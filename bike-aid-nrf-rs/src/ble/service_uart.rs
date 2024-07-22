@@ -1,7 +1,7 @@
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
-use nrf_softdevice::ble::gatt_server::{self, RegisterError};
+use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
@@ -21,8 +21,8 @@ const TX: [u8; 16] = [0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3
 const MAX_LENGTH: u16 = 32; // max characters in a string
 
 pub struct UARTService {
-    rx: u16,
-    tx: u16,
+    rx: CharacteristicHandles,
+    tx: CharacteristicHandles,
 }
 
 impl UARTService {
@@ -46,8 +46,8 @@ impl UARTService {
         let _service_handle = service_builder.build();
         
         Ok(UARTService {
-            rx: rx_handle.value_handle,
-            tx: tx_handle.value_handle,
+            rx: rx_handle, // value_handle
+            tx: tx_handle,
         })
     }
 
@@ -57,12 +57,22 @@ impl UARTService {
             return;
         }
 
-        if handle == self.rx {
+        if handle == self.tx.cccd_handle {
+            // cccd
+            info!("tx notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.rx.cccd_handle {
+            // cccd
+            info!("rx notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.rx.value_handle {
             // unused, rx is send only
             info!("rx: {:?}", data);
         }
 
-        if handle == self.tx {
+        if handle == self.tx.value_handle {
             // recived data from uart
             // Convert the byte array to a string
             let array = bytes_to_array(data);
@@ -73,13 +83,13 @@ impl UARTService {
 
     // bypassed gatt_server
     pub fn rx_set(&self, val: &[u8]) -> Result<(), gatt_server::SetValueError> {
-        server::set_value(self.rx, &val)
+        server::set_value(self.rx.value_handle, &val)
     }
     
     // bypassed gatt_server
     pub fn rx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
         info!("ble RX: {:?}", bytes_to_string(val));
-        server::notify_value(conn, self.rx, &val)
+        server::notify_value(conn, self.rx.value_handle, &val)
     }
 }
 
