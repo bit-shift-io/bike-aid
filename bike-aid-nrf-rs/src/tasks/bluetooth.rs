@@ -5,7 +5,7 @@ use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
 use nrf_softdevice::ble::advertisement_builder::{AdvertisementDataType, Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
-use nrf_softdevice::ble::{gatt_server, peripheral, Connection};
+use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use static_cell::StaticCell;
 use futures::future::{select, Either};
@@ -39,17 +39,17 @@ pub async fn bluetooth (
             accuracy: raw::NRF_CLOCK_LF_ACCURACY_500_PPM as u8,
         }),
         conn_gap: Some(raw::ble_gap_conn_cfg_t {
-            conn_count: 6,
-            event_length: 24,
+            conn_count: 6, // 6
+            event_length: 24, // 24
         }),
-        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 256 }),
+        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // was 256 - wants 517
         gatts_attr_tab_size: Some(raw::ble_gatts_cfg_attr_tab_size_t {
             attr_tab_size: raw::BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
         }),
         gap_role_count: Some(raw::ble_gap_cfg_role_count_t {
             adv_set_count: 1,
-            periph_role_count: 3,
-            central_role_count: 3,
+            periph_role_count: 1, // 3
+            central_role_count: 1, // 3
             central_sec_count: 0,
             _bitfield_1: raw::ble_gap_cfg_role_count_t::new_bitfield_1(0),
         }),
@@ -67,6 +67,8 @@ pub async fn bluetooth (
     let server: Server = unwrap!(Server::new(sd));
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
+    info!("{}: address {:?}", TASK_ID, ble::get_address(sd));
+
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
         /*.services_16(
@@ -77,24 +79,27 @@ pub async fn bluetooth (
                // ServiceUuid16::DEVICE_INFORMATION, 
             ]) // TODO: UART service id
               */
-        /*.services_128(
+        .services_128(
             ServiceList::Incomplete, 
-            &[
-                UART_SERIVCE
-            ]) */
-        .full_name(DEVICE_NAME)
-        .raw(AdvertisementDataType::APPEARANCE, &[0x023, 0x05]) // scooter icon
+            &[[
+                0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E
+            ]]
+        )
+        .short_name("BScooter")
         .build();
+
 
     static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .services_16(
-            ServiceList::Complete,
+            ServiceList::Incomplete,
             &[
                 ServiceUuid16::DEVICE_INFORMATION,
                 ServiceUuid16::BATTERY,
                 ServiceUuid16::USER_DATA,
             ])
         .build();
+
+    //static SCAN_DATA: [u8; 0] = [];
 
     // bonder / security
     static BONDER: StaticCell<Bonder> = StaticCell::new();
@@ -111,20 +116,24 @@ pub async fn bluetooth (
         // with or without bonding
         //let conn = unwrap!(peripheral::advertise_pairable(sd, adv, &config, bonder).await);
         let conn: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
-        info!("advertising done!");
+        info!("{}: advertising done!", TASK_ID);
 
+        /*
         if PERIPHERAL_REQUESTS_SECURITY {
             if let Err(err) = conn.request_security() {
                 error!("Security request failed: {:?}", err);
                 continue;
             }
         }
+         */
 
         // Create two futures:
         //  - My server which allows services to listens for signals and processes them 
         //  - A GATT server listening for events from the connected client.
         let server_future = server::run(&conn, &server);
-        let gatt_future = gatt_server::run(&conn, &server, |_| {});
+        //let gatt_future = gatt_server::run(&conn, &server, |_| {});
+        let gatt_future = gatt_server::run(&conn, &server, |e| {info!("{}: event : {:?}", TASK_ID, e)});
+
         pin_mut!(server_future, gatt_future);
 
         // We are using "select" to wait for either one of the futures to complete.

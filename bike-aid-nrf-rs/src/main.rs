@@ -85,11 +85,10 @@ async fn main(spawner: Spawner) {
 
     // == DEBUG ==
 
-    /*
     // send signals
     use crate::examples::fake_signals::debug_signals;
     spawner.must_spawn(debug_signals());
-     */
+
     
     // scan i2c devices
     use crate::examples::i2c_scan::scan;

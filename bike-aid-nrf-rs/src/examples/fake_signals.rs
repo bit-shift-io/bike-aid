@@ -12,7 +12,7 @@ pub async fn debug_signals () {
     // change pub or sub here for testing
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let pub_uart = signals::UART_WRITE.publisher().unwrap();
-    let padded_byte_array = str_to_array("Hello, World!");
+    let padded_byte_array = str_to_array("130,150,128\n");
 
     loop {
         Timer::after_millis(INTERVAL).await;

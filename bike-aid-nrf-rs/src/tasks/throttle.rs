@@ -78,6 +78,11 @@ pub async fn throttle () {
 
         
 
+        // how to do speed based limit:
+        // As we approach speed limit, adjust deadband_out_max to match the current MV value! This should give speed based limit
+        // if we are at max mv, and speed is not enough, increase till we are back in range.
+        // if we are over mv and speed it to high, reduce it...
+
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
         let mapped_output = map(output_voltage, &throttle_settings.deadband_in_min, &throttle_settings.deadband_in_max, &throttle_settings.deadband_out_min, &throttle_settings.deadband_out_max);

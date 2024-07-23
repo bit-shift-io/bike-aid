@@ -32,14 +32,14 @@ impl UARTService {
         let rx = service_builder.add_characteristic(
             Uuid::new_128(&RX),
             Attribute::new([0x00]).variable_len(MAX_LENGTH),
-            Metadata::new(Properties::new().read().notify()),
+            Metadata::new(Properties::new().write()), // .notify()
         )?;
         let rx_handle = rx.build();
 
         let tx = service_builder.add_characteristic(
             Uuid::new_128(&TX),
             Attribute::new([0x00]).variable_len(MAX_LENGTH), 
-            Metadata::new(Properties::new().write()),
+            Metadata::new(Properties::new().notify().read()),
         )?;
         let tx_handle = tx.build();
 
@@ -58,58 +58,51 @@ impl UARTService {
         }
 
         if handle == self.tx.cccd_handle {
-            // cccd unused
             info!("tx notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.rx.cccd_handle {
-            // cccd
             info!("rx notifications: {}", (data[0] & 0x01) != 0);
-            let res = server::notify_value(connection, handle, data);
-            //let res = server::set_value(self.rx.cccd_handle, data);
-            info!("res: {:?}", res);
-            // TODO: somehow i need to return the noficiation??
         }
 
         if handle == self.rx.value_handle {
-            // unused, rx is send only
-            info!("rx: {:?}", data);
+            // recived data from uart
+            let array = bytes_to_array(data);
+            info!("rx: {:?}", bytes_to_string(data));
+            signals::UART_READ.dyn_immediate_publisher().publish_immediate(array);
         }
 
         if handle == self.tx.value_handle {
             // recived data from uart
-            // Convert the byte array to a string
-            let array = bytes_to_array(data);
             info!("tx: {:?}", bytes_to_string(data));
-            signals::UART_READ.dyn_immediate_publisher().publish_immediate(array);
         }
     }
 
     // bypassed gatt_server
-    pub fn rx_set(&self, val: &[u8]) -> Result<(), gatt_server::SetValueError> {
-        server::set_value(self.rx.value_handle, &val)
+    pub fn tx_set(&self, val: &[u8]) -> Result<(), gatt_server::SetValueError> {
+        server::set_value(self.tx.value_handle, &val)
     }
     
     // bypassed gatt_server
-    pub fn rx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
+    pub fn tx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
         info!("ble RX: {:?}", bytes_to_string(val));
-        server::notify_value(conn, self.rx.value_handle, &val)
+        server::notify_value(conn, self.tx.value_handle, &val)
     }
 }
 
 
 pub async fn run(connection: &Connection, server: &Server) {
     // handle the rx stream
-    let mut sub_rx = signals::UART_WRITE.subscriber().unwrap();
+    let mut sub_tx = signals::UART_WRITE.subscriber().unwrap();
 
     loop {
-        let rx = sub_rx.next_message_pure().await;
-        let val = trim_null_characters(&rx);
+        let tx = sub_tx.next_message_pure().await;
+        let val = trim_null_characters(&tx);
 
         // try notify, if fails due to other device not allowing, then just set the data
-        match server.uart.rx_notify(connection, &val) {
+        match server.uart.tx_notify(connection, &val) {
             Ok(_) => (),
-            Err(_) => unwrap!(server.uart.rx_set(&val)),
+            Err(_) => unwrap!(server.uart.tx_set(&val)),
         };
     }
 }

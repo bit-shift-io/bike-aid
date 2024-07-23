@@ -140,8 +140,6 @@ pub fn trim_null_characters(bytes: &[u8; 32]) -> &[u8] {
         length -= 1;
     }
 
-    length +=1; // add 1 for the null character
-
     &bytes[..length]
 }
 
