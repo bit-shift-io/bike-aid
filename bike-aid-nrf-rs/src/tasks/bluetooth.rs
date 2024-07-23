@@ -67,7 +67,7 @@ pub async fn bluetooth (
     let server: Server = unwrap!(Server::new(sd));
     unwrap!(spawner.spawn(softdevice_task(sd)));
 
-    info!("{}: address {:?}", TASK_ID, ble::get_address(sd));
+    info!("{}: address {:X}", TASK_ID, ble::get_address(sd).bytes);
 
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
@@ -105,7 +105,6 @@ pub async fn bluetooth (
     static BONDER: StaticCell<Bonder> = StaticCell::new();
     let bonder = BONDER.init(Bonder::default());
 
-    info!("{}: loop", TASK_ID);
     loop {
         let config = peripheral::Config::default();
         let adv = peripheral::ConnectableAdvertisement::ScannableUndirected {

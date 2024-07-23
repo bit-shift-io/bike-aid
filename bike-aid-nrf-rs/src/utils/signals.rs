@@ -28,14 +28,12 @@ pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubCh
 pub static BATTERY_POWER: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
 
 // Internal
-
-pub static BATTERY_CURRENT_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_VOLTAGE_IN: PubSubChannel<ChannelMutex, i16, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_IN: PubSubChannel<ChannelMutex, [i16;2], 1, 2, 2> = PubSubChannel::new();
 
 pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 2, 2, 2> = PubSubChannel::new();
 
-pub static BUTTON_ON: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
+pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();
 
 // alarm
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 2, 2, 2> = PubSubChannel::new();

@@ -3,6 +3,7 @@ pub mod battery_adc;
 pub mod battery;
 pub mod bluetooth;
 pub mod brake;
+pub mod cli;
 pub mod clock;
 pub mod gyroscope;
 pub mod led;

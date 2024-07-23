@@ -1,9 +1,7 @@
 use crate::utils::signals;
 use defmt::*;
-use embassy_time::Timer;
 
 const TASK_ID: &str = "BATTERY";
-const INTERVAL: u64 = 1000;
 const BATTERY_CAPACITY: u16 = 2400; // mah TODO: check capacity
 
 #[embassy_executor::task]
@@ -14,8 +12,7 @@ pub async fn battery () {
     let pub_voltage = signals::BATTERY_VOLTAGE.publisher().unwrap();
     let pub_power = signals::BATTERY_POWER.publisher().unwrap();
 
-    let mut sub_current = signals::BATTERY_CURRENT_IN.subscriber().unwrap();
-    let mut sub_voltage = signals::BATTERY_VOLTAGE_IN.subscriber().unwrap();
+    let mut sub_data = signals::BATTERY_IN.subscriber().unwrap();
 
     let voltage_data: [f64; 60] = [0.0; 60];
     let current_data: [f64; 60] = [0.0; 60];
@@ -23,10 +20,9 @@ pub async fn battery () {
     let mut time_count = 0;
 
     loop {
-        Timer::after_millis(INTERVAL).await;
-        // todo, poll these?
-        let input_voltage = sub_voltage.next_message_pure().await; // millivolts
-        let input_current = sub_current.next_message_pure().await; // millivolts
+        let input = sub_data.next_message_pure().await; // millivolts, updated 1 second
+        let input_voltage = input[0];
+        let input_current = input[1];
         
         let power = input_voltage * input_current; // milliwatts P=IV
 

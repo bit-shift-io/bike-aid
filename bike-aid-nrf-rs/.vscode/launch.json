@@ -1,48 +1,36 @@
 {
     "version": "0.2.0",
-    "configurations": [
-  
-      {
-        "preLaunchTask": "${defaultBuildTask}",
-        "type": "probe-rs-debug",
-        "request": "launch",
-        "name": "Debug",
-        "cwd": "${workspaceFolder}",
-        "flashingConfig": {
-          "flashingEnabled": true,
-          "haltAfterReset": false,
-          "formatOptions": {}
-        },
-        "chip": "nRF52840_xxAA",
-        "coreConfigs": [
-          {
-            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-            "coreIndex": 0,
-            "rttEnabled": true,
-          "rttChannelFormats": [
-            {
-              "channelNumber": 0,
-              // Format RTT data as String data
-              "dataFormat": "String",
-              // Include host-side timestamps for every line of data transferred from the target RTT output
-              "showTimestamps": false
-            },
-            {
-              "channelNumber": 1,
-              // Treat data as raw binary data, and do not format in any way
-              "dataFormat": "BinaryLE"
-            }
-          ]
-          },
-        ],
-        "env": {
-          //"RUST_LOG": "info",
-          "DEFMT_LOG": "info"
-        },
-        //"consoleLogLevel": "Console"
+    "configurations": [{
+      "preLaunchTask": "${defaultBuildTask}",
+      "type": "probe-rs-debug",
+      "request": "launch",
+      "name": "Debug",
+      "cwd": "${workspaceFolder}",
+      "flashingConfig": {
+        "flashingEnabled": true,
+        "haltAfterReset": false,
+        "formatOptions": {}
       },
-
-      {
+      "chip": "nRF52840_xxAA",
+      "coreConfigs": [{
+          "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+          "coreIndex": 0,
+          "rttEnabled": true,
+          "rttChannelFormats": [{
+              "channelNumber": 0,
+              "dataFormat": "String",
+              "showTimestamps": false
+          }]
+      }],
+      "env": {
+        //!MODIFY (or remove)
+        // If you set this variable, check the VSCode console log window for the location of the log file.
+        //"RUST_LOG": "info"
+        "DEFMT_LOG": "Info"
+      },
+      "consoleLogLevel": "Console" // console
+  },
+    {
         "type": "probe-rs-debug",
         "request": "attach",
         "name": "Attach Debug",
@@ -64,6 +52,7 @@
           //!MODIFY (or remove)
           // If you set this variable, check the VSCode console log window for the location of the log file.
           //"RUST_LOG": "info"
+          "DEFMT_LOG": "info"
         },
         // Info, Debug
         "consoleLogLevel": "Console"

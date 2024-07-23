@@ -3,7 +3,6 @@ use super::service_device::DeviceInformationService;
 use super::service_battery::BatteryService;
 use super::service_settings::{self, SettingsService};
 use super::service_uart::{self, UARTService};
-use defmt::info;
 use futures::future::join3;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};

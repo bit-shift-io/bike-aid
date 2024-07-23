@@ -8,15 +8,14 @@ use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID: &str = "Battery ADC";
-const INTERVAL: u64 = 200;
+const INTERVAL: u64 = 1000;
 
 #[embassy_executor::task]
 pub async fn battery_adc (
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);
-    let pub_current = signals::BATTERY_CURRENT_IN.publisher().unwrap();
-    let pub_voltage = signals::BATTERY_VOLTAGE_IN.publisher().unwrap();
+    let pub_data = signals::BATTERY_IN.publisher().unwrap();
 
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
@@ -49,8 +48,7 @@ pub async fn battery_adc (
         //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
 
         // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
-        pub_current.publish_immediate(input_voltage_a0);
-        pub_voltage.publish_immediate(input_voltage_a1);
+        pub_data.publish_immediate([input_voltage_a0,input_voltage_a1]);
         Timer::after_millis(INTERVAL).await;
     }
 }

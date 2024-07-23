@@ -10,7 +10,7 @@ pub async fn brake (
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
-    let pub_button = signals::BUTTON_ON.publisher().unwrap();
+    let pub_button = signals::BRAKE_ON.publisher().unwrap();
     let mut pin_state = Input::new(pin, Pull::Down); // low
 
     loop {

@@ -85,7 +85,6 @@ impl UARTService {
     
     // bypassed gatt_server
     pub fn tx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
-        info!("ble RX: {:?}", bytes_to_string(val));
         server::notify_value(conn, self.tx.value_handle, &val)
     }
 }
