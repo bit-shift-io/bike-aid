@@ -1,10 +1,12 @@
 # Installation Guide
 
 ## Wiring
+```
 Raspberry pi debug probe (port D)   ->  NRF
 TX/SC (orange - out from probe)     ->  CLK (orange - SWC) 
 GND (black)                         ->  GND (black)
 RX/SD (yellow - input to I/O)       ->  DIO (yellow - SWD)
+```
 
 ## Tools
 ```Bash
@@ -26,30 +28,25 @@ probe-rs list
 
 
 ## Getting rust working
-Run '''cargo build''' in the rust project root directory  
-Then '''cargo run'''
+Run ```cargo build``` in the rust project root directory  
+Then ```cargo run```
 
 
 ## Error: No connected probes were found.
 Need to configure udev rules in linux
-```
+```bash
 probe-rs list
 ls /dev/ttyACM*
 lsusb
 ```
 
 ## Erase the chip
-```
+```bash
 probe-rs erase --chip nRF52840_xxAA
 ```
 
-## Mount usb device
-```
-reset to gnd 2x within 0.5s
-```
-
 ## Get latest rust toolchain
-```
+```bash
 rustup update
 ```
 
@@ -60,7 +57,7 @@ https://www.nordicsemi.com/Products/Development-software/s140/download
 ```
 
 Flash using the commands:
-```
+```bash
 probe-rs erase --chip nrf52840_xxAA --allow-erase-all
 probe-rs download --verify --binary-format hex --chip nRF52840_xxAA s140_nrf52_7.3.0_softdevice.hex
 ```
@@ -75,27 +72,5 @@ Double tap rest to ground within 0.5 seconds to reset board
 Reflash the firmware above
 
 ## Links
-https://github.com/joseph-montanez/pico-w-rust-starter-kit
-
-https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html
-
-https://wiki.icbbuy.com/doku.php?id=developmentboard:nrf52840
-
-https://github.com/joric/nrfmicro/wiki/Alternatives#supermini-nrf52840
-
-
-## temp notes
 
 https://github.com/peterkrull/quad/blob/main/software/rusty-quad/src/
-
-https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/src/bin/channel_sender_receiver.rs
-
-https://dev.to/apollolabsbin/sharing-data-among-tasks-in-rust-embassy-synchronization-primitives-59hk
-
-https://hegdenu.net/posts/understanding-async-await-3/
-
-https://github.com/embassy-rs/nrf-softdevice/blob/master/examples/src/bin/ble_bas_central.rs
-
-https://dev.to/theembeddedrustacean/embedded-rust-embassy-i2c-temperature-sensing-with-bmp180-6on
-
-https://github.com/tclarke/mcp4725/tree/master

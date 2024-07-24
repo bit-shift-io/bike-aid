@@ -13,7 +13,15 @@ pub async fn cli () {
         let input = sub_read.next_message_pure().await;
 
         let string = bytes_to_string(&input);
+
+        /*
+        // debug new line endings and stuff with the strings
         info!("{}: {}", TASK_ID, string);
+        info!("{}: length: {}", TASK_ID, string.len());
+        info!("{}: ends with on: {}", TASK_ID, string.ends_with("on"));
+        info!("{}: str > array: {}", TASK_ID, str_to_array(string));
+        */
+
         if string.starts_with("power") {
             if string.ends_with("on") {
                 signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(true);

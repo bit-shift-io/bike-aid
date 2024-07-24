@@ -10,11 +10,10 @@ pub async fn switch_power (
 ) {
     info!("{}: start", TASK_ID);
     let mut sub_button = signals::SWITCH_POWER.subscriber().unwrap();
-    let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
+    let mut pin_state = Output::new(pin, Level::Low, OutputDrive::HighDrive); // OutputDrive::Standard)
 
     loop {
         let val = sub_button.next_message_pure().await;
-        info!("{}: {}", TASK_ID, val);
         match val {
             true => {
                 pin_state.set_high();

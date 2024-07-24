@@ -22,12 +22,6 @@
               "showTimestamps": false
           }]
       }],
-      "env": {
-        //!MODIFY (or remove)
-        // If you set this variable, check the VSCode console log window for the location of the log file.
-        //"RUST_LOG": "info"
-        "DEFMT_LOG": "Info"
-      },
       "consoleLogLevel": "Console" // console
   },
     {
@@ -48,12 +42,6 @@
             "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
           }
         ],
-        "env": {
-          //!MODIFY (or remove)
-          // If you set this variable, check the VSCode console log window for the location of the log file.
-          //"RUST_LOG": "info"
-          "DEFMT_LOG": "info"
-        },
         // Info, Debug
         "consoleLogLevel": "Console"
       }

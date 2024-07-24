@@ -87,8 +87,8 @@ pub fn bytes_to_string(bytes: &[u8]) -> &str {
     let mut length = bytes.len();
 
     // Find the index of the first null character from the end of the byte array
-    // trim the null chars from the end of the string
-    while length > 0 && bytes[length - 1] == 0 {
+    // trim the null chars and new line from the end of the string
+    while length > 0 && (bytes[length - 1] == 0 || bytes[length - 1] == b'\n') {
         length -= 1;
     }
 
