@@ -1,9 +1,9 @@
 use super::service_data::{self, DataService};
 use super::service_device::DeviceInformationService;
-use super::service_battery::BatteryService;
+use super::service_battery::{self, BatteryService};
 use super::service_settings::{self, SettingsService};
 use super::service_uart::{self, UARTService};
-use futures::future::join3;
+use embassy_futures::join;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -93,8 +93,9 @@ pub async fn run(connection: &Connection, server: &Server) {
     let data_future = service_data::run(connection, server);
     let settings_future = service_settings::run(connection, server);
     let uart_future = service_uart::run(connection, server);
+    let battery_future = service_battery::run(connection, server);
     //pin_mut!(data_future, settings_future, uart_future);
-    join3(data_future, settings_future, uart_future).await;
+    join::join4(data_future, settings_future, uart_future, battery_future).await;
 }
 
 

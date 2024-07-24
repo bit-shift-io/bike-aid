@@ -1,6 +1,10 @@
 #![allow(unused)]
 use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, pubsub::PubSubChannel};
 
+// TODO: investigate supposed to use async mutex for async functions
+// https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/sharing.rs
+// https://docs.rs/scoped-mutex/latest/scoped_mutex/struct.BlockingMutex.html <-- comming soon no refcell required!
+
 type SettingsMutex = ThreadModeRawMutex;
 
 
