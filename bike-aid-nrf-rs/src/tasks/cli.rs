@@ -1,5 +1,6 @@
 use crate::utils::{functions::{bytes_to_string, str_to_array}, signals};
 use defmt::*;
+use heapless::String;
 
 const TASK_ID: &str = "CLI";
 
@@ -10,9 +11,7 @@ pub async fn cli () {
     let pub_write = signals::UART_WRITE.publisher().unwrap();
 
     loop {
-        let input = sub_read.next_message_pure().await;
-
-        let string = bytes_to_string(&input);
+        let string = sub_read.next_message_pure().await;
 
         /*
         // debug new line endings and stuff with the strings
@@ -42,6 +41,7 @@ pub async fn cli () {
         }
         
         // publish
-        pub_write.publish_immediate(str_to_array("ok\n"));
+        let ok: String<32> = String::try_from("ok").unwrap();
+        pub_write.publish_immediate(ok);
     }
 }

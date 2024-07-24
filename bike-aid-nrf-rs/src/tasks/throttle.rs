@@ -1,7 +1,8 @@
+use crate::utils::functions;
 use crate::utils::store;
 use crate::utils::signals;
-use crate::utils::functions::*;
 use defmt::*;
+use heapless::String;
 
 const TASK_ID: &str = "THROTTLE";
 
@@ -65,7 +66,7 @@ pub async fn throttle () {
         // apply speed limit - allow increase  only if bellow limit
         // if output_voltage is larger than speed limit... set adjustment to 0
         if output_voltage > throttle_settings.speed_limit {
-            adjustment = min(adjustment, 0); // always allow decrease
+            adjustment = functions::min(adjustment, 0); // always allow decrease
         }
 
         output_voltage += adjustment;
@@ -80,7 +81,7 @@ pub async fn throttle () {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = map(output_voltage, &throttle_settings.no_throttle, &throttle_settings.full_throttle, &throttle_settings.deadband_min, &throttle_settings.deadband_max);
+        let mapped_output = functions::map(output_voltage, &throttle_settings.no_throttle, &throttle_settings.full_throttle, &throttle_settings.deadband_min, &throttle_settings.deadband_max);
 
         // TODO: check if these can be negative values, the dac only takes positive values
 
@@ -88,9 +89,10 @@ pub async fn throttle () {
         info!("mv_in:{} | out: {} | map: {}", input_voltage, output_voltage, mapped_output);
 
         // publish to uart for debug
-        let mut buf = [0u8; 64];
+        let mut buf = [0u8; 32];
         let text = format_no_std::show(&mut buf, format_args!("{},{},{}\n", input_voltage, output_voltage, mapped_output)).unwrap();
-        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str_to_array(text));
+        let s = String::try_from(text).unwrap();
+        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
         info!("{}: debug string: {}", TASK_ID, text);
     }
 }

@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+use heapless::String;
 use num_traits::Num;
 
 /// Map like c++
@@ -148,4 +149,25 @@ pub fn bytes_to_string(bytes: &[u8]) -> &str {
     }
 
     core::str::from_utf8(&bytes[..length]).unwrap_or_default()
+}
+
+/// Convert byte array to heapless string
+///
+/// ## Arguments
+///
+/// * `&[u8]` - Byte array
+///
+/// ## Returns
+///
+/// heapless string <max size>
+pub fn byte_array_to_heapless_string(byte_array: &[u8]) -> String<32> {
+    let mut heapless_string: String<32> = String::new();
+
+    for &byte in byte_array.iter() {
+        if byte != 0 && byte != b'\n' && byte != b'\r'{ // Remove null and newline characters
+            heapless_string.push(byte as char).unwrap();
+        }
+    }
+
+    heapless_string
 }

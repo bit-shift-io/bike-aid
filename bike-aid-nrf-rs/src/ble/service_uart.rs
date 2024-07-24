@@ -6,7 +6,7 @@ use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
 use super::server::{self, Server};
-use crate::utils::functions::*;
+use crate::utils::functions;
 use crate::utils::signals;
 
 // https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-service
@@ -67,14 +67,14 @@ impl UARTService {
 
         if handle == self.rx.value_handle {
             // recived data from uart
-            let array = bytes_to_array(data);
-            info!("rx: {:?}", bytes_to_string(data));
-            signals::UART_READ.dyn_immediate_publisher().publish_immediate(array);
+            info!("rx: {:?}", functions::bytes_to_string(data));
+            let string = functions::byte_array_to_heapless_string(data);
+            signals::UART_READ.dyn_immediate_publisher().publish_immediate(string);
         }
 
         if handle == self.tx.value_handle {
             // recived data from uart
-            info!("tx: {:?}", bytes_to_string(data));
+            info!("tx: {:?}", functions::bytes_to_string(data));
         }
     }
 
@@ -96,7 +96,7 @@ pub async fn run(connection: &Connection, server: &Server) {
 
     loop {
         let tx = sub_tx.next_message_pure().await;
-        let val = trim_null_characters(&tx);
+        let val = tx.as_bytes();
 
         // try notify, if fails due to other device not allowing, then just set the data
         match server.uart.tx_notify(connection, &val) {

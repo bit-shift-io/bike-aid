@@ -12,7 +12,7 @@ pub async fn led (
     info!("{}: start", TASK_ID);
     let mut sub_mode = signals::LED_MODE.subscriber().unwrap();
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
-    let mut led_mode = LedMode::Blink;
+    let mut led_mode = LedMode::Double;
 
     loop { 
         // Try to poll read new mode
@@ -24,7 +24,7 @@ pub async fn led (
                 led.set_low();
                 led_mode = sub_mode.next_message_pure().await;
             },
-            LedMode::Blink => blink(&mut led).await,
+            LedMode::Double => double(&mut led).await,
             LedMode::Single => single(&mut led).await,
         };
     }
@@ -33,26 +33,30 @@ pub async fn led (
 #[derive(Clone,Copy)]
 pub enum LedMode {
     None,
-    Blink,
     Single,
+    Double,
+}
+
+
+async fn double<'a>(led: &mut Output<'a>) {
+    led.set_high(); // Short high
+    Timer::after(Duration::from_millis(150)).await;
+
+    led.set_low(); // Long low
+    Timer::after(Duration::from_millis(300)).await;
+
+    led.set_high(); // Short high
+    Timer::after(Duration::from_millis(150)).await;
+
+    led.set_low(); // Long low
+    Timer::after(Duration::from_millis(1500)).await;
 }
 
 
 async fn single<'a>(led: &mut Output<'a>) {
-    led.set_high(); // Short high
-    Timer::after(Duration::from_millis(50)).await;
+    led.set_high(); // Meium high
+    Timer::after(Duration::from_millis(200)).await;
 
-    led.set_low(); // Long low
-    Timer::after(Duration::from_millis(950)).await;
-}
-
-
-async fn blink<'a>(led: &mut Output<'a>) {
-    loop {
-        led.set_high(); // Meium high
-        Timer::after(Duration::from_millis(200)).await;
-
-        led.set_low(); // Slow low
-        Timer::after(Duration::from_millis(1000)).await;
-    }
+    led.set_low(); // Slow low
+    Timer::after(Duration::from_millis(1000)).await;
 }
