@@ -88,7 +88,7 @@ pub fn bytes_to_string(bytes: &[u8]) -> &str {
 
     // Find the index of the first null character from the end of the byte array
     // trim the null chars and new line from the end of the string
-    while length > 0 && (bytes[length - 1] == 0 || bytes[length - 1] == b'\n') {
+    while length > 0 && (bytes[length - 1] == 0 || bytes[length - 1] == b'\n' || bytes[length - 1] == b'\r') {
         length -= 1;
     }
 
