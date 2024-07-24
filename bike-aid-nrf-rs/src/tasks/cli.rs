@@ -1,4 +1,4 @@
-use crate::utils::{functions::{bytes_to_string, str_to_array}, signals};
+use crate::utils::signals;
 use defmt::*;
 use heapless::String;
 

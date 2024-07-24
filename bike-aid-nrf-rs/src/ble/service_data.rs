@@ -1,5 +1,5 @@
 use super::server::{self, *};
-use crate::utils::functions::shift_split_u16;
+use crate::utils::functions::bitshift_split_u16;
 use crate::utils::signals;
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
@@ -56,13 +56,13 @@ impl DataService {
 
     // bypassed gatt_server
     pub fn throttle_input_voltage_set(&self, val: &i16) -> Result<(), gatt_server::SetValueError> {
-        let split = shift_split_u16(*val);
+        let split = bitshift_split_u16(*val);
         server::set_value(self.throttle_input_voltage, &split)
     }
     
     // bypassed gatt_server
     pub fn throttle_input_voltage_notify(&self, conn: &Connection, val: &i16) -> Result<(), gatt_server::NotifyValueError> {
-        let split = shift_split_u16(*val);
+        let split = bitshift_split_u16(*val);
         server::notify_value(conn, self.throttle_input_voltage, &split)
     }
 }
