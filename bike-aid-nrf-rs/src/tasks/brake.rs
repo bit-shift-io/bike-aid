@@ -11,7 +11,7 @@ pub async fn brake (
 ) {
     info!("{}: start", TASK_ID);
     let pub_button = signals::BRAKE_ON.publisher().unwrap();
-    let mut pin_state = Input::new(pin, Pull::Down); // low
+    let mut pin_state = Input::new(pin, Pull::Up); // high = brake off
 
     loop {
         pin_state.wait_for_high().await;

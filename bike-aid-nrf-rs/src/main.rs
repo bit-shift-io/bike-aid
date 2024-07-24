@@ -84,11 +84,10 @@ async fn main(spawner: Spawner) {
 
 
     // == DEBUG ==
-/*
+
     // send signals
-    use crate::examples::fake_signals::debug_signals;
-    spawner.must_spawn(debug_signals());
- */
+    use crate::examples::fake_signals::fake_signals;
+    spawner.must_spawn(fake_signals());
     
     // scan i2c devices
     use crate::examples::i2c_scan::scan;
@@ -203,16 +202,13 @@ async fn main(spawner: Spawner) {
     use crate::tasks::cli::cli;
     spawner.must_spawn(cli());
 
-
     // == TEST ==
 
     // loop for testing
     use utils::signals;
-    let pub_led = signals::LED_MODE.publisher().unwrap();
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
-        pub_led.publish_immediate(tasks::led::LedMode::OnOffSlow);
         info!("Clock: {:02}", val);
     }
 }

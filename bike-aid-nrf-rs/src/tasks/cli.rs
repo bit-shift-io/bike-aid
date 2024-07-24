@@ -29,6 +29,17 @@ pub async fn cli () {
                 signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(false);
             }
         }
+
+        if string.starts_with("alarm") {
+            if string.ends_with("on") {
+                signals::ALARM_ENABLED.dyn_immediate_publisher().publish_immediate(true);
+            } else if string.ends_with("play") {
+                signals::ALARM_ALERT_ACTIVE.dyn_immediate_publisher().publish_immediate(true);
+            } else {
+                signals::ALARM_ALERT_ACTIVE.dyn_immediate_publisher().publish_immediate(false);
+                signals::ALARM_ENABLED.dyn_immediate_publisher().publish_immediate(false);
+            }
+        }
         
         // publish
         pub_write.publish_immediate(str_to_array("ok\n"));

@@ -12,8 +12,10 @@ const TASK_ID: &str = "TEMPERATURE";
 pub async fn temperature (
     temp: TEMP
 ) {
-    return;
     info!("{}: start", TASK_ID);
+    
+    // NOTE: This crashes when using the softdevice!
+    // this is an example only for use without the softdevice
     
     bind_interrupts!(struct Irqs {TEMP => temp::InterruptHandler;});
     interrupt::TEMP.set_priority(interrupt::Priority::P3);

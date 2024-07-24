@@ -20,10 +20,8 @@ pub async fn throttle () {
 
         let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
-        info!("{}", throttle_settings.passthrough);
-
         if throttle_settings.passthrough {
-            info!("mv: {} ", input_voltage);
+            info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
             pub_throttle.publish_immediate(input_voltage);
             continue;
         }
@@ -32,6 +30,7 @@ pub async fn throttle () {
         let delta = input_voltage - output_voltage;
 
         // how much to change throttle this itteration (+/-)
+        // use smoothing factor as scale
         let mut adjustment = match delta {
             d if d > 0 => d / throttle_settings.increase_smooth_factor,
             _ => delta / throttle_settings.decrease_smooth_factor,
@@ -62,14 +61,10 @@ pub async fn throttle () {
 
         // speed limiter
         // this could go at the end of this code and map to the range of the deadband?
-        // this method uses a min and max number
-        let limit_input = 1023; // this was pot value, should be a setting
 
         // apply speed limit - allow increase  only if bellow limit
         // if output_voltage is larger than speed limit... set adjustment to 0
-        // TODO: limit_min and limit_max were values for the trimpot. We dont need these with ble as we can just specify a limit
-        // so possibly change this to a percentage of max?
-        if output_voltage > map(limit_input, &0, &1023, &throttle_settings.limit_min, &throttle_settings.limit_max) {
+        if output_voltage > throttle_settings.speed_limit {
             adjustment = min(adjustment, 0); // always allow decrease
         }
 
@@ -85,12 +80,17 @@ pub async fn throttle () {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = map(output_voltage, &throttle_settings.deadband_in_min, &throttle_settings.deadband_in_max, &throttle_settings.deadband_out_min, &throttle_settings.deadband_out_max);
+        let mapped_output = map(output_voltage, &throttle_settings.no_throttle, &throttle_settings.full_throttle, &throttle_settings.deadband_min, &throttle_settings.deadband_max);
 
         // TODO: check if these can be negative values, the dac only takes positive values
-        // TODO: check we are converting to mv out. I think we are!
 
         pub_throttle.publish_immediate(mapped_output); 
         info!("mv_in:{} | out: {} | map: {}", input_voltage, output_voltage, mapped_output);
+
+        // publish to uart for debug
+        let mut buf = [0u8; 64];
+        let text = format_no_std::show(&mut buf, format_args!("{},{},{}\n", input_voltage, output_voltage, mapped_output)).unwrap();
+        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str_to_array(text));
+        info!("{}: debug string: {}", TASK_ID, text);
     }
 }
