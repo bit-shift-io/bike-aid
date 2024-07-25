@@ -1,5 +1,5 @@
 slint::include_modules!();
-mod bluetooth;
+//mod bluetooth;
 
 
 #[tokio::main] // async
@@ -8,7 +8,7 @@ pub async fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
     let ui_weak = ui.as_weak();
 
-
+/*
     ui.on_scan(move || {
         let my_ui = ui_weak.unwrap();
         // ....
@@ -24,6 +24,7 @@ pub async fn main() -> Result<(), slint::PlatformError> {
             my_ui.set_speed(15);
             });
     });
+     */
    
     /*
     // this works for calling
