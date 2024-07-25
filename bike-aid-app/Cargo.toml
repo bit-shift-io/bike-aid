@@ -13,7 +13,8 @@ tokio-stream = "0.1.15"
 
 # ble
 blec = "0.3.3"
-#btleplug = { version = "0.10", features = ["serde"] }
+uuid = "1.10.0"
+btleplug = { version = "0.10", features = ["serde"] }
 
 [build-dependencies]
 slint-build = "1.7"

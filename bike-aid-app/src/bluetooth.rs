@@ -105,7 +105,7 @@ pub async fn scan_sleep() -> Result<(), Box<dyn Error + Send + Sync>> { // added
 }
 
 
-pub async fn scan_stream() -> Result<(), Box<dyn Error>> {
+pub async fn scan_stream() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let manager = Manager::new().await?;
 
@@ -160,3 +160,62 @@ pub async fn scan_stream() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+
+
+
+pub async fn connect() -> Result<(), Box<dyn Error + Send + Sync>> {
+
+    let manager = Manager::new().await?;
+
+    // get the first bluetooth adapter
+    // connect to the adapter
+    let central = get_central(&manager).await;
+
+    // Each adapter has an event stream, we fetch via events(),
+    // simplifying the type, this will return what is essentially a
+    // Future<Result<Stream<Item=CentralEvent>>>.
+    let mut events = central.events().await?;
+
+    // start scanning for devices
+    println!("Starting scan on {}...", central.adapter_info().await?);
+    central.start_scan(ScanFilter::default()).await?;
+
+    time::sleep(Duration::from_secs(2)).await;
+
+/*
+    // find the device we're interested in
+    let ligh = find_ble_device(&central).await.expect("No lights found");
+
+    // connect to the device
+    light.connect().await?;
+
+    // discover services and characteristics
+    light.discover_services().await?;
+
+    // find the characteristic we want
+    let chars = light.characteristics();
+    let cmd_char = chars
+        .iter()
+        .find(|c| c.uuid == LIGHT_CHARACTERISTIC_UUID)
+        .expect("Unable to find characterics");
+ */
+    Ok(())
+}
+
+/*
+async fn find_ble_device(central: &Adapter) -> Option<Peripheral> {
+    for p in central.peripherals().await.unwrap() {
+        if p.properties()
+            .await
+            .unwrap()
+            .unwrap()
+            .local_name
+            .iter()
+            .any(|name| name.contains("BScooter"))
+        {
+            return Some(p);
+        }
+    }
+    None
+} */

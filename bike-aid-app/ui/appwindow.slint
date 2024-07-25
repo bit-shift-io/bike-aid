@@ -27,6 +27,7 @@ export component AppWindow inherits Window {
 
     callback request-increase-value();
     callback scan();
+    callback connect();
     callback on_render_plot();
 
     TabWidget {
@@ -126,8 +127,9 @@ export component AppWindow inherits Window {
                     //height: 60px;
 
                     Button {
-                        text: "Power";
+                        text: "Power/connect";
                         clicked => {
+                            root.connect();
                         }
                     }
 

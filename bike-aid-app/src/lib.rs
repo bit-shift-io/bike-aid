@@ -1,5 +1,23 @@
 slint::include_modules!();
-//mod bluetooth;
+use blec::{ble, BleAddress};
+use uuid::Uuid;
+mod bluetooth;
+
+// reference here:
+// https://github.com/MnlPhlp/blec
+
+pub fn init() {
+    // init blec bluetooth
+    let result = ble::init();
+    match result {
+        Ok(_) => {
+            println!("Bluetooth initialized");
+        }
+        Err(_) => {
+            println!("Bluetooth not initialized");
+        }
+    }
+}
 
 
 #[tokio::main] // async
@@ -8,15 +26,20 @@ pub async fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
     let ui_weak = ui.as_weak();
 
-/*
-    ui.on_scan(move || {
+    /*
+    ui.on_connect(move || {
         let my_ui = ui_weak.unwrap();
         // ....
         let _ = slint::spawn_local(async move {
             // ...
             let foobar = tokio::task::spawn(async move {
                  // do the thing that needs to run on a tokio executor
-                 let foobar = bluetooth::scan_sleep().await;
+                 let foobar = ble::connect(
+                    BleAddress::from_str_delim("00:11:22:33:44:55").unwrap(),
+                    Uuid::parse_str("a1a2a3a4b1b2c1c2d1d2d3d4d5d6d7d8").unwrap(),
+                    Vec<Uuid::parse_str("a1a2a3a4b1b2c1c2d1d2d3d4d5d6d7d8").unwrap()>,
+                    {},
+                 ).await;
                  foobar
             }).await;
             // now use foobar to set some property
@@ -25,6 +48,25 @@ pub async fn main() -> Result<(), slint::PlatformError> {
             });
     });
      */
+
+
+     /*
+    ui.on_connect(move || {
+        let my_ui = ui_weak.unwrap();
+        // ....
+        let _ = slint::spawn_local(async move {
+            // ...
+            let foobar = tokio::task::spawn(async move {
+                 // do the thing that needs to run on a tokio executor
+                 let foobar = bluetooth::scan_stream().await;
+                 foobar
+            }).await;
+            // now use foobar to set some property
+            // ...
+            my_ui.set_speed(15);
+            });
+    }); */
+
    
     /*
     // this works for calling
@@ -64,5 +106,6 @@ pub async fn main() -> Result<(), slint::PlatformError> {
 #[no_mangle]
 fn android_main(app: slint::android::AndroidApp) {
     slint::android::init(app).unwrap();
+    init();
     main();
 }
