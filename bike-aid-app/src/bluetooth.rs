@@ -8,7 +8,6 @@ use tokio::sync::futures;
 use tokio::time;
 use tokio_stream::{Stream, StreamExt};
 
-
 /* 
 pub async fn get_adapter_list() -> Result<Vec<Adapter>, Box<dyn Error>> {
     // get all adapters

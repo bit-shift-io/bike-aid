@@ -58,13 +58,6 @@ x run --device adb:<id>
 https://github.com/MnlPhlp/blec
 
 
-#### Logging
-
-https://docs.rs/android_logger/latest/android_logger/
-
-https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/
-
-
 #### Android
 https://github.com/slint-ui/slint/tree/3aafce2c52fa1e14971e4f2455bdc556daeb079d/internal/backends/android-activity
 

@@ -4,26 +4,23 @@
 
 slint::include_modules!();
 
-/*
-use blec::{ble, BleAddress};
-use uuid::Uuid;
-mod bluetooth;
- */
-// reference here:
-// 
+
+//mod bluetooth;
 
 
 pub fn init() {
-    // // init blec bluetooth
-    // let result = ble::init();
-    // match result {
-    //     Ok(_) => {
-    //         println!("Bluetooth initialized");
-    //     }
-    //     Err(_) => {
-    //         println!("Bluetooth not initialized");
-    //     }
-    // }
+    use blec::ble;
+
+    // init blec bluetooth
+    let result = ble::init();
+    match result {
+        Ok(_) => {
+            info!("Bluetooth initialized");
+        }
+        Err(e) => {
+            info!("{}", e);
+        }
+    }
 }
 
 
@@ -57,27 +54,26 @@ pub async fn main() -> Result<(), slint::PlatformError> {
     //  */
 
 
-    // async tasks
-    ui.on_connect(move || {
-        let my_ui = ui_weak.unwrap();
+    // // async tasks
+    // ui.on_connect(move || {
+    //     let my_ui = ui_weak.unwrap();
 
-        let _ = slint::spawn_local(async move {
-            let foobar = tokio::task::spawn(async move {
-                 // do the thing that needs to run on a tokio executor
-                 //let foobar = bluetooth::scan_stream().await;
-                 let foobar = 48;
-                 foobar
-            }).await;
+    //     let _ = slint::spawn_local(async move {
+    //         let foobar = tokio::task::spawn(async move {
+    //              // do the thing that needs to run on a tokio executor
+    //              let foobar = bluetooth::scan_stream().await;
+    //              //let foobar = 48;
+    //              foobar
+    //         }).await;
 
-            // now use foobar to set some property
-            my_ui.set_speed(foobar.unwrap());
-        });
-    });
+    //         // now use foobar to set some property
+    //         //my_ui.set_speed(foobar.unwrap());
+    //     });
+    // });
 
-   
-    // /*
+
     // // this works for calling
-    // ui.on_scan({
+    // ui.connect({
     //     move || {
     //         // Spawn thread to be able to call async functions.
     //         tokio::spawn(async move {
@@ -94,7 +90,7 @@ pub async fn main() -> Result<(), slint::PlatformError> {
     //         });
     //     }
     // });
-    //  */
+
 
     // non async tasks
     ui.on_request_increase_value({

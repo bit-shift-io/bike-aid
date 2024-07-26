@@ -12,7 +12,7 @@ tokio = { version = "1.39.1", features = ["full"] }
 tokio-stream = "0.1.15"
 
 # ble
-#blec = "0.3.3"
+blec = "0.3.3"
 #uuid = "1.10.0"
 #btleplug = { version = "0.10", features = ["serde"] }
 
