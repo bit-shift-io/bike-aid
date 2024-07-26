@@ -78,3 +78,7 @@ https://docs.rs/android-manifest/latest/android_manifest/struct.UsesPermission.h
 https://docs.rs/jni/latest/jni/
 
 https://github.com/astonbitecode/j4rs
+
+#### Build.rs
+
+https://github.com/slint-ui/slint/blob/e0f3fd4168fa6ad5ed17a50910111ed72d1ae95e/internal/backends/android-activity/build.rs#L15

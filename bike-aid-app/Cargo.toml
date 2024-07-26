@@ -5,6 +5,7 @@ authors = ["Bronson <bronsonmathews@gmail.com>"]
 edition = "2021"
 build = "build.rs"
 
+
 [dependencies]
 # slint
 slint = { version = "1.7", features = ["backend-android-activity-06"] }
@@ -17,8 +18,13 @@ blec = "0.3.3"
 #btleplug = { version = "0.10", features = ["serde"] }
 
 # logs
-#android_logger = "0.14.1"
 log = "0.4.22"
+
+# android specific
+android_logger = "0.14.1"
+ndk-context = "0.1.1"
+jni = "0.21.1"
+
 
 [build-dependencies]
 slint-build = "1.7"
@@ -28,3 +34,5 @@ crate-type = ["cdylib", "lib"]
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"
+ndk-context = "0.1.1"
+jni = "0.21.1"

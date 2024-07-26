@@ -1,0 +1,9 @@
+icon: "icon.png"
+platform:
+  target: thumbv7em-none-eabihf
+toolchain:
+  version: nightly
+android:
+  manifest:
+    application:
+      label: "Library" 

@@ -1,11 +1,9 @@
 // log for android
 #[macro_use] extern crate log;
-
-
 slint::include_modules!();
-
-
 //mod bluetooth;
+
+
 
 
 pub fn init() {
@@ -21,6 +19,22 @@ pub fn init() {
             info!("{}", e);
         }
     }
+
+    // ndk context
+    use jni::JNIEnv;
+    let ctx = ndk_context::android_context();
+    let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }.unwrap();
+    let mut env = vm.attach_current_thread().unwrap();
+    let class_ctx = env.find_class("android/content/Context").unwrap();
+    let audio_service = env.get_static_field(class_ctx, "AUDIO_SERVICE", "Ljava/lang/String;").unwrap();
+    // let audio_manager = env
+    //     .call_method(
+    //         ctx.context() as jni::sys::jobject,
+    //         "getSystemService",
+    //         "(Ljava/lang/String;)Ljava/lang/Object;",
+    //         &[audio_service],
+    //     )?
+    //     .l()?;
 }
 
 
@@ -117,6 +131,8 @@ pub async fn main() -> Result<(), slint::PlatformError> {
 #[cfg(target_os = "android")]
 #[no_mangle]
 fn android_main(app: slint::android::AndroidApp) {
+    std::env::set_var("RUST_BACKTRACE", "1");
+
     // configure logcat
     extern crate android_logger;
     use log::LevelFilter;
