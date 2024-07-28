@@ -4,12 +4,29 @@ slint::include_modules!();
 //mod bluetooth;
 
 
-
-
 pub fn init() {
-    use blec::ble;
+    // ndk context
+    // use jni::JNIEnv;
+    // let ctx = ndk_context::android_context();
+    // let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }.unwrap();
+    // let mut env = vm.attach_current_thread().unwrap();
+    // let class_ctx = env.find_class("android/content/Context").unwrap();
+    // let audio_service = env.get_static_field(class_ctx, "AUDIO_SERVICE", "Ljava/lang/String;").unwrap();
+    // let audio_manager = env
+    //     .call_method(
+    //         ctx.context() as jni::sys::jobject,
+    //         "getSystemService",
+    //         "(Ljava/lang/String;)Ljava/lang/Object;",
+    //         &[audio_service],
+    //     )?
+    //     .l()?;
+
+    // btle plug init
+   // #[cfg(target_os = "android")]
+   // btleplug::platform::init(&env);
 
     // init blec bluetooth
+    use blec::ble;
     let result = ble::init();
     match result {
         Ok(_) => {
@@ -19,22 +36,6 @@ pub fn init() {
             info!("{}", e);
         }
     }
-
-    // ndk context
-    use jni::JNIEnv;
-    let ctx = ndk_context::android_context();
-    let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }.unwrap();
-    let mut env = vm.attach_current_thread().unwrap();
-    let class_ctx = env.find_class("android/content/Context").unwrap();
-    let audio_service = env.get_static_field(class_ctx, "AUDIO_SERVICE", "Ljava/lang/String;").unwrap();
-    // let audio_manager = env
-    //     .call_method(
-    //         ctx.context() as jni::sys::jobject,
-    //         "getSystemService",
-    //         "(Ljava/lang/String;)Ljava/lang/Object;",
-    //         &[audio_service],
-    //     )?
-    //     .l()?;
 }
 
 

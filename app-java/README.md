@@ -21,56 +21,29 @@ Note: may need to symlink clang??
 
 Install dependencies  
 ```bash
-sudo pacman -S jdk11-openjdk clang lld llvm
+sudo pacman -S jdk17-openjdk clang lld llvm
 ```
 
+Install android tools
+```bash
+sudo pacman -S android-tools android-udev
+```
 
 Set env variables in ~/.bash_profile 
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
 export ANDROID_NDK_ROOT=$HOME/Android/Ndk
 export ANDROID_SDK_ROOT=$ANDROID_HOME
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+#export PATH=$PATH:$ANDROID_HOME/tools
+#export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
 
 Run ```sudo adb devices```
 
-## run android using xbuild
-```bash
-x doctor
-x devices
-x build
-x build --device adb:<id>
-x run --device adb:<id>
-```
-
-## run android using cargo-apk
-```bash
-rustup target add arm-linux-androideabi
-cargo apk check
-cargo apk build
-cargo apk run
-```
-
-
-## Build external packages
-
-```
-<cd to Projects folder>
-git clone https://github.com/deviceplug/jni-utils-rs.git
-cd jni-utils-rs
-cargo build --features=build-java-support
-
-cd ..
-git clone https://github.com/deviceplug/btleplug.git
-cd btleplug/src/droidplug/java
-edit build.gradle
-    implementation files('/home/bronson/Projects/jni-utils-rs/target/debug/java/libs/jni-utils-0.1.1-SNAPSHOT.jar')
-
-
-```
-
+## VSCode 
+gradle for java  
+android debug support  
+android xml editor  
 
 
 ## Links

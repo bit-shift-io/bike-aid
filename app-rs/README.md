@@ -24,14 +24,18 @@ Install dependencies
 sudo pacman -S jdk11-openjdk clang lld llvm
 ```
 
+Install android tools
+```bash
+sudo pacman -S android-tools android-udev
+```
 
 Set env variables in ~/.bash_profile 
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
 export ANDROID_NDK_ROOT=$HOME/Android/Ndk
 export ANDROID_SDK_ROOT=$ANDROID_HOME
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+#export PATH=$PATH:$ANDROID_HOME/tools
+#export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
 
 Run ```sudo adb devices```
