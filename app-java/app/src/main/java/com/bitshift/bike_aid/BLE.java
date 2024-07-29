@@ -14,16 +14,14 @@ import java.util.Set;
 public class BLE {
     // https://developer.android.com/develop/connectivity/bluetooth/ble/find-ble-devices
 
-
+    private static final Logger log = Logger.getInstance();
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothAdapter bluetoothAdapter;
 
-    private Logger log;
 
     private boolean scanning;
     private Handler handler = new Handler();
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 60000; // 60 seconds
 
     private String DEVICE_NAME = "BScooter";
     private Context context;
@@ -38,7 +36,7 @@ public class BLE {
                     if (result.getDevice().getName() == null)
                             return;
 
-                    //log.append("BLE Scan: " + result.getDevice().getName());
+                    log.info("BLE Scan: " + result.getDevice().getName());
                     if (result.getDevice().getName().equals(DEVICE_NAME)) {
                         log.info("SCOOTER FOUND!");
                         scanning = false;
@@ -49,9 +47,8 @@ public class BLE {
 
 
 
-    BLE(Context c, Logger l) {
+    BLE(Context c) {
         context = c;
-        log = l;
 
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -92,11 +89,13 @@ public class BLE {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    log.info("BLE stop scan");
                     scanning = false;
                     bluetoothLeScanner.stopScan(leScanCallback);
                 }
             }, SCAN_PERIOD);
 
+            log.info("BLE start scan");
             scanning = true;
             bluetoothLeScanner.startScan(leScanCallback);
         } else {

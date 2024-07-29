@@ -1,6 +1,6 @@
 # Bike-Aid-App
 
-A Rust application that's using [Slint](https://slint.rs) for the user interface.
+Android app for the bike-aid interface.
 
 ## About
 
@@ -34,8 +34,6 @@ Set env variables in ~/.bash_profile
 export ANDROID_HOME=$HOME/Android/Sdk
 export ANDROID_NDK_ROOT=$HOME/Android/Ndk
 export ANDROID_SDK_ROOT=$ANDROID_HOME
-#export PATH=$PATH:$ANDROID_HOME/tools
-#export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
 
 Run ```sudo adb devices```

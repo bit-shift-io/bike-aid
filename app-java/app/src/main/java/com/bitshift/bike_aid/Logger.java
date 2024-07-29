@@ -10,26 +10,31 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Logger {
+    private static Logger ourInstance = new Logger();
     String log = "";
-    TextView logView;
-    ScrollView scrollView;
 
-    public Logger(TextView view, ScrollView scroll) {
-        logView = view;
-        scrollView = scroll;
+    private OnEventListener mOnEventListener;
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+
+    public interface OnEventListener {
+        void onUpdate(String result);
+    }
+    public static Logger getInstance() {
+        return ourInstance;
+    }
+    private Logger() {
     }
     public void info(String message) {
         android.util.Log.d("appendLog", message);
         String strTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
         log = log + "\n" + strTime + " " + message;
-        logView.setText(log);
-
-        // scroll after delay, because textView has to be updated first
-        new Handler().postDelayed(() -> scrollView.fullScroll(View.FOCUS_DOWN), 16);
+        mOnEventListener.onUpdate(log);
     }
 
     public void reset() {
         log = "";
-        logView.setText(log);
+        mOnEventListener.onUpdate(log);
     }
 }
