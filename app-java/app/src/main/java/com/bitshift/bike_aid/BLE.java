@@ -2,17 +2,27 @@ package com.bitshift.bike_aid;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
+import java.util.List;
 import java.util.Set;
 
 public class BLE {
     // https://developer.android.com/develop/connectivity/bluetooth/ble/find-ble-devices
+
+    // if we have ble issues
+    // UIThread (with a handler, local service, or Activity#runOnUiThread). Follow this rule of thumb and you will hopefully avoid this dreadful problem.
 
     private static final Logger log = Logger.getInstance();
     private BluetoothLeScanner bluetoothLeScanner;
@@ -24,23 +34,25 @@ public class BLE {
     private static final long SCAN_PERIOD = 60000; // 60 seconds
 
     private String DEVICE_NAME = "BScooter";
+    BluetoothDevice mDevice;
+    boolean deviceFound = false;
     private Context context;
 
 
     // Device scan callback.
-    private ScanCallback leScanCallback =
+    private ScanCallback scanCallback =
             new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
-                    if (result.getDevice().getName() == null)
+                    BluetoothDevice dev = result.getDevice();
+                    if (dev == null || dev.getName() == null)
                             return;
 
-                    log.info("BLE Scan: " + result.getDevice().getName());
-                    if (result.getDevice().getName().equals(DEVICE_NAME)) {
-                        log.info("SCOOTER FOUND!");
-                        scanning = false;
-                        bluetoothLeScanner.stopScan(leScanCallback);
+                    log.info("BLE Scan: " + dev.getName());
+                    if (isWantedDevice(dev)) {
+                        connectDevice();
+                        stopScan();
                     }
                 }
             };
@@ -49,26 +61,76 @@ public class BLE {
 
     BLE(Context c) {
         context = c;
-
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-
         Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
 
-        if (bondedDevices != null)
-            log.info("device bonded!");
-
-        assert bondedDevices != null;
-        for (BluetoothDevice dev : bondedDevices) {
-            log.info(dev.getName());
+        // check for bonded devices
+        if (bondedDevices != null) {
+            for (BluetoothDevice dev : bondedDevices) {
+                if (isWantedDevice(dev)) {
+                    connectDevice();
+                    break;
+                }
+            }
         }
 
+        // device not found, scan
+        if (!deviceFound)
+            startScan();
+    }
 
+    // device connected will register the callbacks here!
+    // handle data in via the callback?
+    private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            boolean connected = BluetoothGatt.GATT_SUCCESS == status;
+            log.info("BLE connected to device: " + String.valueOf(connected));
+            gatt.discoverServices();
+        }
 
-       // if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled())
-        startScan();
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            log.info("BLE service discovered");
+
+            // this is for debug only
+            // in reality we will specify uuid's and ask notify them ourselves
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                List<BluetoothGattService> services = gatt.getServices(); // get list of all services
+                //gatt.getService(UUID uuid); // get service by uuid
+                log.info("BLE services:");
+                for (BluetoothGattService s: services) {
+                    log.info(s.getUuid().toString());
+                    List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
+
+                    log.info("characteristics:");
+                    for (BluetoothGattCharacteristic c : characteristics) {
+                        log.info(c.getUuid().toString());
+                    }
+                    log.info("");
+                }
+            }
+
+        }
+
+    };
+
+    public void connectDevice() {
+        mDevice.createBond();
+        mDevice.connectGatt(context, true, gattCallback);
+    }
+
+    // find if this is the wanted device, by name
+    public boolean isWantedDevice(BluetoothDevice dev) {
+        if (!dev.getName().equals(DEVICE_NAME))
+            return false;
+
+        mDevice = dev;
+        deviceFound = true;
+        log.info("BLE wanted device found");
+        return true;
     }
 
 
@@ -91,18 +153,22 @@ public class BLE {
                 public void run() {
                     log.info("BLE stop scan");
                     scanning = false;
-                    bluetoothLeScanner.stopScan(leScanCallback);
+                    bluetoothLeScanner.stopScan(scanCallback);
                 }
             }, SCAN_PERIOD);
 
             log.info("BLE start scan");
             scanning = true;
-            bluetoothLeScanner.startScan(leScanCallback);
+            bluetoothLeScanner.startScan(scanCallback);
         } else {
-            scanning = false;
-            bluetoothLeScanner.stopScan(leScanCallback);
+            stopScan();
         }
 
+    }
+
+    public void stopScan() {
+        scanning = false;
+        bluetoothLeScanner.stopScan(scanCallback);
     }
 
 

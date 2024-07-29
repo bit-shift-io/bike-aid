@@ -2,6 +2,7 @@ package com.bitshift.bike_aid;
 
 import android.icu.text.SimpleDateFormat;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -29,12 +30,22 @@ public class Logger {
     public void info(String message) {
         android.util.Log.d("appendLog", message);
         String strTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-        log = log + "\n" + strTime + " " + message;
-        mOnEventListener.onUpdate(log);
+        log = log + strTime + " " + message + "\n";
+        update();
     }
 
     public void reset() {
         log = "";
-        mOnEventListener.onUpdate(log);
+        update();
+    }
+
+    public void update() {
+        // run on main ui thread
+        // we want to be able to log other threads
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                mOnEventListener.onUpdate(log);
+            }
+        });
     }
 }
