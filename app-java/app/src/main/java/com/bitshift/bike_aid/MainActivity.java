@@ -1,6 +1,5 @@
 package com.bitshift.bike_aid;
 
-
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,22 +9,25 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
-
 public class MainActivity extends AppCompatActivity {
+    // ==== notes ====
+    /*
+    main activity and gui stuff here
+     */
 
-    // variables
+    // ==== variables ====
     private static final Logger log = Logger.getInstance();
+    private static final BLE ble = BLE.getInstance();
+    private static final GATT gatt = GATT.getInstance();
     ScrollView logScroll;
     TextView logText;
 
-    // functions
+
+    // ==== functions ====
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // hide action bar
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //getSupportActionBar().hide();
 
         // gui
         setContentView(R.layout.activity_main);
@@ -44,13 +46,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        log.info("MainActivity.onCreate");
+        log.info("activity: create");
 
         // check permissions
         new Permissions(this);
 
         // start ble
-        new BLE(context);
+        ble.init(context);
     }
 
 

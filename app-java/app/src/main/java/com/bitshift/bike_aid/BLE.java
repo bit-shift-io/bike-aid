@@ -19,27 +19,30 @@ import java.util.List;
 import java.util.Set;
 
 public class BLE {
-    // https://developer.android.com/develop/connectivity/bluetooth/ble/find-ble-devices
+    // ==== notes ====
+    /*
+    This class handles the ble adaptor and connection to the device
+    Once we are connected, we hand off to the gatt class to handle read and write of data
+     */
 
     // if we have ble issues
     // UIThread (with a handler, local service, or Activity#runOnUiThread). Follow this rule of thumb and you will hopefully avoid this dreadful problem.
 
+    // ==== functions ====
+    private static BLE mInstance = new BLE();
     private static final Logger log = Logger.getInstance();
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothAdapter bluetoothAdapter;
-
-
     private boolean scanning;
     private Handler handler = new Handler();
     private static final long SCAN_PERIOD = 60000; // 60 seconds
-
     private String DEVICE_NAME = "BScooter";
     BluetoothDevice mDevice;
     boolean deviceFound = false;
     private Context context;
 
 
-    // Device scan callback.
+    // ==== callbacks ====
     private ScanCallback scanCallback =
             new ScanCallback() {
                 @Override
@@ -47,7 +50,7 @@ public class BLE {
                     super.onScanResult(callbackType, result);
                     BluetoothDevice dev = result.getDevice();
                     if (dev == null || dev.getName() == null)
-                            return;
+                        return;
 
                     log.info("BLE Scan: " + dev.getName());
                     if (isWantedDevice(dev)) {
@@ -58,8 +61,20 @@ public class BLE {
             };
 
 
+    // ==== functions ====
 
-    BLE(Context c) {
+    private BLE() {}
+
+
+    public static BLE getInstance() {
+        return mInstance;
+    }
+
+
+
+
+
+    public void init(Context c) {
         context = c;
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();

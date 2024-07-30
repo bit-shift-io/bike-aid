@@ -10,6 +10,13 @@ import androidx.core.content.ContextCompat;
 
 public class Permissions {
 
+    // ==== notes ====
+    /*
+    This class handles the android permissions
+     */
+
+
+    // ==== variables ====
     private int REQUEST_FINE_LOCATION_PERMISSION = 100;
     private int REQUEST_BLUETOOTH_SCAN_PERMISSION = 101;
     private int REQUEST_BACKGROUND_LOCATION_PERMISSION = 102;
@@ -18,6 +25,7 @@ public class Permissions {
     Activity activity;
 
 
+    // ==== functions ====
     Permissions (Activity a) {
         activity = a;
         request();
