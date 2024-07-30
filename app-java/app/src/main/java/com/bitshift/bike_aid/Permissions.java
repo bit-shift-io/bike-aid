@@ -15,22 +15,8 @@ public class Permissions {
     This class handles the android permissions
      */
 
-
-    // ==== variables ====
-    private int REQUEST_FINE_LOCATION_PERMISSION = 100;
-    private int REQUEST_BLUETOOTH_SCAN_PERMISSION = 101;
-    private int REQUEST_BACKGROUND_LOCATION_PERMISSION = 102;
-    private int REQUEST_BLUETOOTH_CONNECT_PERMISSION= 103;
-
-    Activity activity;
-
-
     // ==== functions ====
     Permissions (Activity a) {
-        activity = a;
-        request();
-    }
-    public void request() {
         int permissionsCode = 42;
         String[] permissions = {
                 Manifest.permission.BLUETOOTH_SCAN,
@@ -39,9 +25,17 @@ public class Permissions {
                 Manifest.permission.BLUETOOTH_CONNECT
         };
 
-        ActivityCompat.requestPermissions(activity, permissions, permissionsCode);
+        ActivityCompat.requestPermissions(a, permissions, permissionsCode);
+    }
 
-        /*
+    /*
+    // old method
+    public void request() {
+        private int REQUEST_FINE_LOCATION_PERMISSION = 100;
+        private int REQUEST_BLUETOOTH_SCAN_PERMISSION = 101;
+        private int REQUEST_BACKGROUND_LOCATION_PERMISSION = 102;
+        private int REQUEST_BLUETOOTH_CONNECT_PERMISSION= 103;
+
         if (!hasPermissions(this, permissions)) {
             ActivityCompat.requestPermissions(this, permissions, permissionsCode);
         }
@@ -73,16 +67,15 @@ public class Permissions {
                     REQUEST_BLUETOOTH_CONNECT_PERMISSION);
         }
 
-         */
     }
 
-    private void RequestPermissions(String[] strings, int requestPermission) {
+    private void requestPermissions(String[] strings, int requestPermission) {
         ActivityCompat.requestPermissions(activity, strings, requestPermission);
     }
 
-    private boolean CheckSelfPermission(String permission) {
+    private boolean checkSelfPermission(String permission) {
         return ActivityCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
     }
-
+    */
 
 }

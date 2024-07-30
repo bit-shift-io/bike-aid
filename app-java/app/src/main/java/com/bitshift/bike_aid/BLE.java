@@ -17,6 +17,7 @@ import android.util.Log;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class BLE {
     // ==== notes ====
@@ -28,7 +29,7 @@ public class BLE {
     // if we have ble issues
     // UIThread (with a handler, local service, or Activity#runOnUiThread). Follow this rule of thumb and you will hopefully avoid this dreadful problem.
 
-    // ==== functions ====
+    // ==== variables ====
     private static BLE mInstance = new BLE();
     private static final Logger log = Logger.getInstance();
     private BluetoothLeScanner bluetoothLeScanner;
@@ -71,9 +72,6 @@ public class BLE {
     }
 
 
-
-
-
     public void init(Context c) {
         context = c;
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -96,14 +94,55 @@ public class BLE {
             startScan();
     }
 
+
     // device connected will register the callbacks here!
-    // handle data in via the callback?
+    // handle data in via the callback, or move it into my own gattcallback class?
+    // https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback
     private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             boolean connected = BluetoothGatt.GATT_SUCCESS == status;
             log.info("BLE connected to device: " + String.valueOf(connected));
+
+            // TODO: move to function
+
+            // get services
+            BluetoothGattService s_data = gatt.getService(UUID.fromString("2000"));
+            BluetoothGattService s_settings = gatt.getService(UUID.fromString("1000"));
+
+            // get characteristics
+                // data
+            BluetoothGattCharacteristic c_speed = s_data.getCharacteristic(UUID.fromString("2001"));
+            BluetoothGattCharacteristic c_trip_duration = s_data.getCharacteristic(UUID.fromString("2002"));
+            BluetoothGattCharacteristic c_odometer = s_data.getCharacteristic(UUID.fromString("2003"));
+            BluetoothGattCharacteristic c_temperature = s_data.getCharacteristic(UUID.fromString("2004"));
+            BluetoothGattCharacteristic c_clock_minutes = s_data.getCharacteristic(UUID.fromString("2005"));
+            BluetoothGattCharacteristic c_clock_hours = s_data.getCharacteristic(UUID.fromString("2006"));
+
+            // set notify
+                // data
+            gatt.setCharacteristicNotification(c_speed, true);
+            gatt.setCharacteristicNotification(c_trip_duration, true);
+            gatt.setCharacteristicNotification(c_odometer, true);
+            gatt.setCharacteristicNotification(c_temperature, true);
+            gatt.setCharacteristicNotification(c_clock_minutes, true);
+            gatt.setCharacteristicNotification(c_clock_hours, true);
+
+
+            // for debug
+            // possibly to setup notify?
             gatt.discoverServices();
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
+            log.info("BLE characteristic changed");
+
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+            log.info("BLE characteristic read");
         }
 
         @Override
@@ -132,10 +171,12 @@ public class BLE {
 
     };
 
+
     public void connectDevice() {
         mDevice.createBond();
         mDevice.connectGatt(context, true, gattCallback);
     }
+
 
     // find if this is the wanted device, by name
     public boolean isWantedDevice(BluetoothDevice dev) {
@@ -181,11 +222,10 @@ public class BLE {
 
     }
 
+
     public void stopScan() {
         scanning = false;
         bluetoothLeScanner.stopScan(scanCallback);
     }
-
-
 
 }

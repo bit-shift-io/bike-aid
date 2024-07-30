@@ -8,17 +8,21 @@ use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterErro
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 
-const SERVICE_ID: Uuid = Uuid::new_16(0x181C);
-const SPEED: Uuid = Uuid::new_16(0x2A67);
-const TRIP_DURATION: Uuid = Uuid::new_16(0x2BF2);
-const ODOMETER: Uuid = Uuid::new_16(0x2AE3);
-const TEMPERATURE: Uuid = Uuid::new_16(0x2A6E);
+const SERVICE_ID: Uuid = Uuid::new_16(0x2000);
+const SPEED: Uuid = Uuid::new_16(0x2001);
+const TRIP_DURATION: Uuid = Uuid::new_16(0x2002);
+const ODOMETER: Uuid = Uuid::new_16(0x2003);
+const TEMPERATURE: Uuid = Uuid::new_16(0x2004);
+const CLOCK_MINUTES: Uuid = Uuid::new_16(0x1005);
+const CLOCK_HOURS: Uuid = Uuid::new_16(0x1006);
 
 pub struct DataService {
     speed: CharacteristicHandles,
     trip_duration: CharacteristicHandles,
     odometer: CharacteristicHandles,
     temperature: CharacteristicHandles,
+    clock_minutes: CharacteristicHandles,
+    clock_hours: CharacteristicHandles,
 }
 
 impl DataService {
@@ -53,6 +57,20 @@ impl DataService {
         )?;
         let temperature_handle = characteristic_builder.build();
 
+        let characteristic_builder = service_builder.add_characteristic(
+            CLOCK_MINUTES,
+            Attribute::new(&[0u8; 2]),
+            Metadata::new(Properties::new().read().notify()),
+        )?;
+        let clock_minutes_handle = characteristic_builder.build();
+
+        let characteristic_builder = service_builder.add_characteristic(
+            CLOCK_HOURS,
+            Attribute::new(&[0u8; 2]),
+            Metadata::new(Properties::new().read().notify()),
+        )?;
+        let clock_hours_handle = characteristic_builder.build();
+
         let _service_handle = service_builder.build();
         
         Ok(DataService {
@@ -60,6 +78,8 @@ impl DataService {
             trip_duration: trip_duration_handle,
             odometer: odometer_handle,
             temperature: temperature_handle,
+            clock_minutes: clock_minutes_handle,
+            clock_hours: clock_hours_handle,
         })
     }
 
@@ -77,6 +97,7 @@ impl DataService {
 }
 
 pub async fn run(connection: &Connection, server: &Server) {
+    // TODO: add data points here
     let mut sub_throttle_in = signals::THROTTLE_IN.subscriber().unwrap();
 
     loop {

@@ -10,12 +10,13 @@ use crate::utils::signals;
 
 
 // TODO: proper uids?
-const SERVICE_ID: Uuid = Uuid::new_16(0x2B1E);
+const SERVICE_ID: Uuid = Uuid::new_16(0x1000);
 const POWER_SWITCH: Uuid = Uuid::new_16(0x1001);
 const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
 const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
 const ALARM_ENABLED: Uuid = Uuid::new_16(0x1004);
 const THROTTLE_SMOOTHING: Uuid = Uuid::new_16(0x1005);
+
 
 // TODO: all user modified settings here
 pub struct SettingsService {
