@@ -46,7 +46,7 @@ pub async fn speed (
             let delta_speed : f32 = instant_speed - smooth_speed; // calc difference btween speeds
             let speed_adjust = delta_speed * SPEED_SMOOTH_FACTOR; // todo: multiply by delta time, so faster speeds are adjusted faster?
             smooth_speed += speed_adjust;
-            pub_smooth_speed.publish_immediate(smooth_speed as u32); // round
+            pub_smooth_speed.publish_immediate(smooth_speed as u8); // round
         }
 
         // odometer on full rotations

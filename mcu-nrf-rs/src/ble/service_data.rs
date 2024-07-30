@@ -7,6 +7,7 @@ use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Prop
 use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
+use embassy_futures::join;
 
 const SERVICE_ID: Uuid = Uuid::new_16(0x2000);
 const SPEED: Uuid = Uuid::new_16(0x2001);
@@ -82,31 +83,56 @@ impl DataService {
             clock_hours: clock_hours_handle,
         })
     }
+}
 
 
-    pub fn speed_set(&self, val: &i16) -> Result<(), gatt_server::SetValueError> {
-        let split = functions::bitshift_split_u16(*val);
-        server::set_value(self.speed.value_handle, &split)
-    }
-    
+pub async fn run(connection: &Connection, server: &Server) {
+    info!("run battery service");
+    // TODO: add data points here
+    /*
+    speed: CharacteristicHandles,
+    trip_duration: CharacteristicHandles,
+    odometer: CharacteristicHandles,
+    temperature: CharacteristicHandles,
+    clock_minutes: CharacteristicHandles,
+    clock_hours: CharacteristicHandles,
+     */
+    // TODO: add services here
+    // do we need to mutpin?
+    join::join3(
+        update_speed(connection, server), 
+        update_clock_minutes(connection, server), 
+        update_clock_hours(connection, server),
+        ).await;
+}
 
-    pub fn speed_notify(&self, conn: &Connection, val: &i16) -> Result<(), gatt_server::NotifyValueError> {
-        let split = functions::bitshift_split_u16(*val);
-        server::notify_value(conn, self.speed.value_handle, &split)
+
+pub async fn update_speed(connection: &Connection, server: &Server) {
+    let mut sub = signals::SMOOTH_SPEED.subscriber().unwrap();
+    let handle = server.data.speed.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        //let val = functions::bitshift_split_u16(val);
+        let _ = server::notify_value(connection, handle, &[val]);
     }
 }
 
-pub async fn run(connection: &Connection, server: &Server) {
-    // TODO: add data points here
-    let mut sub_throttle_in = signals::THROTTLE_IN.subscriber().unwrap();
 
+pub async fn update_clock_minutes(connection: &Connection, server: &Server) {
+    let mut sub = signals::CLOCK_MINUTES.subscriber().unwrap();
+    let handle = server.data.clock_minutes.value_handle;
     loop {
-        let val = sub_throttle_in.next_message_pure().await;
+        let val = sub.next_message_pure().await;
+        let _ = server::notify_value(connection, handle, &[val]);
+    }
+}
 
-        // try notify, if fails due to other device not allowing, then just set the data
-        match server.data.speed_notify(connection, &val) {
-            Ok(_) => (),
-            Err(_) => unwrap!(server.data.speed_set(&val)),
-        };
+
+pub async fn update_clock_hours(connection: &Connection, server: &Server) {
+    let mut sub = signals::CLOCK_HOURS.subscriber().unwrap();
+    let handle = server.data.clock_hours.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        let _ = server::notify_value(connection, handle, &[val]);
     }
 }

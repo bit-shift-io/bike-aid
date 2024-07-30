@@ -17,8 +17,8 @@ public class GATT {
 
 
     // ==== listener interface ====
-    private Logger.OnEventListener mOnEventListener;
-    public void setOnEventListener(Logger.OnEventListener listener) {
+    private OnEventListener mOnEventListener;
+    public void setOnEventListener(OnEventListener listener) {
         mOnEventListener = listener;
     }
     public interface OnEventListener {

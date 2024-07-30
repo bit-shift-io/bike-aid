@@ -3,6 +3,7 @@ use super::service_device::DeviceInformationService;
 use super::service_battery::{self, BatteryService};
 use super::service_settings::{self, SettingsService};
 use super::service_uart::{self, UARTService};
+use defmt::unwrap;
 use embassy_futures::join;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
@@ -90,18 +91,29 @@ impl gatt_server::Server for Server {
 
 pub async fn run(connection: &Connection, server: &Server) {
     // TODO: add services here
-    let data_future = service_data::run(connection, server);
-    let settings_future = service_settings::run(connection, server);
-    let uart_future = service_uart::run(connection, server);
-    let battery_future = service_battery::run(connection, server);
-    //pin_mut!(data_future, settings_future, uart_future);
-    join::join4(data_future, settings_future, uart_future, battery_future).await;
+    // do we need to mutpin? pin_mut!(...);
+    join::join4(
+        service_data::run(connection, server), 
+        service_settings::run(connection, server),
+        service_uart::run(connection, server),
+        service_battery::run(connection, server)
+        ).await;
 }
 
 
 // shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
-    gatt_server::notify_value(conn, handle, val)
+    gatt_server::notify_value(conn, handle, val) // old direct call
+
+    /*
+    // try notify, if fails, set
+    let result = gatt_server::notify_value(conn, handle, val);
+    match result { // notify
+        Ok(_) => (),
+        Err(_) => unwrap!(set_value(handle, val)), // else set
+    };
+    result // return notify result
+     */
 }
 
 

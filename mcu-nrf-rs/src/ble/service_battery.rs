@@ -104,6 +104,7 @@ impl BatteryService {
     }
 }
 
+
 pub async fn run(connection: &Connection, server: &Server) {
     info!("run battery service");
 
