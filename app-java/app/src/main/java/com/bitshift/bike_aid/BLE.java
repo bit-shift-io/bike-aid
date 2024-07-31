@@ -13,6 +13,7 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.util.Log;
 
 import java.util.List;
@@ -104,33 +105,7 @@ public class BLE {
             boolean connected = BluetoothGatt.GATT_SUCCESS == status;
             log.info("BLE connected to device: " + String.valueOf(connected));
 
-            // TODO: move to function
-
-            // get services
-            BluetoothGattService s_data = gatt.getService(UUID.fromString("2000"));
-            BluetoothGattService s_settings = gatt.getService(UUID.fromString("1000"));
-
-            // get characteristics
-                // data
-            BluetoothGattCharacteristic c_speed = s_data.getCharacteristic(UUID.fromString("2001"));
-            BluetoothGattCharacteristic c_trip_duration = s_data.getCharacteristic(UUID.fromString("2002"));
-            BluetoothGattCharacteristic c_odometer = s_data.getCharacteristic(UUID.fromString("2003"));
-            BluetoothGattCharacteristic c_temperature = s_data.getCharacteristic(UUID.fromString("2004"));
-            BluetoothGattCharacteristic c_clock_minutes = s_data.getCharacteristic(UUID.fromString("2005"));
-            BluetoothGattCharacteristic c_clock_hours = s_data.getCharacteristic(UUID.fromString("2006"));
-
-            // set notify
-                // data
-            gatt.setCharacteristicNotification(c_speed, true);
-            gatt.setCharacteristicNotification(c_trip_duration, true);
-            gatt.setCharacteristicNotification(c_odometer, true);
-            gatt.setCharacteristicNotification(c_temperature, true);
-            gatt.setCharacteristicNotification(c_clock_minutes, true);
-            gatt.setCharacteristicNotification(c_clock_hours, true);
-
-
-            // for debug
-            // possibly to setup notify?
+            // now we need to scan the services
             gatt.discoverServices();
         }
 
@@ -167,10 +142,57 @@ public class BLE {
                 }
             }
 
+
+            // TODO: move to function
+            // gatt services
+
+
+            // uart
+            BluetoothGattService s_uart = gatt.getService(UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E"));
+            BluetoothGattCharacteristic c_rx = s_uart.getCharacteristic(UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"));
+            BluetoothGattCharacteristic c_tx = s_uart.getCharacteristic(UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"));
+            boolean res1 = gatt.setCharacteristicNotification(c_rx, true); // no notify on rx, use this for writing
+            boolean res2 = gatt.setCharacteristicNotification(c_tx, true); // use for reading
+            log.info("BLE notify: rx:" + res1 + " tx:" + res2);
+
+
+            // data
+            BluetoothGattService s_data = gatt.getService(uuidFrom16bit("2000"));
+            // get characteristics
+            // data
+            BluetoothGattCharacteristic c_speed = s_data.getCharacteristic(uuidFrom16bit("2001"));
+            BluetoothGattCharacteristic c_trip_duration = s_data.getCharacteristic(uuidFrom16bit("2002"));
+            BluetoothGattCharacteristic c_odometer = s_data.getCharacteristic(uuidFrom16bit("2003"));
+            BluetoothGattCharacteristic c_temperature = s_data.getCharacteristic(uuidFrom16bit("2004"));
+            BluetoothGattCharacteristic c_clock_minutes = s_data.getCharacteristic(uuidFrom16bit("2005"));
+            BluetoothGattCharacteristic c_clock_hours = s_data.getCharacteristic(uuidFrom16bit("2006"));
+
+            // set notify
+            // data
+            gatt.setCharacteristicNotification(c_speed, true);
+            gatt.setCharacteristicNotification(c_trip_duration, true);
+            gatt.setCharacteristicNotification(c_odometer, true);
+            gatt.setCharacteristicNotification(c_temperature, true);
+            gatt.setCharacteristicNotification(c_clock_minutes, true);
+            gatt.setCharacteristicNotification(c_clock_hours, true);
+
+
+            // settings
+            BluetoothGattService s_settings = gatt.getService(uuidFrom16bit("1000"));
+
+
+
         }
 
     };
 
+    // Converts 16bit UUIDs to 128-bit format
+    // the 16bit uuid is short for 0000xxxx-0000-1000-8000-00805F9B34FB
+    public static UUID uuidFrom16bit(String uuid16) {
+        String baseUUIDSuffix = "0000-1000-8000-00805F9B34FB";
+        String uuid = "0000" + uuid16 + baseUUIDSuffix;
+        return UUID.fromString(uuid);
+    }
 
     public void connectDevice() {
         mDevice.createBond();

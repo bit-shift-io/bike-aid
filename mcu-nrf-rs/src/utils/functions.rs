@@ -65,8 +65,21 @@ pub fn max<T: PartialOrd>(a: T, b: T) -> T {
 /// ## Returns
 ///
 /// &[u8;2] byte array
-pub fn bitshift_split_u16(short_16: i16) -> [u8; 2] {
-    [(short_16 >> 8) as u8, (short_16 & 0xff) as u8]
+pub fn bitshift_split_i16(value: i16) -> [u8; 2] {
+    [(value >> 8) as u8, (value & 0xff) as u8]
+}
+
+/// Bitshift u16 to u8 array
+///
+/// ## Arguments
+///
+/// * `short_16` - i16
+///
+/// ## Returns
+///
+/// &[u8;2] byte array
+pub fn bitshift_split_u16(value: u16) -> [u8; 2] {
+    [(value >> 8) as u8, (value & 0xff) as u8]
 }
 
 

@@ -32,21 +32,21 @@ impl DataService {
 
         let characteristic_builder = service_builder.add_characteristic(
             SPEED,
-            Attribute::new(&[0u8; 16]),
+            Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify())
         )?;
         let speed_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             TRIP_DURATION,
-            Attribute::new(&[0u8; 2]),
+            Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let trip_duration_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             ODOMETER,
-            Attribute::new(&[0u8; 2]),
+            Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let odometer_handle = characteristic_builder.build();
@@ -60,14 +60,14 @@ impl DataService {
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_MINUTES,
-            Attribute::new(&[0u8; 2]),
+            Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let clock_minutes_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_HOURS,
-            Attribute::new(&[0u8; 2]),
+            Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let clock_hours_handle = characteristic_builder.build();
@@ -99,8 +99,9 @@ pub async fn run(connection: &Connection, server: &Server) {
      */
     // TODO: add services here
     // do we need to mutpin?
-    join::join3(
+    join::join4(
         update_speed(connection, server), 
+        update_temperature(connection, server), 
         update_clock_minutes(connection, server), 
         update_clock_hours(connection, server),
         ).await;
@@ -114,6 +115,17 @@ pub async fn update_speed(connection: &Connection, server: &Server) {
         let val = sub.next_message_pure().await;
         //let val = functions::bitshift_split_u16(val);
         let _ = server::notify_value(connection, handle, &[val]);
+    }
+}
+
+
+pub async fn update_temperature(connection: &Connection, server: &Server) {
+    let mut sub = signals::TEMPERATURE.subscriber().unwrap();
+    let handle = server.data.temperature.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        let val = functions::bitshift_split_u16(val);
+        let _ = server::notify_value(connection, handle, &val);
     }
 }
 

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,6 +22,55 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="60 mins"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text=""
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/battery_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="50%"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/middle_container"
+            android:layout_width="match_parent"
+            android:layout_height="100dp">
+
+            <TextView
+                android:id="@+id/null1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text=" "
                 android:textAlignment="viewStart"
                 android:textIsSelectable="false"
                 android:textSize="24sp"
@@ -32,20 +82,20 @@
                 android:id="@+id/speed"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="60k/hr"
-                android:textAlignment="center"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="60 km/h"
                 android:textIsSelectable="false"
-                android:textSize="24sp"
+                android:textSize="48sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/battery_percent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/battery_percent"
+                android:id="@+id/null2"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="50%"
+                android:text=""
                 android:textAlignment="textEnd"
                 android:textIsSelectable="false"
                 android:textSize="24sp"
@@ -56,10 +106,89 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
-            android:id="@+id/divider"
+            android:id="@+id/divider2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/footer_container"
+            android:layout_width="match_parent"
+            android:layout_height="40dp">
+
+            <TextView
+                android:id="@+id/odometer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="12 km"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="18 C"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/clock_minutes"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="12"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/clock_divider"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text=":"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/clock_minutes"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/clock_hours"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="00"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                android:gravity="center_vertical|center_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/clock_divider"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <View
+            android:id="@+id/spacer1"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"/>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/fluff_container"
@@ -121,7 +250,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
-            android:id="@+id/divider2"
+            android:id="@+id/divider4"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />
@@ -134,7 +263,7 @@
             <ScrollView
                 android:id="@+id/scrollViewLog"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/img_gray_border"
                 app:layout_constraintBottom_toBottomOf="parent"
