@@ -72,8 +72,8 @@ testing values stright mapping
 */
 pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
-    increase_smooth_factor: 1000, // rate of smoothing to acceleration
-    decrease_smooth_factor: 100, // rate of smoothing to deceleration
+    increase_smooth_factor: 70, // rate of smoothing to acceleration
+    decrease_smooth_factor: 30, // rate of smoothing to deceleration
     no_throttle: 850, // mv no throttle
     full_throttle: 2300, // mv full throttle
     deadband_min: 850, // mv just before motor active

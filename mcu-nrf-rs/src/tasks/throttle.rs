@@ -5,7 +5,7 @@ use defmt::*;
 use heapless::String;
 
 const TASK_ID: &str = "THROTTLE";
-const SMOOTHING_MULTIPLIER: f32 = 400.0;
+const SMOOTHING_MULTIPLIER: f32 = 0.01; // 100 * .01 = 1, magic number to keep smoothing numbers reasonable \:D/
 
 #[embassy_executor::task]
 pub async fn throttle () {
@@ -34,12 +34,15 @@ pub async fn throttle () {
 
         // how much to change throttle this itteration (+/-)
         // use smoothing factor as scale
-        let mut adjustment = 0.0;
-        if delta >= 0.0 {
-            adjustment = delta / (throttle_settings.increase_smooth_factor as f32) * SMOOTHING_MULTIPLIER; 
+        // TODO: clamp to 0-100 range smoothing settings
+        // TODO: to ensure multiplier is never 0 or over 1
+        let multiplier;
+        if delta > 0.0 {
+            multiplier = (100.0 - (throttle_settings.increase_smooth_factor as f32)) * SMOOTHING_MULTIPLIER; 
         } else {
-            adjustment = delta / (throttle_settings.decrease_smooth_factor as f32) * SMOOTHING_MULTIPLIER;
+            multiplier = (100.0 - (throttle_settings.decrease_smooth_factor as f32)) * SMOOTHING_MULTIPLIER;
         }
+        let mut adjustment = delta * multiplier;
 
         // speed limiter
         // this could go at the end of this code and map to the range of the deadband?
