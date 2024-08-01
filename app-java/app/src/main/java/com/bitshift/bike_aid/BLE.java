@@ -75,21 +75,16 @@ public class BLE {
         context = c;
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-
-        // turn on bluetooth if disabled
-        if (!bluetoothAdapter.isEnabled())
-            bluetoothAdapter.enable();
+        enableBluetooth();
 
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-
         if (bluetoothLeScanner == null) {
             log.info("BLE: no bluetooth adapter available, please enable bluetooth");
             return;
         }
 
-        Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
-
         // check for bonded devices
+        Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
         if (bondedDevices != null) {
             for (BluetoothDevice dev : bondedDevices) {
                 if (isWantedDevice(dev)) {
@@ -234,7 +229,6 @@ public class BLE {
         }
 
     }
-
 
     public void stopScan() {
         scanning = false;

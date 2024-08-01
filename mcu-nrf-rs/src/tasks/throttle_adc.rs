@@ -29,6 +29,8 @@ pub async fn throttle_adc (
     //let _ = adc.set_data_rate(DataRate16Bit::Sps8);
 
     loop {
+        Timer::after_millis(INTERVAL).await;
+
         //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
         let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
 
@@ -45,7 +47,10 @@ pub async fn throttle_adc (
         //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
 
         // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
-        pub_throttle.publish_immediate(input_voltage);
-        Timer::after_millis(INTERVAL).await;
+        // note ive added 100k pulldown resistor to remove fluctation during power off
+        // so do a check, if value is larger than 20 we can report it
+        if input_voltage > 20 {
+            pub_throttle.publish_immediate(input_voltage);
+        }
     }
 }

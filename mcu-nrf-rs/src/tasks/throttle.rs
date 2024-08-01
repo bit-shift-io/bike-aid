@@ -93,6 +93,6 @@ pub async fn throttle () {
         let text = format_no_std::show(&mut buf, format_args!("{},{},{}\n", input_voltage, output_voltage, mapped_output)).unwrap();
         let s = String::try_from(text).unwrap();
         signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
-        info!("{}: debug string: {}", TASK_ID, text);
+        info!("{}: {}", TASK_ID, text);
     }
 }

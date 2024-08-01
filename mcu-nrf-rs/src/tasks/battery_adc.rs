@@ -14,10 +14,11 @@ const INTERVAL: u64 = 1000;
 pub async fn battery_adc (
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
+    return; // TODO: fix address
     info!("{}: start", TASK_ID);
     let pub_data = signals::BATTERY_IN.publisher().unwrap();
 
-    let address = SlaveAddr::default(); // 0x48
+    let address = SlaveAddr::Alternative(true, true); // default used for throttle 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
     let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
     match result {
