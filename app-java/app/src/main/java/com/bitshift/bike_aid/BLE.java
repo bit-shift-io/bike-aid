@@ -73,8 +73,9 @@ public class BLE {
 
     public void init(Context c) {
         context = c;
-        BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = bluetoothManager.getAdapter();
+        //BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        //bluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         enableBluetooth();
 
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
@@ -202,8 +203,9 @@ public class BLE {
         if (bluetoothAdapter.isEnabled()) {
             return true;
         } else {
+            log.info("BLE: enable adapter");
+            bluetoothAdapter.enable();
             String intentString = BluetoothAdapter.ACTION_REQUEST_ENABLE;
-
         }
         return true;
     }

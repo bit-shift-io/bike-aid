@@ -5,6 +5,7 @@ use defmt::*;
 use heapless::String;
 
 const TASK_ID: &str = "THROTTLE";
+const SMOOTHING_MULTIPLIER: f32 = 400.0;
 
 #[embassy_executor::task]
 pub async fn throttle () {
@@ -13,17 +14,18 @@ pub async fn throttle () {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
-    let mut output_voltage = 0;
+    let mut output_voltage = 0.0;
     let mut last_delta_speed = 0.0;
 
     loop {
-        let input_voltage = sub_throttle.next_message_pure().await; // millivolts
+        // we are converting to f32 as we have divide issues with i16
+        let input_voltage = sub_throttle.next_message_pure().await as f32; // millivolts
 
         let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
         if throttle_settings.passthrough {
             info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
-            pub_throttle.publish_immediate(input_voltage);
+            pub_throttle.publish_immediate(input_voltage as i16);
             continue;
         }
         
@@ -32,41 +34,20 @@ pub async fn throttle () {
 
         // how much to change throttle this itteration (+/-)
         // use smoothing factor as scale
-        let mut adjustment = match delta {
-            d if d > 0 => d / throttle_settings.increase_smooth_factor,
-            _ => delta / throttle_settings.decrease_smooth_factor,
-        };
-
-
-
-        /*
-        // TODO: make based on speed option
-        // as we get closer to the desired speed, we decrease the adjustment
-        // apply speed limit - allow increase  only if bellow limit
-        let speed_limit = throttle_settings.speed_limit; // in kmhr
-        if speed_limit > 0 {
-            // get current speed
-            // might need assert_eq!(sub0.try_next_message(), None);
-            let instant_speed = sub_instant_speed.try_next_message(); // poll
-            let instant_speed = 15;
-
-            let delta_scale = 3;
-            let delta_speed = (speed_limit - instant_speed) * delta_scale;
-            if delta_speed > 0 {
-                adjustment = min(adjustment, delta_speed);
-            }
-
-            output_voltage += adjustment;
+        let mut adjustment = 0.0;
+        if delta >= 0.0 {
+            adjustment = delta / (throttle_settings.increase_smooth_factor as f32) * SMOOTHING_MULTIPLIER; 
+        } else {
+            adjustment = delta / (throttle_settings.decrease_smooth_factor as f32) * SMOOTHING_MULTIPLIER;
         }
-         */
 
         // speed limiter
         // this could go at the end of this code and map to the range of the deadband?
 
         // apply speed limit - allow increase  only if bellow limit
         // if output_voltage is larger than speed limit... set adjustment to 0
-        if output_voltage > throttle_settings.speed_limit {
-            adjustment = functions::min(adjustment, 0); // always allow decrease
+        if output_voltage > (throttle_settings.speed_limit as f32) {
+            adjustment = functions::min(adjustment, 0.0); // always allow decrease
         }
 
         output_voltage += adjustment;
@@ -81,18 +62,18 @@ pub async fn throttle () {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = functions::map(output_voltage, &throttle_settings.no_throttle, &throttle_settings.full_throttle, &throttle_settings.deadband_min, &throttle_settings.deadband_max);
+        let mapped_output = functions::map(output_voltage, &(throttle_settings.no_throttle as f32), &(throttle_settings.full_throttle as f32), &(throttle_settings.deadband_min as f32), &(throttle_settings.deadband_max as f32));
 
         // TODO: check if these can be negative values, the dac only takes positive values
 
-        pub_throttle.publish_immediate(mapped_output); 
-        info!("mv_in:{} | out: {} | map: {}", input_voltage, output_voltage, mapped_output);
+        pub_throttle.publish_immediate(mapped_output as i16); 
+        info!("in:{} | out: {} | map: {}  -  delta: {} | adj: {}", input_voltage as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
         // publish to uart for debug
         let mut buf = [0u8; 32];
         let text = format_no_std::show(&mut buf, format_args!("{},{},{}\n", input_voltage, output_voltage, mapped_output)).unwrap();
         let s = String::try_from(text).unwrap();
         signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
-        info!("{}: {}", TASK_ID, text);
+        //info!("{}: {}", TASK_ID, text);
     }
 }

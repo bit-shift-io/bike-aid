@@ -26,7 +26,7 @@ PackageManager.hasSystemFeature(FEATURE_BLUETOOTH_LE) -->
         <activity android:name=".MainActivity"
             android:configChanges="orientation"
             android:exported="true"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden|adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
