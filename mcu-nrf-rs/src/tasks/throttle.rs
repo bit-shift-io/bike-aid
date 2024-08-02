@@ -5,7 +5,6 @@ use defmt::*;
 use heapless::String;
 
 const TASK_ID: &str = "THROTTLE";
-const SMOOTHING_MULTIPLIER: f32 = 0.01; // 100 * .01 = 1, magic number to keep smoothing numbers reasonable \:D/
 
 #[embassy_executor::task]
 pub async fn throttle () {
@@ -13,9 +12,9 @@ pub async fn throttle () {
   
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
-    let mut sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
+    let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
     let mut output_voltage = 0.0;
-    let mut last_delta_speed = 0.0;
+    let mut input_history = InputHistory::new();
 
     loop {
         // we are converting to f32 as we have divide issues with i16
@@ -23,15 +22,40 @@ pub async fn throttle () {
 
         let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
+        // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
             info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
             pub_throttle.publish_immediate(input_voltage as i16);
             continue;
         }
         
-        // delta computer from last output value
-        let delta = input_voltage - output_voltage;
+        // moving averages smoothing
+        let input_smooth = input_history.add(input_voltage);
 
+        // delta computer from last output value
+        let delta = input_smooth - output_voltage;
+
+
+        // let use linear steps to control smoothing
+        // we can then use u16 values instead of f32
+        let mut adjustment;
+        if delta > 0.0 { // increase speed
+            adjustment = throttle_settings.increase_smooth_factor as f32;
+            // cap step so we dont go over
+            if adjustment + output_voltage > input_smooth {
+                adjustment = input_smooth - output_voltage;
+            }
+        } else { // decrease speed
+            adjustment = -throttle_settings.decrease_smooth_factor as f32;
+            // cap step so we dont go under
+            if adjustment + output_voltage < input_smooth {
+                adjustment = input_smooth - output_voltage;
+            }
+        }
+
+
+        /*
+        old smoothing method
         // how much to change throttle this itteration (+/-)
         // use smoothing factor as scale
         // TODO: clamp to 0-100 range smoothing settings
@@ -43,8 +67,11 @@ pub async fn throttle () {
             multiplier = (100.0 - (throttle_settings.decrease_smooth_factor as f32)) * SMOOTHING_MULTIPLIER;
         }
         let mut adjustment = delta * multiplier;
+         */
 
-        // speed limiter
+
+         /*
+        // old speed limiter
         // this could go at the end of this code and map to the range of the deadband?
 
         // apply speed limit - allow increase  only if bellow limit
@@ -52,9 +79,10 @@ pub async fn throttle () {
         if output_voltage > (throttle_settings.speed_limit as f32) {
             adjustment = functions::min(adjustment, 0.0); // always allow decrease
         }
+         */
 
+        // apply adjustment/step
         output_voltage += adjustment;
-
 
         
 
@@ -70,13 +98,44 @@ pub async fn throttle () {
         // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output as i16); 
-        info!("in:{} | out: {} | map: {}  -  delta: {} | adj: {}", input_voltage as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
+        info!("in: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
         // publish to uart for debug
         let mut buf = [0u8; 32];
-        let text = format_no_std::show(&mut buf, format_args!("{},{},{}\n", input_voltage, output_voltage, mapped_output)).unwrap();
+        let text = format_no_std::show(&mut buf, format_args!("{},{}\n", input_smooth, output_voltage)).unwrap();
         let s = String::try_from(text).unwrap();
         signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
-        //info!("{}: {}", TASK_ID, text);
     }
+}
+
+
+
+// a helper class to keep a track of smoothing
+struct InputHistory {
+    data: [f32; 10],
+    index: usize,
+}
+
+impl InputHistory {
+    fn new() -> Self {
+        InputHistory { 
+            data: [0.0; 10],
+            index: 0,
+        }
+    }
+
+    fn add(&mut self, value: f32) -> f32 {
+        // add to current index
+        self.data[self.index] = value;
+
+        let length = self.data.len();
+
+        // increase index, wrap around if larger than size
+        self.index = (self.index + 1) % length;
+
+        // Calculate the average if we have at least 5 elements
+        let sum: f32 = self.data.iter().sum();
+        sum / length as f32 // Return the average
+    }
+
 }
