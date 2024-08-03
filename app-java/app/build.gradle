@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId "com.bitshift.bike_aid"
-        minSdkVersion 24
-        targetSdkVersion 31
+        minSdkVersion 33
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 

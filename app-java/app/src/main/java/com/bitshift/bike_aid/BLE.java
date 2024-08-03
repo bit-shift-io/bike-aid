@@ -40,7 +40,7 @@ public class BLE {
     BluetoothDevice mDevice;
     boolean deviceFound = false;
     private Context context;
-    protected static final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
 
     // ==== callbacks ====
     private ScanCallback scanCallback =
@@ -101,89 +101,12 @@ public class BLE {
     }
 
 
-    // device connected will register the callbacks here!
-    // handle data in via the callback, or move it into my own gattcallback class?
-    // https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback
-    private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            boolean connected = BluetoothGatt.GATT_SUCCESS == status;
-            log.info("BLE connected to device: " + String.valueOf(connected));
-
-            // now we need to scan the services
-            gatt.discoverServices();
-        }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
-            // we were notified, now read the value
-            gatt.readCharacteristic(characteristic);
-        }
-
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
-            UUID id = characteristic.getUuid();
-            String val = characteristic.getStringValue(0);
-            log.info("BLE: id " + id);
-            log.info("BLE: read " + val);
-        }
-
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            log.info("BLE service discovered");
-
-            // find all characteristics
-            // then try to set notification on each one
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                List<BluetoothGattService> services = gatt.getServices(); // get list of all services
-                log.info("BLE service scan begin...");
-
-                for (BluetoothGattService s: services) {
-                    List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
-
-                    for (BluetoothGattCharacteristic c : characteristics) {
-                        setCharacteristicNotification(
-                                gatt,
-                                s.getUuid(),  // service
-                                c.getUuid(),  // characteristic
-                                true);
-                        log.info(c.getUuid().toString());
-                    }
-                    log.info("");
-                }
-
-                log.info("BLE: service scan complete");
-            }
-
-        }
-
-    };
-
-
-    // setup notifications
-    public boolean setCharacteristicNotification(BluetoothGatt gatt, UUID serviceUuid, UUID characteristicUuid, boolean enable) {
-        BluetoothGattCharacteristic characteristic = gatt.getService(serviceUuid).getCharacteristic(characteristicUuid);
-        gatt.setCharacteristicNotification(characteristic, enable);
-        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
-        if (descriptor == null)
-            return false;
-        byte[] val = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
-        descriptor.setValue(val);
-        return gatt.writeDescriptor(descriptor); //descriptor write operation successfully started?
-    }
-
-
-    // Converts 16bit UUIDs to 128-bit format
-    // the 16bit uuid is short for 0000xxxx-0000-1000-8000-00805F9B34FB
-    public static UUID uuidFrom16(String uuid16) {
-        String baseUUIDSuffix = "0000-1000-8000-00805F9B34FB";
-        String uuid = "0000" + uuid16 + baseUUIDSuffix;
-        return UUID.fromString(uuid);
-    }
-
     public void connectDevice() {
         mDevice.createBond();
-        mDevice.connectGatt(context, true, gattCallback);
+        // device connected will register the callbacks here
+        // and so i have the gatt class to handle it
+
+        mDevice.connectGatt(context, true, new GATT());
     }
 
 

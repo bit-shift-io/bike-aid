@@ -40,8 +40,9 @@ impl gatt_server::Server for Server {
     type Event = ();
 
     fn on_write(&self, connection: &Connection, handle: u16, _op: WriteOp, _offset: usize, data: &[u8]) -> Option<Self::Event> {
-        self.battery.on_write(handle, data);
+        self.battery.on_write(connection, handle, data);
         self.settings.on_write(connection, handle, data);
+        self.data.on_write(connection, handle, data);
         self.uart.on_write(connection, handle, data);
         None
     }

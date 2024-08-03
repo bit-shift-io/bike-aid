@@ -83,7 +83,7 @@ impl BatteryService {
             capacity: capacity_handle,
         })
     }
-
+/*
     pub fn battery_level_get(&self, sd: &Softdevice) -> Result<u8, gatt_server::GetValueError> {
         let buf = &mut [0u8];
         gatt_server::get_value(sd, self.level.value_handle, buf)?;
@@ -96,16 +96,36 @@ impl BatteryService {
     pub fn battery_level_notify(&self, conn: &Connection, val: u8) -> Result<(), gatt_server::NotifyValueError> {
         gatt_server::notify_value(conn, self.level.value_handle, &[val])
     }
+ */
+    pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
+        if data.is_empty() {
+            return;
+        }
 
-    pub fn on_write(&self, handle: u16, data: &[u8]) {
-        if handle == self.level.cccd_handle && !data.is_empty() {
+        if handle == self.level.cccd_handle {
             info!("battery level notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.voltage.cccd_handle {
+            info!("battery voltage notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.power.cccd_handle {
+            info!("battery power notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.current.cccd_handle {
+            info!("battery current notifications: {}", (data[0] & 0x01) != 0);
+        }
+
+        if handle == self.capacity.cccd_handle {
+            info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
         }
     }
 }
 
 
 pub async fn run(connection: &Connection, server: &Server) {
-    info!("run battery service");
+    info!("TODO: run battery service");
 
 }

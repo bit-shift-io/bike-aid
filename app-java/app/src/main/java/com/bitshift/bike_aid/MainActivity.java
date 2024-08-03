@@ -19,9 +19,7 @@ public class MainActivity extends AppCompatActivity {
     // ==== variables ====
     private static final Logger log = Logger.getInstance();
     private static final BLE ble = BLE.getInstance();
-    private static final GATT gatt = GATT.getInstance();
-    ScrollView logScroll;
-    TextView logText;
+    private static final Signals signals = Signals.getInstance();
 
 
     // ==== functions ====
@@ -33,17 +31,48 @@ public class MainActivity extends AppCompatActivity {
         // gui
         setContentView(R.layout.activity_main);
         Context context = getApplicationContext();
+        initGui();
 
-        // store views
-        logScroll = findViewById(R.id.log_scroll);
-        logText = findViewById(R.id.log_text);
+        // check permissions
+        new Permissions(this);
+
+        // start ble
+        ble.init(context);
+    }
+
+
+    // connect gui to signals
+    private void initGui() {
 
         // callaback for log updates
+        ScrollView logScroll = findViewById(R.id.log_scroll);
+        TextView logText = findViewById(R.id.log_text);
         log.setOnEventListener(new Logger.OnEventListener() {
             @Override
             public void onUpdate(String result) {
                 logText.setText(result);
                 new Handler().postDelayed(() -> logScroll.fullScroll(View.FOCUS_DOWN), 10);
+            }
+        });
+
+        // callback for signals
+        signals.setOnEventListener(new Signals.OnEventListener() {
+            @Override
+            public void onSpeed(String result) {
+                TextView item = findViewById(R.id.speed);
+                item.setText(result);
+            }
+
+            @Override
+            public void onClockMinutes(String result) {
+                TextView item = findViewById(R.id.clock_minutes);
+                item.setText(result);
+            }
+
+            @Override
+            public void onClockHours(String result) {
+                TextView item = findViewById(R.id.clock_hours);
+                item.setText(result);
             }
         });
 
@@ -62,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 TextView tv = findViewById(R.id.send_text);
-                log.info("send: " + tv.getText().toString());
+                signals.setUART(tv.getText().toString());
                 tv.setText("");
             }
         });
@@ -71,9 +100,7 @@ public class MainActivity extends AppCompatActivity {
         Button powerBtn = findViewById(R.id.power_button);
         powerBtn.setOnClickListener( new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                log.info("TODO: power");
-            }
+            public void onClick(View v) { signals.setPower(1); }
         });
 
         // alarm button
@@ -81,17 +108,10 @@ public class MainActivity extends AppCompatActivity {
         alarmBtn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                log.info("TODO: alarm");
+                signals.setAlarm(1);
             }
         });
 
-        log.info("activity: create");
-
-        // check permissions
-        new Permissions(this);
-
-        // start ble
-        ble.init(context);
     }
 
 

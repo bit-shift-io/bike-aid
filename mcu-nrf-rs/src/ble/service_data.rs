@@ -14,8 +14,8 @@ const SPEED: Uuid = Uuid::new_16(0x2001);
 const TRIP_DURATION: Uuid = Uuid::new_16(0x2002);
 const ODOMETER: Uuid = Uuid::new_16(0x2003);
 const TEMPERATURE: Uuid = Uuid::new_16(0x2004);
-const CLOCK_MINUTES: Uuid = Uuid::new_16(0x1005);
-const CLOCK_HOURS: Uuid = Uuid::new_16(0x1006);
+const CLOCK_MINUTES: Uuid = Uuid::new_16(0x2005);
+const CLOCK_HOURS: Uuid = Uuid::new_16(0x2006);
 
 pub struct DataService {
     speed: CharacteristicHandles,
@@ -83,11 +83,21 @@ impl DataService {
             clock_hours: clock_hours_handle,
         })
     }
+
+
+    pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
+        if data.is_empty() {
+            return;
+        }
+
+        if handle == self.clock_hours.cccd_handle {
+            info!("clock notifications: {}", (data[0] & 0x01) != 0);
+        }
+    }
 }
 
 
 pub async fn run(connection: &Connection, server: &Server) {
-    info!("run battery service");
     // TODO: add data points here
     /*
     speed: CharacteristicHandles,

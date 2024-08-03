@@ -9,17 +9,17 @@ const INTERVAL: u64 = 5000;
 pub async fn fake_signals () {
     info!("{}: start", TASK_ID);
 
-    // change pub or sub here for testing
-    let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
-    let pub_uart = signals::UART_WRITE.publisher().unwrap();
-    //let padded_byte_array = functions::str_to_array("130,150,128\n");
+    // change here for testing
+    let pub_test = signals::CLOCK_HOURS.publisher().unwrap();
+
+    let mut count = 7;
 
     loop {
+        //count += 1;
         Timer::after_millis(INTERVAL).await;
-        // assign value here for testing (or random)
-        let value = 1003;
-        info!("{}: {}", TASK_ID, value);
-        pub_throttle.publish_immediate(value);
-        //pub_uart.publish_immediate(functions::padded_byte_array);
+
+        info!("{}: {}", TASK_ID, count);
+        pub_test.publish_immediate(count);
+
     }
 }
