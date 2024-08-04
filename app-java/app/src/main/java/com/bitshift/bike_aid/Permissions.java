@@ -9,7 +9,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 public class Permissions {
-
     // ==== notes ====
     /*
     This class handles the android permissions
@@ -27,55 +26,4 @@ public class Permissions {
 
         ActivityCompat.requestPermissions(a, permissions, permissionsCode);
     }
-
-    /*
-    // old method
-    public void request() {
-        private int REQUEST_FINE_LOCATION_PERMISSION = 100;
-        private int REQUEST_BLUETOOTH_SCAN_PERMISSION = 101;
-        private int REQUEST_BACKGROUND_LOCATION_PERMISSION = 102;
-        private int REQUEST_BLUETOOTH_CONNECT_PERMISSION= 103;
-
-        if (!hasPermissions(this, permissions)) {
-            ActivityCompat.requestPermissions(this, permissions, permissionsCode);
-        }
-
-        // Request the ACCESS_FINE_LOCATION permission at runtime
-        if (CheckSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != true)
-        {
-            RequestPermissions(new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
-                    REQUEST_FINE_LOCATION_PERMISSION);
-        }
-
-        if (CheckSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != true)
-        {
-            RequestPermissions(new String[] { Manifest.permission.ACCESS_BACKGROUND_LOCATION },
-                    REQUEST_BACKGROUND_LOCATION_PERMISSION);
-        }
-
-        // Request the BLUETOOTH_SCAN permission at runtime
-        if (CheckSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != true)
-        {
-            RequestPermissions(new String[] { Manifest.permission.BLUETOOTH_SCAN },
-                    REQUEST_BLUETOOTH_SCAN_PERMISSION);
-        }
-
-        //Request the BLUETOOTH_CONNECT permission at runtime
-        if (CheckSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != true)
-        {
-            RequestPermissions(new String[] { Manifest.permission.BLUETOOTH_CONNECT },
-                    REQUEST_BLUETOOTH_CONNECT_PERMISSION);
-        }
-
-    }
-
-    private void requestPermissions(String[] strings, int requestPermission) {
-        ActivityCompat.requestPermissions(activity, strings, requestPermission);
-    }
-
-    private boolean checkSelfPermission(String permission) {
-        return ActivityCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
-    }
-    */
-
 }

@@ -14,6 +14,8 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.Handler;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -22,43 +24,33 @@ public class BLE {
     // ==== notes ====
     /*
     This class handles the ble adaptor and connection to the device
-    Once we are connected, we hand off to the gatt class to handle read and write of data
+    There are callbacks at the bottom which handle the gatt server and notifications
+
+    Basically Ive simplified the android api to:
+    init()
+    connect() - automatic
+    disconnect() - automatic
+    onRead()
+    write()
+
      */
 
-    // if we have ble issues
-    // UIThread (with a handler, local service, or Activity#runOnUiThread). Follow this rule of thumb and you will hopefully avoid this dreadful problem.
-
     // ==== variables ====
-    private static BLE mInstance = new BLE();
+    private static final BLE mInstance = new BLE();
+    private static final Signals signals = Signals.getInstance();
     private static final Logger log = Logger.getInstance();
-    private BluetoothLeScanner bluetoothLeScanner;
-    private BluetoothAdapter bluetoothAdapter;
-    private boolean scanning;
-    private Handler handler = new Handler();
+    private BluetoothLeScanner mScanner;
+    private BluetoothAdapter mAdapter;
+    private boolean mScanning;
+    private final Handler handler = new Handler();
     private static final long SCAN_PERIOD = 60000; // 60 seconds
-    private String DEVICE_NAME = "BScooter";
+    private final String DEVICE_NAME = "BScooter";
     BluetoothDevice mDevice;
-    boolean deviceFound = false;
-    private Context context;
+    BluetoothGatt mGatt;
+    boolean mDeviceFound = false;
+    private Context mContext;
+    final ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
 
-
-    // ==== callbacks ====
-    private ScanCallback scanCallback =
-            new ScanCallback() {
-                @Override
-                public void onScanResult(int callbackType, ScanResult result) {
-                    super.onScanResult(callbackType, result);
-                    BluetoothDevice dev = result.getDevice();
-                    if (dev == null || dev.getName() == null)
-                        return;
-
-                    log.info("BLE Scan: " + dev.getName());
-                    if (isWantedDevice(dev)) {
-                        connectDevice();
-                        stopScan();
-                    }
-                }
-            };
 
 
     // ==== functions ====
@@ -72,83 +64,90 @@ public class BLE {
 
 
     public void init(Context c) {
-        context = c;
-        //BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        //bluetoothAdapter = bluetoothManager.getAdapter();
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        enableBluetooth();
+        mContext = c;
+        BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = bluetoothManager.getAdapter();
+        connect();
+    }
 
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-        if (bluetoothLeScanner == null) {
-            log.info("BLE: no bluetooth adapter available, please enable bluetooth");
-            return;
+
+    public void connect() {
+
+        // check if bluetooth is on
+        // apparently doesnt work on newer builds??
+        if (!mAdapter.isEnabled()) {
+            log.info("BLE: enable adapter");
+            mAdapter.enable();
+
+            String intentString = BluetoothAdapter.ACTION_REQUEST_ENABLE;
         }
 
+
         // check for bonded devices
-        Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
+        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         if (bondedDevices != null) {
             for (BluetoothDevice dev : bondedDevices) {
-                if (isWantedDevice(dev)) {
+                if (isMyDevice(dev)) {
                     connectDevice();
-                    break;
+                    return;
                 }
             }
         }
 
+        // scan
+        mScanner = mAdapter.getBluetoothLeScanner();
+        if (mScanner == null) {
+            log.info("BLE: no bluetooth adapter available, please enable bluetooth");
+            return;
+        }
+
         // device not found, scan
-        if (!deviceFound)
+        if (!mDeviceFound)
             startScan();
     }
-
 
     public void connectDevice() {
         mDevice.createBond();
         // device connected will register the callbacks here
         // and so i have the gatt class to handle it
-
-        mDevice.connectGatt(context, true, new GATT());
+        mGatt = mDevice.connectGatt(mContext, true, mGattCallback);
     }
 
 
     // find if this is the wanted device, by name
-    public boolean isWantedDevice(BluetoothDevice dev) {
+    public boolean isMyDevice(BluetoothDevice dev) {
+        if (dev == null)
+            return false;
+
+        // some crash in here?
+        log.info(dev.getName());
+
         if (!dev.getName().equals(DEVICE_NAME))
             return false;
 
         mDevice = dev;
-        deviceFound = true;
-        log.info("BLE wanted device found");
+        mDeviceFound = true;
+        log.info("BLE: device found");
         return true;
     }
 
-
-    public boolean enableBluetooth() {
-        if (bluetoothAdapter.isEnabled()) {
-            return true;
-        } else {
-            log.info("BLE: enable adapter");
-            bluetoothAdapter.enable();
-            String intentString = BluetoothAdapter.ACTION_REQUEST_ENABLE;
-        }
-        return true;
-    }
 
 
     public void startScan() {
-        if (!scanning) {
+        if (!mScanning) {
             // Stops scanning after a predefined scan period.
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     log.info("BLE stop scan");
-                    scanning = false;
-                    bluetoothLeScanner.stopScan(scanCallback);
+                    mScanning = false;
+                    mScanner.stopScan(mScanCallback);
                 }
             }, SCAN_PERIOD);
 
             log.info("BLE start scan");
-            scanning = true;
-            bluetoothLeScanner.startScan(scanCallback);
+            mScanning = true;
+            mScanner.startScan(mScanCallback);
         } else {
             stopScan();
         }
@@ -156,8 +155,161 @@ public class BLE {
     }
 
     public void stopScan() {
-        scanning = false;
-        bluetoothLeScanner.stopScan(scanCallback);
+        mScanning = false;
+        mScanner.stopScan(mScanCallback);
     }
+
+
+
+    // ==== read & write functions ====
+
+    public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+        String id = Functions.string16FromUUID(characteristic.getUuid());
+
+        // uart
+
+        // rx - 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
+        if (id.equals("0002")) {
+            String s = new String(value, StandardCharsets.UTF_8);
+            log.info("BLE RX: " + s);
+        }
+        // tx - 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
+        if (id.equals("0003")) {
+            String s = new String(value, StandardCharsets.UTF_8);
+            log.info("BLE: TX: " + s);
+        }
+
+
+        // 1000 series is settings
+
+
+        // 2000 series is data
+        // clock minutes
+        if (id.equals("2005")) {
+            signals.setClockMinutes(value[0]);
+        }
+
+        // clock hours
+        if (id.equals("2006")) {
+            signals.setClockHours(value[0]);
+        }
+
+
+    }
+
+    public void write(UUID service, UUID characteristic, byte[] value) {
+        if (mGatt == null)
+            return;
+        BluetoothGattCharacteristic c = mGatt.getService(service).getCharacteristic(characteristic);
+        mGatt.writeCharacteristic(c, value , BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+    }
+
+
+
+    // ==== callbacks ====
+
+
+    // scan call back
+    private final ScanCallback mScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            //super.onScanResult(callbackType, result);
+            BluetoothDevice dev = result.getDevice();
+            if (isMyDevice(dev)) {
+                connectDevice();
+                stopScan();
+            }
+        }
+    };
+
+
+    // gatt callback
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+
+        public void onCharacteristicWrite (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if (status == BluetoothGatt.GATT_FAILURE)
+                log.info("BLE: write fail!");
+            else
+                log.info("BLE: write success");
+        }
+
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            // TODO: add reconnect code here
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                log.info("BLE: connected: " + mDevice.getName());
+                gatt.discoverServices();
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
+            gatt.readCharacteristic(characteristic);
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+            onRead(gatt, characteristic, value, status);
+        }
+
+        @Override
+        public void onDescriptorWrite (BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            String s = Functions.string16FromUUID(descriptor.getCharacteristic().getUuid());
+            log.info("BLE: notify: " + s);
+            processNextCharacteristic(gatt);
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            processNextCharacteristic(gatt);
+        }
+
+        public boolean writeCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, boolean enable) {
+            gatt.setCharacteristicNotification(characteristic, enable);
+
+            // write to descriptor for notification
+            UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
+            if (descriptor == null)
+                return false;
+
+            byte[] val = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+            int result = gatt.writeDescriptor(descriptor, val);
+            return true;
+        }
+
+        // this function will process the gatt characteristics descriptor
+        // there is a delay with BLE so we need to wait till we receive the ok
+        // then process the next in the list
+        public void processNextCharacteristic(BluetoothGatt gatt) {
+            // get list of all services
+            List<BluetoothGattService> services = gatt.getServices();
+
+            // loop services
+            for (BluetoothGattService s : services) {
+                List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
+
+                // loop characteristics
+                for (BluetoothGattCharacteristic c : characteristics) {
+
+                    // have we already been configured?
+                    if (mProcessedCharacteristics.contains(c))
+                        continue;
+
+                    // set notification
+                    boolean hasNotify = writeCharacteristicNotification(gatt, c, true);
+
+                    // add to completed list
+                    mProcessedCharacteristics.add(c);
+
+                    // has notify, so wait for response
+                    // if not try another characteristic
+                    if (hasNotify)
+                        return;
+                }
+            }
+        }
+
+    };
 
 }
