@@ -1,6 +1,10 @@
 package com.bitshift.bike_aid;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -20,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private static final Logger log = Logger.getInstance();
     private static final BLE ble = BLE.getInstance();
     private static final Signals signals = Signals.getInstance();
-
+    int REQUEST_ENABLE_BT = 1;
 
     // ==== functions ====
 
@@ -30,14 +34,25 @@ public class MainActivity extends AppCompatActivity {
 
         // gui
         setContentView(R.layout.activity_main);
-        Context context = getApplicationContext();
         initGui();
 
         // check permissions
         new Permissions(this);
 
         // start ble
-        ble.init(context);
+        ble.init(getApplicationContext());
+        if (!ble.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            ble.connect();
+        }
     }
 
 

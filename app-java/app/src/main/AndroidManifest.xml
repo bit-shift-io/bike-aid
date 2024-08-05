@@ -33,6 +33,7 @@ PackageManager.hasSystemFeature(FEATURE_BLUETOOTH_LE) -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

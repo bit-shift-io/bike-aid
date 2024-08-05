@@ -1,5 +1,8 @@
 package com.bitshift.bike_aid;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -13,9 +16,10 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
+import android.os.IBinder;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +75,7 @@ public class BLE {
 
     // ==== functions ====
 
-    private BLE() {}
+    public BLE() {}
 
 
     public static BLE getInstance() {
@@ -87,17 +91,17 @@ public class BLE {
     }
 
 
+    public boolean isEnabled() {
+        return mAdapter.isEnabled();
+    }
+
+
     public void connect() {
-
         // check if bluetooth is on
-        // apparently doesnt work on newer builds??
         if (!mAdapter.isEnabled()) {
-            log.info("enable adapter");
-            mAdapter.enable();
-
-            String intentString = BluetoothAdapter.ACTION_REQUEST_ENABLE;
+            log.info("please enable adapter");
+            return;
         }
-
 
         // check for bonded devices
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
