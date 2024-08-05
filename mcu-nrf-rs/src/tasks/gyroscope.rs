@@ -46,7 +46,7 @@ pub async fn gyroscope (
 
         // get temp
         let temp = mpu.get_temp().unwrap();
-        pub_temperature.publish_immediate(temp as u16); // in degrees C, no decimals
+        pub_temperature.publish_immediate(temp as u8); // in degrees C, no decimals
         
         // get roll and pitch estimate
         let acc_angles = mpu.get_acc_angles().unwrap();

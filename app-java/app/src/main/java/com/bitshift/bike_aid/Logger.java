@@ -39,7 +39,8 @@ public class Logger {
 
     public void info(String message) {
         android.util.Log.d("appendLog", message);
-        String strTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        //String strTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        String strTime = new SimpleDateFormat("hh:mm", Locale.getDefault()).format(new Date());
         log = log + strTime + " " + message + "\n";
         update();
     }

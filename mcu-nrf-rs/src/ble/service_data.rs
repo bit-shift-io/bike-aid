@@ -134,8 +134,7 @@ pub async fn update_temperature(connection: &Connection, server: &Server) {
     let handle = server.data.temperature.value_handle;
     loop {
         let val = sub.next_message_pure().await;
-        let val = functions::bitshift_split_u16(val);
-        let _ = server::notify_value(connection, handle, &val);
+        let _ = server::notify_value(connection, handle, &[val]);
     }
 }
 

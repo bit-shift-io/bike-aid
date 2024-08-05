@@ -52,6 +52,16 @@ public class BLE {
     final ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
 
 
+    // ==== listener interface ====
+    private OnEventListener mOnEventListener;
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+    public interface OnEventListener {
+        void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status);
+    }
+
+
 
     // ==== functions ====
 
@@ -76,7 +86,7 @@ public class BLE {
         // check if bluetooth is on
         // apparently doesnt work on newer builds??
         if (!mAdapter.isEnabled()) {
-            log.info("BLE: enable adapter");
+            log.info("enable adapter");
             mAdapter.enable();
 
             String intentString = BluetoothAdapter.ACTION_REQUEST_ENABLE;
@@ -97,7 +107,7 @@ public class BLE {
         // scan
         mScanner = mAdapter.getBluetoothLeScanner();
         if (mScanner == null) {
-            log.info("BLE: no bluetooth adapter available, please enable bluetooth");
+            log.info("no bluetooth adapter available, please enable bluetooth");
             return;
         }
 
@@ -116,18 +126,15 @@ public class BLE {
 
     // find if this is the wanted device, by name
     public boolean isMyDevice(BluetoothDevice dev) {
-        if (dev == null)
+        if (dev == null || dev.getName() == null)
             return false;
-
-        // some crash in here?
-        log.info(dev.getName());
 
         if (!dev.getName().equals(DEVICE_NAME))
             return false;
 
         mDevice = dev;
         mDeviceFound = true;
-        log.info("BLE: device found");
+        log.info("device found");
         return true;
     }
 
@@ -139,13 +146,13 @@ public class BLE {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    log.info("BLE stop scan");
+                    log.info("stop scan");
                     mScanning = false;
                     mScanner.stopScan(mScanCallback);
                 }
             }, SCAN_PERIOD);
 
-            log.info("BLE start scan");
+            log.info("start scan");
             mScanning = true;
             mScanner.startScan(mScanCallback);
         } else {
@@ -164,38 +171,9 @@ public class BLE {
     // ==== read & write functions ====
 
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
-        String id = Functions.string16FromUUID(characteristic.getUuid());
-
-        // uart
-
-        // rx - 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
-        if (id.equals("0002")) {
-            String s = new String(value, StandardCharsets.UTF_8);
-            log.info("BLE RX: " + s);
-        }
-        // tx - 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
-        if (id.equals("0003")) {
-            String s = new String(value, StandardCharsets.UTF_8);
-            log.info("BLE: TX: " + s);
-        }
-
-
-        // 1000 series is settings
-
-
-        // 2000 series is data
-        // clock minutes
-        if (id.equals("2005")) {
-            signals.setClockMinutes(value[0]);
-        }
-
-        // clock hours
-        if (id.equals("2006")) {
-            signals.setClockHours(value[0]);
-        }
-
-
+        mOnEventListener.onRead(gatt, characteristic, value, status);
     }
+
 
     public void write(UUID service, UUID characteristic, byte[] value) {
         if (mGatt == null)
@@ -228,16 +206,16 @@ public class BLE {
 
         public void onCharacteristicWrite (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_FAILURE)
-                log.info("BLE: write fail!");
+                log.info("write fail!");
             else
-                log.info("BLE: write success");
+                log.info("write success");
         }
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             // TODO: add reconnect code here
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                log.info("BLE: connected: " + mDevice.getName());
+                log.info("connected: " + mDevice.getName());
                 gatt.discoverServices();
             }
         }
@@ -255,7 +233,7 @@ public class BLE {
         @Override
         public void onDescriptorWrite (BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             String s = Functions.string16FromUUID(descriptor.getCharacteristic().getUuid());
-            log.info("BLE: notify: " + s);
+            log.info("notify: " + s);
             processNextCharacteristic(gatt);
         }
 
@@ -308,6 +286,10 @@ public class BLE {
                         return;
                 }
             }
+
+            // TODO: want to read initial values also!
+            // so clear the mProcessedCharacteristics array, and start a second time to read values
+            log.info("finish process characteristics");
         }
 
     };
