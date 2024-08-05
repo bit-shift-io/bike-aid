@@ -37,17 +37,12 @@ pub async fn gyroscope (
     //mpu.setup_motion_detection().unwrap();
 
     let pub_motion = signals::ALARM_MOTION_DETECTED.publisher().unwrap();
-    let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
     let mut last_gyro = mpu.get_gyro().unwrap();
     let mut last_acc_angles = mpu.get_acc_angles().unwrap();
 
     loop {
         Timer::after_millis(INTERVAL).await;
 
-        // get temp
-        let temp = mpu.get_temp().unwrap();
-        pub_temperature.publish_immediate(temp as u8); // in degrees C, no decimals
-        
         // get roll and pitch estimate
         let acc_angles = mpu.get_acc_angles().unwrap();
         let x_acc_delta = acc_angles.x - last_acc_angles.x;

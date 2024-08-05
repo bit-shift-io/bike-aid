@@ -80,7 +80,7 @@ public class Signals {
     public void setAlarm(int v) { log.info("Signal: alarm"); }
 
     public void setUART(String s) {
-        log.info("BLE: UART: " + s);
+        log.info("UART Write: " + s);
         UUID uart_service = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
         UUID uart_write_characteristic = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
         byte[] b = s.getBytes(StandardCharsets.UTF_8);
@@ -91,18 +91,17 @@ public class Signals {
     // ==== on ble read ====
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
         String id = Functions.string16FromUUID(characteristic.getUuid());
-        log.info("read " + id);
+        String st = new String(value, StandardCharsets.UTF_8);
+        log.info("read " + id + " " + st);
         // uart
 
         // rx - 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
-        if (id.equals("0002")) {
-            String s = new String(value, StandardCharsets.UTF_8);
-            log.info("BLE RX: " + s);
-        }
+        // is never read, write only
+
         // tx - 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
         if (id.equals("0003")) {
             String s = new String(value, StandardCharsets.UTF_8);
-            log.info("BLE: TX: " + s);
+            log.info("UART Read: " + s);
         }
 
 

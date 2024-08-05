@@ -25,7 +25,7 @@ pub async fn temperature (
     loop {
         let value: u16 = t.read().await.to_num::<u16>();
         //info!("{}", value);
-        pub_temperature.publish_immediate(value); // in degrees C, no decimals
+        pub_temperature.publish_immediate(value as u8); // in degrees C, no decimals
         Timer::after_secs(60).await;
     }
 }

@@ -3,7 +3,7 @@ use super::service_device::DeviceInformationService;
 use super::service_battery::{self, BatteryService};
 use super::service_settings::{self, SettingsService};
 use super::service_uart::{self, UARTService};
-use defmt::unwrap;
+use defmt::{info, unwrap};
 use embassy_futures::join;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
@@ -66,12 +66,14 @@ impl gatt_server::Server for Server {
     
     /// Callback to indicate that one or more characteristic notifications have been transmitted.
     fn on_notify_tx_complete(&self, conn: &Connection, count: u8) -> Option<Self::Event> {
+        info!("on_notify_tx_complete: {}", count);
         let _ = (conn, count);
         None
     }
     
     /// Callback to indicate that the services changed indication has been received by the client.
     fn on_services_changed_confirm(&self, conn: &Connection) -> Option<Self::Event> {
+        info!("on_services_changed_confirm");
         let _ = conn;
         None
     }
@@ -83,6 +85,7 @@ impl gatt_server::Server for Server {
 
     /// Callback to indicate that the indication of a characteristic has been received by the client.
     fn on_indicate_confirm(&self, conn: &Connection, handle: u16) -> Option<Self::Event> {
+        info!("on_indicate_confirm",);
         let _ = (conn, handle);
         None
     }

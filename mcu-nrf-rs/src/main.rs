@@ -110,9 +110,15 @@ async fn main(spawner: Spawner) {
         I2cDevice::new(i2c_bus)
     ));
 
-    // Gyroscope + Temperature
+    // Gyroscope
     use crate::tasks::gyroscope::gyroscope;
     spawner.must_spawn(gyroscope(
+        I2cDevice::new(i2c_bus)
+    ));
+
+    // temperature (using gyroscope)
+    use crate::tasks::temperature::temperature;
+    spawner.must_spawn(temperature(
         I2cDevice::new(i2c_bus)
     ));
 

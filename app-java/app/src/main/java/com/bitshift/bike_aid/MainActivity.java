@@ -58,6 +58,12 @@ public class MainActivity extends AppCompatActivity {
         // callback for signals
         signals.setOnEventListener(new Signals.OnEventListener() {
             @Override
+            public void onTemperature(String result) {
+                TextView item = findViewById(R.id.temperature);
+                item.setText(result);
+            }
+
+            @Override
             public void onSpeed(String result) {
                 TextView item = findViewById(R.id.speed);
                 item.setText(result);

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -50,6 +51,11 @@ public class BLE {
     boolean mDeviceFound = false;
     private Context mContext;
     final ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
+    private boolean mProcessedCharacteristicsComplete = false;
+    final ArrayList<BluetoothGattCharacteristic> mReadCharacteristics = new ArrayList<>();
+    private boolean mReadCharacteristicsComplete = false;
+    final static UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
 
 
     // ==== listener interface ====
@@ -171,6 +177,9 @@ public class BLE {
     // ==== read & write functions ====
 
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+        if (value.length == 0)
+            return;
+
         mOnEventListener.onRead(gatt, characteristic, value, status);
     }
 
@@ -213,10 +222,14 @@ public class BLE {
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            // TODO: add reconnect code here
-            if (status == BluetoothGatt.GATT_SUCCESS) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
                 log.info("connected: " + mDevice.getName());
                 gatt.discoverServices();
+            }
+            if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                log.info("disconnected!");
+                // todo: reset the mReadCharacteristicsComplete and mProcessedCharacteristicsComplete
+                connect();
             }
         }
 
@@ -227,13 +240,15 @@ public class BLE {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+            if (!mReadCharacteristicsComplete)
+                processNextCharacteristic(gatt);
             onRead(gatt, characteristic, value, status);
         }
 
         @Override
         public void onDescriptorWrite (BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             String s = Functions.string16FromUUID(descriptor.getCharacteristic().getUuid());
-            log.info("notify: " + s);
+            //log.info("notify: " + s);
             processNextCharacteristic(gatt);
         }
 
@@ -242,54 +257,84 @@ public class BLE {
             processNextCharacteristic(gatt);
         }
 
-        public boolean writeCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, boolean enable) {
-            gatt.setCharacteristicNotification(characteristic, enable);
 
-            // write to descriptor for notification
-            UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
-            if (descriptor == null)
-                return false;
-
-            byte[] val = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
-            int result = gatt.writeDescriptor(descriptor, val);
-            return true;
-        }
-
-        // this function will process the gatt characteristics descriptor
+        // this function will process the gatt characteristics
         // there is a delay with BLE so we need to wait till we receive the ok
         // then process the next in the list
         public void processNextCharacteristic(BluetoothGatt gatt) {
             // get list of all services
             List<BluetoothGattService> services = gatt.getServices();
 
-            // loop services
-            for (BluetoothGattService s : services) {
-                List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
+            // 1. read characteristics
+            if (!mReadCharacteristicsComplete) {
+                // loop services
+                for (BluetoothGattService s : services) {
+                    List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
 
-                // loop characteristics
-                for (BluetoothGattCharacteristic c : characteristics) {
+                    // loop characteristics
+                    for (BluetoothGattCharacteristic c : characteristics) {
+                        // have we already been configured?
+                        if (mReadCharacteristics.contains(c))
+                            continue;
 
-                    // have we already been configured?
-                    if (mProcessedCharacteristics.contains(c))
-                        continue;
+                        // check if we have read
+                        boolean hasRead = (c.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0;
 
-                    // set notification
-                    boolean hasNotify = writeCharacteristicNotification(gatt, c, true);
+                        // read
+                        if (hasRead)
+                            gatt.readCharacteristic(c);
 
-                    // add to completed list
-                    mProcessedCharacteristics.add(c);
+                        // add to completed list
+                        mReadCharacteristics.add(c);
 
-                    // has notify, so wait for response
-                    // if not try another characteristic
-                    if (hasNotify)
-                        return;
+                        // return until we are notified
+                        // if not try another characteristic
+                        if (hasRead)
+                            return;
+                    }
                 }
+
+                mReadCharacteristicsComplete = true;
             }
 
-            // TODO: want to read initial values also!
-            // so clear the mProcessedCharacteristics array, and start a second time to read values
-            log.info("finish process characteristics");
+            // 2. configure notify characteristics
+            if (!mProcessedCharacteristicsComplete) {
+                // loop services
+                for (BluetoothGattService s : services) {
+                    List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
+
+                    // loop characteristics
+                    for (BluetoothGattCharacteristic c : characteristics) {
+
+                        // have we already been configured?
+                        if (mProcessedCharacteristics.contains(c))
+                            continue;
+
+                        // check if we have notify
+                        boolean hasNotify = (c.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
+
+                        // set notification
+                        if (hasNotify) {
+                            gatt.setCharacteristicNotification(c, true);
+                            BluetoothGattDescriptor descriptor = c.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
+                            if (descriptor != null)
+                                gatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE );
+                        }
+
+                        // add to completed list
+                        mProcessedCharacteristics.add(c);
+
+                        // has notify, so wait for response
+                        // if not try another characteristic
+                        if (hasNotify)
+                            return;
+                    }
+                }
+
+                mProcessedCharacteristicsComplete = true;
+            }
+
+            log.info("finish processing characteristics");
         }
 
     };

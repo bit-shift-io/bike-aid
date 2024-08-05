@@ -31,14 +31,14 @@ impl UARTService {
 
         let rx = service_builder.add_characteristic(
             Uuid::new_128(&RX),
-            Attribute::new(&[0u8]).variable_len(MAX_LENGTH),
+            Attribute::new(&[]).variable_len(MAX_LENGTH),
             Metadata::new(Properties::new().write()), // .notify()
         )?;
         let rx_handle = rx.build();
 
         let tx = service_builder.add_characteristic(
             Uuid::new_128(&TX),
-            Attribute::new(&[0u8]).variable_len(MAX_LENGTH), 
+            Attribute::new(&[]).variable_len(MAX_LENGTH), 
             Metadata::new(Properties::new().notify().read()),
         )?;
         let tx_handle = tx.build();
