@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "8.0")
 	(uuid "525ec903-8040-4be3-a233-c9b42088bb47")
-	(paper "A5")
+	(paper "A4")
 	(title_block
 		(title "modules")
 	)
