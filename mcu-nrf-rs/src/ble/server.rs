@@ -66,7 +66,7 @@ impl gatt_server::Server for Server {
     
     /// Callback to indicate that one or more characteristic notifications have been transmitted.
     fn on_notify_tx_complete(&self, conn: &Connection, count: u8) -> Option<Self::Event> {
-        info!("on_notify_tx_complete: {}", count);
+        //info!("on_notify_tx_complete: {}", count);
         let _ = (conn, count);
         None
     }
@@ -107,9 +107,9 @@ pub async fn run(connection: &Connection, server: &Server) {
 
 // shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
-    gatt_server::notify_value(conn, handle, val) // old direct call
+    //gatt_server::notify_value(conn, handle, val) // old direct call
 
-    /*
+    
     // try notify, if fails, set
     let result = gatt_server::notify_value(conn, handle, val);
     match result { // notify
@@ -117,7 +117,7 @@ pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), No
         Err(_) => unwrap!(set_value(handle, val)), // else set
     };
     result // return notify result
-     */
+     
 }
 
 

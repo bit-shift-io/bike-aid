@@ -7,8 +7,7 @@ public class Functions {
     // Converts 16 bit UUIDs to 128 bit format
     // the 16 bit uuid is short for 0000xxxx-0000-1000-8000-00805F9B34FB
     public static UUID uuidFrom16(String uuid16) {
-        String baseUUIDSuffix = "0000-1000-8000-00805F9B34FB";
-        String uuid = "0000" + uuid16 + baseUUIDSuffix;
+        String uuid = "0000" + uuid16 + "-0000-1000-8000-00805F9B34FB";
         return UUID.fromString(uuid);
     }
 

@@ -54,9 +54,9 @@ public class BLE {
     BluetoothGatt mGatt;
     boolean mDeviceFound = false;
     private Context mContext;
-    final ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
+    ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
     private boolean mProcessedCharacteristicsComplete = false;
-    final ArrayList<BluetoothGattCharacteristic> mReadCharacteristics = new ArrayList<>();
+    ArrayList<BluetoothGattCharacteristic> mReadCharacteristics = new ArrayList<>();
     private boolean mReadCharacteristicsComplete = false;
     final static UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
@@ -189,8 +189,10 @@ public class BLE {
 
 
     public void write(UUID service, UUID characteristic, byte[] value) {
-        if (mGatt == null)
+        if (mGatt == null || mGatt.getService(service) == null) {
+            log.info("write failed, device is disconnected");
             return;
+        }
         BluetoothGattCharacteristic c = mGatt.getService(service).getCharacteristic(characteristic);
         mGatt.writeCharacteristic(c, value , BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
     }
@@ -228,11 +230,19 @@ public class BLE {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 log.info("connected: " + mDevice.getName());
+
+                /* TODO: some wired issue with doubling up
+                // reset settings
+                mReadCharacteristics = new ArrayList<>();;
+                mReadCharacteristicsComplete = false;
+                mProcessedCharacteristics = new ArrayList<>();;
+                mProcessedCharacteristicsComplete = false;
+                 */
+
                 gatt.discoverServices();
             }
             if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                log.info("disconnected!");
-                // todo: reset the mReadCharacteristicsComplete and mProcessedCharacteristicsComplete
+                log.info("disconnected from device");
                 connect();
             }
         }

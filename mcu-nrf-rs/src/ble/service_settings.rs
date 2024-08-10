@@ -1,11 +1,13 @@
 use defmt::info;
+use embassy_time::{Duration, Timer};
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
+use embassy_futures::join;
 
-use super::server::Server;
+use super::server::{self, *};
 use crate::utils::signals;
 
 
@@ -34,35 +36,35 @@ impl SettingsService {
         let characteristic_builder = service_builder.add_characteristic(
             POWER_SWITCH,
             Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().write()),
+            Metadata::new(Properties::new().read().write().notify()),
         )?;
         let power_switch_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             LIGHT_SWITCH,
             Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().write()),
+            Metadata::new(Properties::new().read().write().notify()),
         )?;
         let light_switch_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             HORN_SWITCH,
             Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().write()),
+            Metadata::new(Properties::new().read().write().notify()),
         )?;
         let horn_switch_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             ALARM_ENABLED,
             Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().write()),
+            Metadata::new(Properties::new().read().write().notify()),
         )?;
         let alarm_enabled_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             THROTTLE_SMOOTHING,
             Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().write()),
+            Metadata::new(Properties::new().read().write().notify()),
         )?;
         let throttle_smoothing_handle = characteristic_builder.build();
 
@@ -83,8 +85,9 @@ impl SettingsService {
         }
 
         if handle == self.alarm_enabled.value_handle {
-            
-            info!("alarm enabled: {:?}", data);
+            let message = if data[0] == 205 { true } else { false };
+            signals::ALARM_ENABLED.dyn_immediate_publisher().publish_immediate(message);
+  
         }
 
         if handle == self.throttle_smoothing.value_handle {
@@ -92,7 +95,7 @@ impl SettingsService {
         }
 
         if handle == self.power_switch.value_handle {
-            let message = if data[0] == 1 { true } else { false };
+            let message = if data[0] == 183 { true } else { false };
             signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(message);
         }   
 
@@ -107,7 +110,33 @@ impl SettingsService {
     }
 }
 
-pub async fn run(connection: &Connection, server: &Server) {
-    info!("TODO: run settings service");
 
+pub async fn run(connection: &Connection, server: &Server) {
+    join::join(
+        update_power(connection, server), 
+        update_alarm(connection, server), 
+        ).await;
 }
+
+
+pub async fn update_power(connection: &Connection, server: &Server) {
+    let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
+    let handle = server.settings.power_switch.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        Timer::after(Duration::from_millis(100)).await; // TODO: fix ble to be async? delay to avoid flooding
+        let _ = server::notify_value(connection, handle, &[val as u8]);
+    }
+}
+
+
+pub async fn update_alarm(connection: &Connection, server: &Server) {
+    let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
+    let handle = server.settings.alarm_enabled.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        Timer::after(Duration::from_millis(100)).await; // TODO: fix ble to be async? delay to avoid flooding
+        let _ = server::notify_value(connection, handle, &[val as u8]);
+    }
+}
+

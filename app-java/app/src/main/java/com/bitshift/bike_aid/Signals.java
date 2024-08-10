@@ -1,11 +1,11 @@
 package com.bitshift.bike_aid;
 
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -24,6 +24,8 @@ public class Signals {
     public static Signals getInstance() {
         return mInstance;
     }
+    public boolean alarm_on = false;
+    public boolean power_on = false;
 
 
     // ==== listener interface ====
@@ -75,9 +77,29 @@ public class Signals {
     }
 
     // ==== gui -> data ====
-    public void setPower(int v) { log.info("Signal: Power"); }
+    public void togglePower() {
+        UUID service_id = Functions.uuidFrom16("1000");
+        UUID characteristic_id = Functions.uuidFrom16("1001");
+        byte[] b;
+        if (power_on)
+            b = new byte[]{ (byte) 0 };
+        else
+            b = new byte[]{ (byte) 183 };
 
-    public void setAlarm(int v) { log.info("Signal: alarm"); }
+        ble.write(service_id, characteristic_id, b);
+    }
+
+    public void toggleAlarm() {
+        UUID service_id = Functions.uuidFrom16("1000");
+        UUID characteristic_id = Functions.uuidFrom16("1004");
+        byte[] b;
+        if (alarm_on)
+            b = new byte[]{ (byte) 0 };
+        else
+            b = new byte[]{ (byte) 205 };
+
+        ble.write(service_id, characteristic_id, b);
+    }
 
     public void setUART(String s) {
         log.info("UART Write: " + s);
@@ -106,6 +128,17 @@ public class Signals {
 
 
         // 1000 series is settings
+
+        // power switch
+        if (id.equals("1001")) {
+            power_on = value[0] != 0;
+        }
+
+        // alarm switch
+        if (id.equals("1004")) {
+            alarm_on = value[0] != 0;
+        }
+
 
 
         // 2000 series is data

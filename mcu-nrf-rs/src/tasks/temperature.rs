@@ -30,7 +30,6 @@ pub async fn temperature (
 
     loop {
         let temp = mpu.get_temp().unwrap();
-        info!("{}: {}", TASK_ID, temp);
         pub_temperature.publish_immediate(temp as u8); // in degrees C, no decimals
         Timer::after_secs(INTERVAL).await;
     }

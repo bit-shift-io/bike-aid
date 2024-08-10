@@ -1,14 +1,10 @@
 package com.bitshift.bike_aid;
 
-import static androidx.core.app.ActivityCompat.startActivityForResult;
-
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -121,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         Button powerBtn = findViewById(R.id.power_button);
         powerBtn.setOnClickListener( new View.OnClickListener() {
             @Override
-            public void onClick(View v) { signals.setPower(1); }
+            public void onClick(View v) { signals.togglePower(); }
         });
 
         // alarm button
@@ -129,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         alarmBtn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signals.setAlarm(1);
+                signals.toggleAlarm();
             }
         });
 

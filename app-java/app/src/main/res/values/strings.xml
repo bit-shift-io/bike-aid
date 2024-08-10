@@ -6,4 +6,5 @@
     <string name="button_power">Power</string>
     <string name="button_alarm">Alarm</string>
     <string name="button_lights">Lights</string>
+    <string name="button_horn">Horn</string>
 </resources>
