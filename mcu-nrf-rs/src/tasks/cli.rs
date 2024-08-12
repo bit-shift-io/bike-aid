@@ -1,5 +1,6 @@
-use crate::utils::signals;
+use crate::utils::{signals, store};
 use defmt::*;
+use embassy_time::{Duration, Timer};
 use heapless::String;
 
 const TASK_ID: &str = "CLI";
@@ -12,14 +13,77 @@ pub async fn cli () {
 
     loop {
         let string = sub_read.next_message_pure().await;
+        let mut result = false;
+        //info!("{}: {}", TASK_ID, string.as_str());
 
-        /*
-        // debug new line endings and stuff with the strings
-        info!("{}: {}", TASK_ID, string);
-        info!("{}: length: {}", TASK_ID, string.len());
-        info!("{}: ends with on: {}", TASK_ID, string.ends_with("on"));
-        info!("{}: str > array: {}", TASK_ID, str_to_array(string));
-        */
+        if string.starts_with("passthrough") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            if string.ends_with("1") {
+                throttle_settings.passthrough = true;
+            } else {
+                throttle_settings.passthrough = false;
+            }
+
+            result = true;
+        }
+
+        if string.starts_with("increase_smooth_factor") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.increase_smooth_factor = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("decrease_smooth_factor") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.decrease_smooth_factor = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("no_throttle") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.no_throttle = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("full_throttle") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.full_throttle = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("deadband_min") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.deadband_min = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("deadband_max") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.deadband_max = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("speed_limit") {
+            let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().next().unwrap();
+            throttle_settings.speed_limit = value.parse::<i16>().unwrap();
+            result = true;
+        }
+
+
+        // TODO
+        if string.starts_with("settings") {
+            if string.ends_with("write") {
+               // signals::THROTTLE_SETTINGS_CHANGE.dyn_immediate_publisher().publish_immediate(true);
+            }
+            result = true;
+        }
 
         if string.starts_with("power") {
             if string.ends_with("on") {
@@ -27,6 +91,8 @@ pub async fn cli () {
             } else {
                 signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(false);
             }
+
+            result = true;
         }
 
         if string.starts_with("alarm") {
@@ -38,10 +104,20 @@ pub async fn cli () {
                 signals::ALARM_ALERT_ACTIVE.dyn_immediate_publisher().publish_immediate(false);
                 signals::ALARM_ENABLED.dyn_immediate_publisher().publish_immediate(false);
             }
+
+            result = true;
         }
         
+        // TODO: fix ble to be async? delay to avoid flooding
+        Timer::after(Duration::from_millis(100)).await; 
+
         // publish
-        let ok: String<32> = String::try_from("ok").unwrap();
-        pub_write.publish_immediate(ok);
+        if result {
+            let ok: String<32> = String::try_from("ok").unwrap();
+            pub_write.publish_immediate(ok);
+        } else {
+            let error: String<32> = String::try_from("error").unwrap();
+            pub_write.publish_immediate(error);
+        }
     }
 }
