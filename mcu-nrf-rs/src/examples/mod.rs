@@ -3,3 +3,4 @@ pub mod fake_signals;
 pub mod i2c_scan;
 pub mod saadc;
 pub mod temperature;
+pub mod blinky;

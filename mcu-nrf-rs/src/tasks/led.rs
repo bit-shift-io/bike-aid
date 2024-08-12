@@ -1,4 +1,4 @@
-use embassy_time::{Duration, Timer};
+use embassy_time::Timer;
 use defmt::*;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
 use crate::utils::signals;
@@ -13,6 +13,7 @@ pub async fn led (
     let mut sub_mode = signals::LED_MODE.subscriber().unwrap();
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
     let mut led_mode = LedMode::Double;
+
 
     loop { 
         // Try to poll read new mode
@@ -30,6 +31,7 @@ pub async fn led (
     }
 }
 
+
 #[derive(Clone,Copy)]
 pub enum LedMode {
     None,
@@ -40,23 +42,23 @@ pub enum LedMode {
 
 async fn double<'a>(led: &mut Output<'a>) {
     led.set_high(); // Short high
-    Timer::after(Duration::from_millis(150)).await;
+    Timer::after_millis(150).await;
 
     led.set_low(); // Long low
-    Timer::after(Duration::from_millis(300)).await;
+    Timer::after_millis(300).await;
 
     led.set_high(); // Short high
-    Timer::after(Duration::from_millis(150)).await;
+    Timer::after_millis(150).await;
 
     led.set_low(); // Long low
-    Timer::after(Duration::from_millis(1500)).await;
+    Timer::after_millis(1500).await;
 }
 
 
 async fn single<'a>(led: &mut Output<'a>) {
     led.set_high(); // Meium high
-    Timer::after(Duration::from_millis(200)).await;
+    Timer::after_millis(200).await;
 
     led.set_low(); // Slow low
-    Timer::after(Duration::from_millis(1000)).await;
+    Timer::after_millis(1000).await;
 }

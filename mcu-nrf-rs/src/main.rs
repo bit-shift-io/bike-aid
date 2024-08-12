@@ -19,8 +19,7 @@ reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
  * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
  * nRF52820, nRF52833, nRF52840: P0_18
 
-// TODO: test pin 13 controls vcc output on/off 3.3v apparently?
-//Output::new(p.P0_13, Level::Low, OutputDrive::Standard);
+// pin 0.13 controls vcc output on/off 3.3v
 */
 
 #![no_std]

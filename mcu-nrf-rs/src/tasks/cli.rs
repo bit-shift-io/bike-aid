@@ -1,6 +1,6 @@
 use crate::utils::{signals, store};
 use defmt::*;
-use embassy_time::{Duration, Timer};
+use embassy_time::Timer;
 use heapless::String;
 
 const TASK_ID: &str = "CLI";
@@ -109,7 +109,7 @@ pub async fn cli () {
         }
         
         // TODO: fix ble to be async? delay to avoid flooding
-        Timer::after(Duration::from_millis(100)).await; 
+        Timer::after_millis(100).await; 
 
         // publish
         if result {

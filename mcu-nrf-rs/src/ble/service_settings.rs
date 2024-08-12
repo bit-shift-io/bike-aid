@@ -1,8 +1,8 @@
 use defmt::info;
-use embassy_time::{Duration, Timer};
+use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
-use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
+use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 use embassy_futures::join;
@@ -79,7 +79,7 @@ impl SettingsService {
         })
     }
 
-    pub fn on_write(&self, conn: &Connection, handle: u16, data: &[u8]) {
+    pub fn on_write(&self, _conn: &Connection, handle: u16, data: &[u8]) {
         if data.is_empty() {
             return;
         }
@@ -124,7 +124,7 @@ pub async fn update_power(connection: &Connection, server: &Server) {
     let handle = server.settings.power_switch.value_handle;
     loop {
         let val = sub.next_message_pure().await;
-        Timer::after(Duration::from_millis(100)).await; // TODO: fix ble to be async? delay to avoid flooding
+        Timer::after_millis(100).await; // TODO: fix ble to be async? delay to avoid flooding
         let _ = server::notify_value(connection, handle, &[val as u8]);
     }
 }
@@ -135,7 +135,7 @@ pub async fn update_alarm(connection: &Connection, server: &Server) {
     let handle = server.settings.alarm_enabled.value_handle;
     loop {
         let val = sub.next_message_pure().await;
-        Timer::after(Duration::from_millis(100)).await; // TODO: fix ble to be async? delay to avoid flooding
+        Timer::after_millis(100).await; // TODO: fix ble to be async? delay to avoid flooding
         let _ = server::notify_value(connection, handle, &[val as u8]);
     }
 }
