@@ -27,7 +27,6 @@ pub async fn store (
 
     let mut sub_write = signals::STORE_WRITE.subscriber().unwrap();
 
-    info!("{} : Entering main loop",TASK_ID);
     loop {
         if sub_write.next_message_pure().await {
             write_store(&mut flash).await;

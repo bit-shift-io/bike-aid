@@ -16,7 +16,7 @@ pub async fn scan (
         let result = i2c.write(address, &[]);
         match result {
             Ok(_) => {
-                info!("I2C/TWI found device: 0x{:X}", address);
+                info!("{}: device: 0x{:X}", TASK_ID, address);
                 count +=1;
             }
             Err(_) => continue,

@@ -113,7 +113,6 @@ pub async fn bluetooth (
         // with or without bonding
         //let conn = unwrap!(peripheral::advertise_pairable(sd, adv, &config, bonder).await);
         let conn: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
-        info!("{}: advertising done!", TASK_ID);
 
         /*
         if PERIPHERAL_REQUESTS_SECURITY {

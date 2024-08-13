@@ -94,6 +94,7 @@ impl gatt_server::Server for Server {
 
 
 pub async fn run(connection: &Connection, server: &Server) {
+    info!("BLUETOOTH: device connected");
     // TODO: add services here
     // do we need to mutpin? pin_mut!(...);
     join::join4(
