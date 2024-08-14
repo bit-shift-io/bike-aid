@@ -3,6 +3,8 @@ use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::Mutex;
+use core::cell::RefCell;
 use embassy_time::{Delay, Timer};
 use mpu6050::*;
 
@@ -15,10 +17,12 @@ const INTERVAL: u64 = 500;
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    //i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);
 
+    let i2c = I2cDevice::new(i2c_bus);
     let mut mpu = Mpu6050::new(i2c);
     let mut delay = Delay;
     let result = mpu.init(&mut delay);

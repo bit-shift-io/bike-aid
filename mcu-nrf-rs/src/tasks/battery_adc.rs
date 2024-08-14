@@ -4,6 +4,8 @@ use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
 use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::Mutex;
+use core::cell::RefCell;
 use embassy_time::Timer;
 use nb::block;
 
@@ -12,10 +14,13 @@ const INTERVAL: u64 = 1000;
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    //i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     return; // TODO: fix address
     info!("{}: start", TASK_ID);
+
+    let i2c = I2cDevice::new(i2c_bus);
     let pub_data = signals::BATTERY_IN.publisher().unwrap();
 
     let address = SlaveAddr::Alternative(true, true); // default used for throttle 0x48

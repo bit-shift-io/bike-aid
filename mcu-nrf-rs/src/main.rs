@@ -47,7 +47,6 @@ use {defmt_rtt as _, panic_probe as _};
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
 use embassy_nrf::twim::{self, Twim};
-use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_sync::blocking_mutex::NoopMutex;
 
 // blocking mutex for shared-bus
@@ -85,15 +84,15 @@ async fn main(spawner: Spawner) {
 
     // == INIT DEVICES ==
 
-    spawner.must_spawn(throttle_adc::task(I2cDevice::new(i2c_bus)));
+    spawner.must_spawn(throttle_adc::task(i2c_bus));
 
-    spawner.must_spawn(throttle_dac::task(I2cDevice::new(i2c_bus)));
+    spawner.must_spawn(throttle_dac::task(i2c_bus));
 
-    spawner.must_spawn(gyroscope::task(I2cDevice::new(i2c_bus)));
+    spawner.must_spawn(gyroscope::task(i2c_bus));
 
-    spawner.must_spawn(temperature::task(I2cDevice::new(i2c_bus)));
+    spawner.must_spawn(temperature::task(i2c_bus));
 
-    spawner.must_spawn(battery_adc::task(I2cDevice::new(i2c_bus)));
+    spawner.must_spawn(battery_adc::task(i2c_bus));
 
     // == INIT TASKS ==
 

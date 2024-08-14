@@ -2,6 +2,7 @@ use crate::utils::functions;
 use crate::utils::store;
 use crate::utils::signals;
 use defmt::*;
+use embassy_futures::select::{select, Either};
 use heapless::String;
 
 const TASK_ID: &str = "THROTTLE";
@@ -9,7 +10,28 @@ const TASK_ID: &str = "THROTTLE";
 #[embassy_executor::task]
 pub async fn task() {
     info!("{}: start", TASK_ID);
-  
+    
+    let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut power_state = false;
+
+    loop { 
+        if let Some(b) = sub_power.try_next_message_pure() {power_state = b}
+        match power_state {
+            true => {
+                let power_future = sub_power.next_message_pure();
+                let task_future = run();
+                match select(power_future, task_future).await {
+                    Either::First(val) => { power_state = val; }
+                    Either::Second(_) => {} // other task will never end
+                }
+            },
+            false => { power_state = sub_power.next_message_pure().await; }
+        }
+    }
+}
+
+
+async fn run() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();

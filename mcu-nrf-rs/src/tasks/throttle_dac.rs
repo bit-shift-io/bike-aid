@@ -3,6 +3,8 @@ use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::Mutex;
+use core::cell::RefCell;
 use mcp4725::MCP4725;
 
 const TASK_ID : &str = "THROTTLE DAC";
@@ -11,10 +13,11 @@ const SUPPLY_VOLTAGE: i32 = 4880; // TODO: mv supply for calibration
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    //i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);
-
+    let i2c = I2cDevice::new(i2c_bus);
     let mut sub_throttle = signals::THROTTLE_OUT.subscriber().unwrap();
     let mut dac = MCP4725::new(i2c, ADDRESS);
     let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
