@@ -2,6 +2,7 @@ use crate::utils::signals;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
+use embassy_futures::select::{select, Either};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
 use core::cell::RefCell;
@@ -18,10 +19,30 @@ const INTERVAL: u64 = 500;
 #[embassy_executor::task]
 pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
-    //i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);
 
+    let mut sub_alarm = signals::ALARM_ENABLED.subscriber().unwrap();
+    let mut alarm_state = false;
+
+    loop { 
+        if let Some(b) = sub_alarm.try_next_message_pure() {alarm_state = b}
+        match alarm_state {
+            true => {
+                let alarm_future = sub_alarm.next_message_pure();
+                let task_future = run(i2c_bus);
+                match select(alarm_future, task_future).await {
+                    Either::First(val) => { alarm_state = val; }
+                    Either::Second(_) => {} // other task will never end
+                }
+            },
+            false => { alarm_state = sub_alarm.next_message_pure().await; }
+        }
+    }
+}
+
+
+async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut mpu = Mpu6050::new(i2c);
     let mut delay = Delay;

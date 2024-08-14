@@ -2,6 +2,7 @@ use crate::utils::signals;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
+use embassy_futures::select::{select, Either};
 use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
@@ -15,9 +16,30 @@ const INTERVAL: u64 = 200;
 #[embassy_executor::task]
 pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
-    //i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);
+
+    let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut power_state = false;
+
+    loop { 
+        if let Some(b) = sub_power.try_next_message_pure() {power_state = b}
+        match power_state {
+            true => {
+                let power_future = sub_power.next_message_pure();
+                let task_future = run(i2c_bus);
+                match select(power_future, task_future).await {
+                    Either::First(val) => { power_state = val; }
+                    Either::Second(_) => {} // other task will never end
+                }
+            },
+            false => { power_state = sub_power.next_message_pure().await; }
+        }
+    }
+}
+
+
+async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let address = SlaveAddr::default(); // 0x48
