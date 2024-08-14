@@ -5,7 +5,7 @@ const TASK_ID: &str = "BATTERY";
 const BATTERY_CAPACITY: u16 = 2400; // mah TODO: check capacity
 
 #[embassy_executor::task]
-pub async fn battery () {
+pub async fn task() {
     info!("{}: start", TASK_ID);
 
     let pub_current = signals::BATTERY_CURRENT.publisher().unwrap();

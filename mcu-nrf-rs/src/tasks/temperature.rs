@@ -10,7 +10,7 @@ const TASK_ID : &str = "TEMPERATURE";
 const INTERVAL: u64 = 20;
 
 #[embassy_executor::task]
-pub async fn temperature (
+pub async fn task(
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);

@@ -7,7 +7,7 @@ use heapless::String;
 const TASK_ID: &str = "THROTTLE";
 
 #[embassy_executor::task]
-pub async fn throttle () {
+pub async fn task() {
     info!("{}: start", TASK_ID);
   
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();

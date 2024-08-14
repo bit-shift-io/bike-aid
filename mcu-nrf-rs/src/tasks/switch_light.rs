@@ -5,7 +5,7 @@ use defmt::*;
 const TASK_ID: &str = "SWITCH LIGHT";
 
 #[embassy_executor::task]
-pub async fn switch_light (
+pub async fn task(
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);

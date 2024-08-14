@@ -14,7 +14,7 @@ const ANGLE_SENSITIVITY: f32 = 0.1;
 const INTERVAL: u64 = 500;
 
 #[embassy_executor::task]
-pub async fn gyroscope (
+pub async fn task(
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);

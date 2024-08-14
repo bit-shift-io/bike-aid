@@ -8,7 +8,7 @@ use embassy_time::Timer;
 const TASK_ID: &str = "PIEZO";
 
 #[embassy_executor::task]
-pub async fn piezo (
+pub async fn task(
     pwm_device: PWM0,
     pin: AnyPin
 ) {

@@ -11,7 +11,7 @@ const WARNINGS: u8 = 3;
 static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 
 #[embassy_executor::task]
-pub async fn alarm (
+pub async fn task(
     spawner: Spawner,
 ) {
     info!("{}: start", TASK_ID);

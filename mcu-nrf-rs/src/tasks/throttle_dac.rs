@@ -10,7 +10,7 @@ const ADDRESS: u8 = 0x60;
 const SUPPLY_VOLTAGE: i32 = 4880; // TODO: mv supply for calibration
 
 #[embassy_executor::task]
-pub async fn throttle_dac (
+pub async fn task(
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);

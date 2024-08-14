@@ -25,7 +25,7 @@ async fn softdevice_task(sd: &'static Softdevice) {
 
 // main task
 #[embassy_executor::task]
-pub async fn bluetooth (
+pub async fn task(
     spawner: Spawner
 ) {
     info!("{}: start", TASK_ID);

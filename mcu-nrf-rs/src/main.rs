@@ -2,6 +2,7 @@
 
 Pin Guide
 
+TODO: Fix pins for better layout
 P1.11 - LED
 P1.06 - Brake
 P1.15 - Speed
@@ -30,6 +31,7 @@ mod tasks;
 mod examples;
 mod ble;
 mod utils;
+use crate::tasks::*;
 
 // external imports
 use core::cell::RefCell;
@@ -81,154 +83,56 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-
     // == INIT DEVICES ==
 
-    // Throttle ADC (input)
-    use crate::tasks::throttle_adc::throttle_adc;
-    spawner.must_spawn(throttle_adc(
-        I2cDevice::new(i2c_bus)
-    ));
+    spawner.must_spawn(throttle_adc::task(I2cDevice::new(i2c_bus)));
 
+    spawner.must_spawn(throttle_dac::task(I2cDevice::new(i2c_bus)));
 
-    // Throttle ADC (output)
-    use crate::tasks::throttle_dac::throttle_dac;
-    spawner.must_spawn(throttle_dac(
-        I2cDevice::new(i2c_bus)
-    ));
+    spawner.must_spawn(gyroscope::task(I2cDevice::new(i2c_bus)));
 
+    spawner.must_spawn(temperature::task(I2cDevice::new(i2c_bus)));
 
-    // Gyroscope (for alarm) *** when power off
-    use crate::tasks::gyroscope::gyroscope;
-    spawner.must_spawn(gyroscope(
-        I2cDevice::new(i2c_bus)
-    ));
-
-
-    // temperature (using gyroscope)
-    use crate::tasks::temperature::temperature;
-    spawner.must_spawn(temperature(
-        I2cDevice::new(i2c_bus)
-    ));
-
-
-    // Battery ADC Task
-    use crate::tasks::battery_adc::battery_adc;
-    spawner.must_spawn(battery_adc(
-        I2cDevice::new(i2c_bus)
-    ));
-    
+    spawner.must_spawn(battery_adc::task(I2cDevice::new(i2c_bus)));
 
     // == INIT TASKS ==
 
-    // Store Task
-    use crate::tasks::store::store;
-    spawner.must_spawn(store(
-        Nvmc::new(p.NVMC)
-    ));
+    spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
 
+    spawner.must_spawn(brake::task(p.P1_06.degrade()));
 
-    // Brake Task
-    use crate::tasks::brake::brake;
-    spawner.must_spawn(brake(
-        p.P1_06.degrade()
-    ));
+    spawner.must_spawn(switch_power::task(p.P0_11.degrade()));
 
+    spawner.must_spawn(switch_horn::task(p.P1_04.degrade()));
 
-    // Power Switch Task *** when power off
-    use crate::tasks::switch_power::switch_power;
-    spawner.must_spawn(switch_power(
-        p.P0_11.degrade()
-    ));
+    spawner.must_spawn(switch_light::task(p.P1_00.degrade()));
 
+    spawner.must_spawn(speed::task(p.P1_15.degrade()));
 
-    // Horn Switch Task *** when power off
-    use crate::tasks::switch_horn::switch_horn;
-    spawner.must_spawn(switch_horn(
-        p.P1_04.degrade()
-    ));
+    spawner.must_spawn(battery::task());
 
+    spawner.must_spawn(piezo::task(p.PWM0, p.P0_09.degrade()));
 
-    // Light Switch Task
-    use crate::tasks::switch_light::switch_light;
-    spawner.must_spawn(switch_light(
-        p.P1_00.degrade()
-    ));
+    spawner.must_spawn(alarm::task(spawner));
 
+    spawner.must_spawn(throttle::task());
 
-    // Speed Task
-    use crate::tasks::speed::speed;
-    spawner.must_spawn(speed(
-        p.P1_15.degrade()
-    ));
+    spawner.must_spawn(bluetooth::task(spawner));
 
+    spawner.must_spawn(cli::task());
 
-    // Battery Task
-    use crate::tasks::battery::battery;
-    spawner.must_spawn(battery());
+    spawner.must_spawn(led::task(p.P1_11.degrade()));
 
-
-    // Piezo Task *** when power off
-    use crate::tasks::piezo::piezo;
-    spawner.must_spawn(piezo(
-        p.PWM0,
-        p.P0_09.degrade()
-    ));
-
-
-    // Alarm Task *** when power off
-    use crate::tasks::alarm::alarm;
-    spawner.must_spawn(alarm(
-        spawner
-    ));
-
-
-    // Throttle Task
-    use crate::tasks::throttle::throttle;
-    spawner.must_spawn(throttle());
-
-
-    // Bluetooth Task *** when power off
-    use crate::tasks::bluetooth::bluetooth;
-    spawner.must_spawn(bluetooth(
-        spawner
-    ));
-
-
-    // CLI Task *** when power off
-    use crate::tasks::cli::cli;
-    spawner.must_spawn(cli());
-
-
-    // LED Task
-    use crate::tasks::led::led;
-    spawner.must_spawn(led(
-        p.P1_11.degrade()
-    ));
-
-
-    // Clock Task
-    use crate::tasks::clock::clock;
-    spawner.must_spawn(clock());
-
+    spawner.must_spawn(clock::task());
 
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
 
-
     // == DEBUG ==
 
-    // send signals
-    // use crate::examples::fake_signals::fake_signals;
-    // spawner.must_spawn(fake_signals());
-    
+    // spawner.must_spawn(fake_signals::task());
 
-    // scan i2c devices
-    // use crate::examples::i2c_scan::scan;
-    // spawner.must_spawn(scan(
-    //     I2cDevice::new(i2c_bus)
-    // ));
-
+    // spawner.must_spawn(i2c_scan::task(I2cDevice::new(i2c_bus)));
     
     use crate::utils::signals;
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();

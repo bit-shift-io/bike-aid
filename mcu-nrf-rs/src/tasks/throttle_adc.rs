@@ -11,7 +11,7 @@ const TASK_ID : &str = "THROTTLE ADC";
 const INTERVAL: u64 = 200;
 
 #[embassy_executor::task]
-pub async fn throttle_adc (
+pub async fn task(
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}: start", TASK_ID);

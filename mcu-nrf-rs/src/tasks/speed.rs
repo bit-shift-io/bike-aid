@@ -10,7 +10,7 @@ const SENSOR_SEGMENTS: u8 = 15; // there are 15 segments on 1 revolution of the 
 const SEGMENT_LENGTH: f32 = 73.7; // mm (measured / 15)
 
 #[embassy_executor::task]
-pub async fn speed (
+pub async fn task(
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);

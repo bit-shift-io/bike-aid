@@ -9,7 +9,7 @@ const BYTE_SIZE: u32 = 8;
 
 
 #[embassy_executor::task]
-pub async fn store (
+pub async fn task(
     flash_controller: Nvmc<'static>
 ) {
     info!("{}: start", TASK_ID);

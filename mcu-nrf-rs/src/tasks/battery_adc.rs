@@ -11,7 +11,7 @@ const TASK_ID: &str = "Battery ADC";
 const INTERVAL: u64 = 1000;
 
 #[embassy_executor::task]
-pub async fn battery_adc (
+pub async fn task(
     i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     return; // TODO: fix address

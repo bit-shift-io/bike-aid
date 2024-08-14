@@ -7,7 +7,7 @@ use crate::utils::signals;
 const TASK_ID: &str = "LED";
 
 #[embassy_executor::task]
-pub async fn led(
+pub async fn task(
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
