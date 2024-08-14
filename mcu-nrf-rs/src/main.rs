@@ -1,26 +1,24 @@
 /*
-
 Pin Guide
 
-TODO: Fix pins for better layout
-P1.11 - LED
-P1.06 - Brake
-P1.15 - Speed
-P0.09 - Piezo
+P0.31 - LED
+P0.29 - Piezo
 
-P0.06 - I2C/TWI SDA
-P0.08 - I2C/TWI SCL
+P0.08 - I2C SDA - Yellow
+P0.06 - I2C SCL - Orange ( Green on breadboard )
 
-P1.11 - Power Switch
-P1.04 - Light
-P1.00 - Horn
+P1.04 - Brake
+P1.06 - Speed
 
-nfc-pins-as-gpio Allow using the NFC pins as regular GPIO pins (P0_09/P0_10 on nRF52, P0_02/P0_03 on nRF53)
-reset-pin-as-gpio Allow using the RST pin as a regular GPIO pin.
- * nRF52805, nRF52810, nRF52811, nRF52832: P0_21
- * nRF52820, nRF52833, nRF52840: P0_18
+P1.01 - Power Switch
+P1.02 - Light
+P1.07 - Horn
 
-// pin 0.13 controls vcc output on/off 3.3v
+nfc-pins-as-gpio Allow using the NFC pins as regular GPIO P0_09/P0_10 on nRF52
+reset-pin-as-gpio Allow using the RST pin as a regular GPIO P0_18
+
+P0.13 controls vcc output on/off 3.3v
+P0.14-0.16 set low resets ?
 */
 
 #![no_std]
@@ -77,7 +75,7 @@ async fn main(spawner: Spawner) {
         bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
         interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
         let config = twim::Config::default();
-        let i2c = Twim::new(p.TWISPI0, Irqs, p.P0_06, p.P0_08, config); // sda: p0.06, scl: p0.08
+        let i2c = Twim::new(p.TWISPI0, Irqs, p.P0_08, p.P0_06, config); // sda: p0.08, scl: p0.06
         let i2c_bus = NoopMutex::new(RefCell::new(i2c));
         I2C_BUS.init(i2c_bus)
     };
@@ -98,19 +96,19 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
 
-    spawner.must_spawn(brake::task(p.P1_06.degrade()));
+    spawner.must_spawn(brake::task(p.P1_04.degrade()));
 
-    spawner.must_spawn(switch_power::task(p.P0_11.degrade()));
+    spawner.must_spawn(switch_power::task(p.P1_01.degrade()));
 
-    spawner.must_spawn(switch_horn::task(p.P1_04.degrade()));
+    spawner.must_spawn(switch_horn::task(p.P1_07.degrade()));
 
-    spawner.must_spawn(switch_light::task(p.P1_00.degrade()));
+    spawner.must_spawn(switch_light::task(p.P1_02.degrade()));
 
-    spawner.must_spawn(speed::task(p.P1_15.degrade()));
+    spawner.must_spawn(speed::task(p.P1_06.degrade()));
 
     spawner.must_spawn(battery::task());
 
-    spawner.must_spawn(piezo::task(p.PWM0, p.P0_09.degrade()));
+    spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
 
     spawner.must_spawn(alarm::task(spawner));
 
@@ -120,7 +118,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(cli::task());
 
-    spawner.must_spawn(led::task(p.P1_11.degrade()));
+    spawner.must_spawn(led::task(p.P0_31.degrade()));
 
     spawner.must_spawn(clock::task());
 
@@ -128,6 +126,10 @@ async fn main(spawner: Spawner) {
     info!("======== Boot Ok ========");
 
     // == DEBUG ==
+    //use embassy_nrf::gpio::{Level, Output, OutputDrive};
+    //Output::new(p.P0_14, Level::Low, OutputDrive::Standard);
+    //Output::new(p.P0_15, Level::Low, OutputDrive::Standard);
+    //Output::new(p.P0_16, Level::Low, OutputDrive::Standard);
 
     // spawner.must_spawn(fake_signals::task());
 

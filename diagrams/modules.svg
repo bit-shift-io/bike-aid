@@ -27,9 +27,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="346.48232"
-     inkscape:cy="444.06306"
+     inkscape:zoom="4"
+     inkscape:cx="573.375"
+     inkscape:cy="385"
      inkscape:window-width="1875"
      inkscape:window-height="1052"
      inkscape:window-x="0"
@@ -231,8 +231,7 @@
      inkscape:label="mcu"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline;fill:none;stroke:#000000;stroke-opacity:0.3"
-     sodipodi:insensitive="true">
+     style="display:inline;fill:none;stroke:#000000;stroke-opacity:0.3">
     <rect
        style="fill:#000000;fill-opacity:0.1;stroke:none;stroke-width:0.228089;stroke-opacity:0.3"
        id="rect1-9"
@@ -882,24 +881,24 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
-       x="163.14659"
-       y="109.18059"
+       x="160.64807"
+       y="95.586853"
        id="text1-8-5-35-2-2-9-3-1"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="163.14659"
-         y="109.18059"
+         x="160.64807"
+         y="95.586853"
          id="tspan4">Alarm piezo</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
-       x="162.99294"
-       y="104.04967"
+       x="160.49442"
+       y="92.965553"
        id="text1-8-5-35-2-2-9-3-1-5"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="162.99294"
-         y="104.04967"
+         x="160.49442"
+         y="92.965553"
          id="tspan4-0">LED</tspan></text>
     <text
        xml:space="preserve"
@@ -912,17 +911,6 @@
          x="140.37949"
          y="110.81859"
          id="tspan4-0-3">Speed</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;display:inline;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
-       x="131.66385"
-       y="121.68886"
-       id="text1-8-5-35-2-2-9-3-1-5-6-5"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="131.66385"
-         y="121.68886"
-         id="tspan4-0-3-2">TODO: swap pins in code</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:end;text-anchor:end;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"

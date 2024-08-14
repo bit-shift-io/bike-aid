@@ -30,7 +30,7 @@ pub async fn task(
                 let task_future = run(i2c_bus);
                 match select(power_future, task_future).await {
                     Either::First(val) => { power_state = val; }
-                    Either::Second(_) => {} // other task will never end
+                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
             false => { power_state = sub_power.next_message_pure().await; }
@@ -46,7 +46,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     match result {
         Ok(()) => {},
         Err(_e) => {
-            info!("{} : device error", TASK_ID);
+            info!("{}: device error", TASK_ID);
             return
         }, // unable to communicate with device
     }

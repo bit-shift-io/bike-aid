@@ -5,6 +5,7 @@ use defmt::*;
 use embassy_futures::select::{select, Either};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
+use embassy_time::Timer;
 use core::cell::RefCell;
 use mcp4725::MCP4725;
 
@@ -29,7 +30,7 @@ pub async fn task(
                 let task_future = run(i2c_bus);
                 match select(power_future, task_future).await {
                     Either::First(val) => { power_state = val; }
-                    Either::Second(_) => {} // other task will never end
+                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
             false => { power_state = sub_power.next_message_pure().await; }
