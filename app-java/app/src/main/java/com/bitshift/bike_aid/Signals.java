@@ -38,6 +38,8 @@ public class Signals {
         void onSpeed(String result);
         void onClockMinutes(String result);
         void onClockHours(String result);
+        void onPower(boolean result);
+        void onAlarm(boolean result);
     }
 
 
@@ -48,8 +50,22 @@ public class Signals {
 
 
     // ==== data -> gui ====
-    public void setSpeed(int s) {
-        mOnEventListener.onSpeed(String.valueOf(s));
+    public void setPower(boolean v) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
+            public void run() { mOnEventListener.onPower(v); }
+        });
+    }
+
+    public void setAlarm(boolean v) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
+            public void run() { mOnEventListener.onAlarm(v); }
+        });
+    }
+
+    public void setSpeed(int v) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
+            public void run() { mOnEventListener.onSpeed(String.format("%02d", v)); }
+        });
     }
 
     public void setTemperature(int v) {
@@ -132,16 +148,23 @@ public class Signals {
         // power switch
         if (id.equals("1001")) {
             power_on = value[0] != 0;
+            setPower(power_on);
         }
 
         // alarm switch
         if (id.equals("1004")) {
             alarm_on = value[0] != 0;
+            setAlarm(alarm_on);
         }
 
 
 
         // 2000 series is data
+
+        // speed
+        if (id.equals("2001")) {
+            setSpeed(value[0]);
+        }
 
         // temperature
         if (id.equals("2004")) {

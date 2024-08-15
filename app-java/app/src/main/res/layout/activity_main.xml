@@ -62,14 +62,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/middle_container"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="128dp"
         android:layout_below="@+id/divider1">
 
         <TextView
             android:id="@+id/null1"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text=" "
+            android:text=""
             android:textAlignment="viewStart"
             android:textIsSelectable="false"
             android:textSize="24sp"
@@ -77,18 +77,42 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/speed"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
-            android:text="00 km/h"
-            android:textIsSelectable="false"
-            android:textSize="48sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/speed"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="00"
+                android:textIsSelectable="false"
+                android:textSize="84sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/speed_units"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text=" km/h"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/null2"
@@ -117,17 +141,39 @@
         android:layout_height="40dp"
         android:layout_below="@+id/divider2">
 
-        <TextView
-            android:id="@+id/odometer"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
-            android:text="0000 km"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/odometer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="0000"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/odometer_unit"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text=" km"
+                android:textIsSelectable="false"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -222,7 +268,9 @@
             android:layout_height="match_parent"
             android:layout_span="1"
             android:layout_weight="1"
-            android:text="@string/button_power" />
+            android:backgroundTint="@color/buttonOff"
+            android:text="@string/button_power">
+        </Button>
 
         <Button
             android:id="@+id/alarm_button"
@@ -230,8 +278,8 @@
             android:layout_height="match_parent"
             android:layout_span="1"
             android:layout_weight="1"
+            android:backgroundTint="@color/buttonOff"
             android:text="@string/button_alarm" />
-
 
         <Button
             android:id="@+id/lights_button"
@@ -239,6 +287,7 @@
             android:layout_height="match_parent"
             android:layout_span="1"
             android:layout_weight="1"
+            android:backgroundTint="@color/buttonOff"
             android:text="@string/button_lights" />
 
         <Button
@@ -247,6 +296,7 @@
             android:layout_height="match_parent"
             android:layout_span="1"
             android:layout_weight="1"
+            android:backgroundTint="@color/buttonOff"
             android:text="@string/button_horn" />
 
     </LinearLayout>

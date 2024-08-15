@@ -2,6 +2,7 @@ package com.bitshift.bike_aid;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
     // ==== notes ====
@@ -90,6 +92,32 @@ public class MainActivity extends AppCompatActivity {
             public void onClockHours(String result) {
                 TextView item = findViewById(R.id.clock_hours);
                 item.setText(result);
+            }
+
+            @Override
+            public void onPower(boolean result) {
+                Button item = findViewById(R.id.power_button);
+                if (result) {
+                    item.setText("Power\nON");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOn));
+                }
+                else {
+                    item.setText("Power\nOFF");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOff));
+                }
+            }
+
+            @Override
+            public void onAlarm(boolean result) {
+                Button item = findViewById(R.id.alarm_button);
+                if (result) {
+                    item.setText("Alarm\nON");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOn));
+                }
+                else {
+                    item.setText("Alarm\nOFF");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOff));
+                }
             }
         });
 
