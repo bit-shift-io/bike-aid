@@ -6,12 +6,26 @@ use embassy_futures::select::{select, Either};
 use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
+use num_traits::abs;
 use core::cell::RefCell;
 use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID: &str = "BATTERY ADC";
 const INTERVAL: u64 = 1000;
+
+// consts for voltage divider
+const VOLTAGE_MULTIPLIER : f32 = (1_200_000.0 + 68_000.0) / 68_000.0; // ((R1 + R2) / R2)
+
+// consts for ACS758LCB-100B
+const VCC : f32 = 3.3; // 3.3v
+const QUIESCENT_OUTPUT_VOLTAGE : f32 = 0.5; // for ACS758LCB-100B
+const FACTOR: f32 = 20.0/1000.0; // 20.0 for ACS758LCB-100B
+const QOV: f32 = QUIESCENT_OUTPUT_VOLTAGE * VCC; // set quiescent Output voltage
+const CUTOFF_LIMIT: f32 = 2.0; // for model use 2
+const CUTOFF: f32 = FACTOR / CUTOFF_LIMIT; // convert current cut off to mV
+const NON_ZERO: f32 = 0.007; // value to make voltage zero when there is no current
+
 
 #[embassy_executor::task]
 pub async fn task(
@@ -42,9 +56,9 @@ pub async fn task(
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let pub_data = signals::BATTERY_IN.publisher().unwrap();
-    let address = SlaveAddr::Alternative(true, true); // default used for throttle 0x48
+    let address = SlaveAddr::Alternative(false, true); // sda 0x4A
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
-    let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
+    let result = adc.set_full_scale_range(FullScaleRange::Within4_096V); // set range to 4.096v
     match result {
         Ok(()) => {},
         Err(_e) => {
@@ -52,28 +66,34 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
             return
         }, // unable to communicate with device
     }
-    //let _ = adc.set_data_rate(DataRate16Bit::Sps8);
 
     loop {
-        //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
         let value_a0 = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
         let value_a1 = block!(adc.read(ChannelSelection::SingleA1)).unwrap();
 
-        // clamp to positive values only
-        //let input = clamp_positive(input);
-
         // convert to voltage
-        // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-        let input_voltage_a0: i16 = (f32::from(value_a0) * 6144.0 / 32768.0) as i16; // converted to mv
-        let input_voltage_a1: i16 = (f32::from(value_a1) * 6144.0 / 32768.0) as i16; // converted to mv
+        // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
+        let input_voltage_a0: i16 = (f32::from(value_a0) * 4096.0 / 32768.0) as i16; // converted to mv
+        let input_voltage_a1: i16 = (f32::from(value_a1) * 4096.0 / 32768.0) as i16; // converted to mv
+
+        // voltage before the resitor divider
+        // vIn = vOut * ((R1 + R2) / R2)
+        let real_voltage = (f32::from(input_voltage_a1) * VOLTAGE_MULTIPLIER) as i16;
+
+        // current sensor
+        let current_voltage = f32::from(input_voltage_a0) - QOV + NON_ZERO;
+        let mut current = current_voltage / FACTOR;
+        if abs(current) < CUTOFF {
+            current = 0.0;
+        }
+        let real_current = (current * 1000.0) as i16; // convert to mA
 
 
-        // voltage of the actual throttle before the resitor divider
-        // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
-        //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
+        // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!?
 
-        // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
-        pub_data.publish_immediate([input_voltage_a0,input_voltage_a1]);
+        // AO is current in mA
+        // A1 is voltage in mV
+        pub_data.publish_immediate([real_current, real_voltage]);
         Timer::after_millis(INTERVAL).await;
     }
 }

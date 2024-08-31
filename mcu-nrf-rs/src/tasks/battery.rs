@@ -21,8 +21,8 @@ pub async fn task() {
 
     loop {
         let input = sub_data.next_message_pure().await; // millivolts, updated 1 second
-        let input_voltage = input[0];
-        let input_current = input[1];
+        let input_voltage = input[0]; // mV
+        let input_current = input[1]; // mA
         
         let power = input_voltage * input_current; // milliwatts P=IV
 

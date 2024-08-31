@@ -27,15 +27,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="2.8284271"
-     inkscape:cx="479.4184"
-     inkscape:cy="410.82904"
+     inkscape:zoom="4"
+     inkscape:cx="912.625"
+     inkscape:cy="427.75"
      inkscape:window-width="1875"
      inkscape:window-height="1052"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer13"
+     inkscape:current-layer="layer4"
      showguides="true">
     <inkscape:grid
        id="grid1"
@@ -115,7 +115,17 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="89.933929"
          y="129.07912"
-         id="tspan58">  not to feed power back down the line?</tspan></text>
+         id="tspan58">  not to feed power back down the line?</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="89.933929"
+         y="130.843"
+         id="tspan6">-D1 1N4728</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="89.933929"
+         y="132.60689"
+         id="tspan12">3.3v zenier diode</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -1520,15 +1530,16 @@
        sodipodi:nodetypes="cccccc" />
     <path
        style="fill:none;fill-opacity:0.2;stroke:#ff6600;stroke-width:0.499999"
-       d="m 215.89995,81.199999 h 5.08"
+       d="m 215.89995,81.28 h 5.08"
        id="path18" />
     <path
        style="fill:none;fill-opacity:0.2;stroke:#ffd42a;stroke-width:0.499999"
-       d="m 215.89995,83.699999 h 5.08"
-       id="path19" />
+       d="m 215.89995,83.820001 h 5.08 v 2.54"
+       id="path19"
+       sodipodi:nodetypes="ccc" />
     <path
        style="fill:none;fill-opacity:0.2;stroke:#d40000;stroke-width:0.499999"
-       d="m 215.89658,88.699999 h 2.53999 l 0.003,12.900001"
+       d="m 215.89996,88.900001 h 2.53999 L 218.43957,101.6"
        id="path20"
        sodipodi:nodetypes="ccc" />
     <path
@@ -2231,6 +2242,14 @@
        transform="rotate(-90,223.71827,25.041704)"
        style="fill:none;stroke:#000000;stroke-opacity:0.3">
       <rect
+         style="display:inline;fill:#000000;fill-opacity:0.6;stroke:none;stroke-width:0.499999;stroke-dashoffset:11.3386;stroke-opacity:0.999396"
+         id="rect2-3"
+         width="0.30000001"
+         height="2.5400071"
+         x="231.76494"
+         y="92.709999"
+         transform="rotate(90,223.71827,25.041705)" />
+      <rect
          style="fill:#000000;fill-opacity:0.1;stroke:none;stroke-width:0.0995131;stroke-dasharray:none;stroke-opacity:0.3"
          id="rect1-9-3-4-6-6-6-4-7"
          width="2.5400143"
@@ -2401,27 +2420,6 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;display:inline;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
-       x="250.75668"
-       y="91.502151"
-       id="text1-6-5-6-5-2-6-2-7-2-3-3-3"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="250.75668"
-         y="91.502151"
-         id="tspan8-1-2-0-6-5"
-         sodipodi:role="line">original:</tspan><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="250.75668"
-         y="93.266037"
-         sodipodi:role="line"
-         id="tspan3-6">R1 690k</tspan><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="250.75668"
-         y="95.02993"
-         sodipodi:role="line"
-         id="tspan2-2">R2 10k</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;display:inline;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
        x="245.03148"
        y="98.362946"
        id="text1-6-5-6-5-2-6-0-6-5-0-7-0-7"><tspan
@@ -2444,22 +2442,19 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="245.03148"
          y="103.65461"
-         id="tspan12">-D1 1N4728</tspan><tspan
+         id="tspan3">-D1, D2 1N4733</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="245.03148"
          y="105.4185"
-         id="tspan9">3.3v zenier diode</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="245.03148"
-         y="107.18238"
-         id="tspan3">-D2 1N4733</tspan><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="245.03148"
-         y="108.94627"
          id="tspan13">5.1v zenier diode</tspan></text>
+    <rect
+       style="fill:#000000;fill-opacity:0.6;stroke:none;stroke-width:0.499999;stroke-dashoffset:11.3386;stroke-opacity:0.999396"
+       id="rect2"
+       width="0.30000001"
+       height="2.5400071"
+       x="217.51157"
+       y="94.93" />
   </g>
   <g
      inkscape:groupmode="layer"
