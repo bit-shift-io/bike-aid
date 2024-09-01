@@ -1582,8 +1582,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="battery-module"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <g
        id="g2"
        inkscape:label="buck-converter"
@@ -2427,12 +2426,12 @@
          id="tspan1-4-6-20-1-0-2-3-1-6-3-4-6-9"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="245.03148"
-         y="98.362946">-R1 1.2M resistor</tspan><tspan
+         y="98.362946">-R1 1M resistor</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="245.03148"
          y="100.12683"
-         id="tspan11">-R2 68k resistor</tspan><tspan
+         id="tspan11">-R2 68k or 51k resistor</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="245.03148"

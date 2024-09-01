@@ -1,51 +1,76 @@
 {
     "version": "0.2.0",
-    "configurations": [{
-      "preLaunchTask": "${defaultBuildTask}",
-      "type": "probe-rs-debug",
-      "request": "launch",
-      "name": "Debug",
-      "cwd": "${workspaceFolder}",
-      "flashingConfig": {
-        "flashingEnabled": true,
-        "haltAfterReset": false,
-        "formatOptions": {}
-      },
-      "chip": "nRF52840_xxAA",
-      "coreConfigs": [{
-          "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-          "coreIndex": 0,
-          "rttEnabled": true,
-          "rttChannelFormats": [{
-              "channelNumber": 0,
-              "dataFormat": "String",
-              "showTimestamps": false
-          }]
-      }],
-      "consoleLogLevel": "Console" // console
-  },
-    {
+    "configurations": [
+      {
+        "preLaunchTask": "cargo build release",
         "type": "probe-rs-debug",
-        "request": "attach",
-        "name": "Attach Debug",
+        "request": "launch",
+        "name": "Release",
         "cwd": "${workspaceFolder}",
-        //!MODIFY (or remove)
-        //"speed": 24000,
+        "flashingConfig": {
+          "flashingEnabled": true,
+          "haltAfterReset": false,
+          "formatOptions": {}
+        },
         "chip": "nRF52840_xxAA",
-        //!MODIFY  probe-rs list
-        //"probe": "2e8a:000c:E6616407E3543A2C",
-        "coreConfigs": [
-          {
-            "coreIndex": 0,
+        "coreConfigs": [{
             "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-            //!MODIFY
-            "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
-          }
-        ],
-        // Info, Debug
-        "consoleLogLevel": "Console"
-      }
+            "coreIndex": 0,
+            "rttEnabled": true,
+            "rttChannelFormats": [{
+                "channelNumber": 0,
+                "dataFormat": "String",
+                "showTimestamps": false
+            }]
+        }],
+        "consoleLogLevel": "Console" // console
+      }, 
 
-      
+      {
+        "preLaunchTask": "${defaultBuildTask}",
+        "type": "probe-rs-debug",
+        "request": "launch",
+        "name": "Debug",
+        "cwd": "${workspaceFolder}",
+        "flashingConfig": {
+          "flashingEnabled": true,
+          "haltAfterReset": false,
+          "formatOptions": {}
+        },
+        "chip": "nRF52840_xxAA",
+        "coreConfigs": [{
+            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            "coreIndex": 0,
+            "rttEnabled": true,
+            "rttChannelFormats": [{
+                "channelNumber": 0,
+                "dataFormat": "String",
+                "showTimestamps": false
+            }]
+        }],
+        "consoleLogLevel": "Console" // console
+      }, 
+
+      {
+          "type": "probe-rs-debug",
+          "request": "attach",
+          "name": "Attach Debug",
+          "cwd": "${workspaceFolder}",
+          //!MODIFY (or remove)
+          //"speed": 24000,
+          "chip": "nRF52840_xxAA",
+          //!MODIFY  probe-rs list
+          //"probe": "2e8a:000c:E6616407E3543A2C",
+          "coreConfigs": [
+            {
+              "coreIndex": 0,
+              "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+              //!MODIFY
+              "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
+            }
+          ],
+          // Info, Debug
+          "consoleLogLevel": "Console"
+        },
     ]
   }

@@ -15,7 +15,7 @@ const TASK_ID: &str = "BATTERY ADC";
 const INTERVAL: u64 = 1000;
 
 // consts for voltage divider
-const VOLTAGE_MULTIPLIER : f32 = (1_200_000.0 + 68_000.0) / 68_000.0; // ((R1 + R2) / R2)
+const VOLTAGE_MULTIPLIER : f32 = (0_995_700.0 + 51_270.0) / 51_270.0; // ((R1 + R2) / R2)
 
 // consts for ACS758LCB-100B
 const VCC : f32 = 3.3; // 3.3v
@@ -47,7 +47,10 @@ pub async fn task(
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { power_state = sub_power.next_message_pure().await; }
+            false => { 
+                // TODO: when power off, we still want to get voltage once an hour or so
+                power_state = sub_power.next_message_pure().await; 
+            }
         }
     }
 }

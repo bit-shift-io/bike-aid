@@ -31,5 +31,17 @@
             "isDefault": true
           }
       },
+      {
+        "label": "cargo build release",
+        "type": "shell",
+        "command": "cargo build --release",
+        "problemMatcher": [
+            "$rustc"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+    },
   ]
 }

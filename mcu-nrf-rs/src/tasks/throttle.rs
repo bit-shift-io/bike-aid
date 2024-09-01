@@ -122,6 +122,7 @@ async fn run() {
         pub_throttle.publish_immediate(mapped_output as i16); 
         info!("in: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
+        // TODO: remove this as it will clog up the ble connection
         // publish to uart for debug
         let mut buf = [0u8; 32];
         let text = format_no_std::show(&mut buf, format_args!("{},{}\n", input_smooth, output_voltage)).unwrap();
