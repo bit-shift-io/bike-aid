@@ -24,7 +24,7 @@ pub async fn task() {
         let input_voltage = input[0]; // mV
         let input_current = input[1]; // mA
         
-        let power = input_voltage * input_current; // milliwatts P=IV
+        let power = (input_voltage * input_current) as u32; // milliwatts P=IV
 
 
         // every minute, transfer seconds reading to minutes
@@ -41,8 +41,8 @@ pub async fn task() {
             time_count = 0;
         }
 
-
-        pub_power.publish_immediate(power);
+        // TODO: fix power
+        //pub_power.publish_immediate(power);
         pub_current.publish_immediate(input_current);
         pub_voltage.publish_immediate(input_voltage);
         info!("{}: current={} voltage={} power={}", TASK_ID, input_current, input_voltage, power);
