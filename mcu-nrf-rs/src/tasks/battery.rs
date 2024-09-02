@@ -2,7 +2,10 @@ use crate::utils::signals;
 use defmt::*;
 
 const TASK_ID: &str = "BATTERY";
-const BATTERY_CAPACITY: u16 = 2400; // mah TODO: check capacity
+const BATTERY_CAPACITY: u16 = 2400; // mAh
+const BATTERY_MAX_VOLTAGE: u16 = 54600; // mV
+const BATTERY_MIN_VOLTAGE: u16 = 39000; // mv
+
 
 #[embassy_executor::task]
 pub async fn task() {
@@ -26,6 +29,8 @@ pub async fn task() {
         
         let power = (input_voltage * input_current) as u32; // milliwatts P=IV
 
+        let percentage = ((input_voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) * 100;
+
 
         // every minute, transfer seconds reading to minutes
         time_count += 1;
@@ -45,7 +50,7 @@ pub async fn task() {
         //pub_power.publish_immediate(power);
         pub_current.publish_immediate(input_current);
         pub_voltage.publish_immediate(input_voltage);
-        info!("{}: current:{} voltage:{} power:{}", TASK_ID, input_current, input_voltage, power);
+        info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percentage);
 
         // TODO: calculate power every few seconds
         // store 1 minutes worth of data, and calulate smooth averge per minute
