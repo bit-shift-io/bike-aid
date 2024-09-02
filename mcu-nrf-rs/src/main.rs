@@ -133,7 +133,8 @@ async fn main(spawner: Spawner) {
 
     // spawner.must_spawn(fake_signals::task());
 
-    // spawner.must_spawn(i2c_scan::task(I2cDevice::new(i2c_bus)));
+    use crate::examples::i2c_scan;
+    spawner.must_spawn(i2c_scan::task(i2c_bus));
     
     use crate::utils::signals;
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();

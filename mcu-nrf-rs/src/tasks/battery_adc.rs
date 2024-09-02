@@ -59,7 +59,7 @@ pub async fn task(
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let pub_data = signals::BATTERY_IN.publisher().unwrap();
-    let address = SlaveAddr::Alternative(false, true); // sda 0x4A
+    let address = SlaveAddr::Alternative(true, false); // new_sda(); //// sda 0x4A
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
     let result = adc.set_full_scale_range(FullScaleRange::Within4_096V); // set range to 4.096v
     match result {
@@ -93,6 +93,8 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
 
         // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!?
+
+        info!("{}: voltage: {}mV, current: {}mA", TASK_ID, real_voltage, real_current);
 
         // AO is current in mA
         // A1 is voltage in mV
