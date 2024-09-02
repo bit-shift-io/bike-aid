@@ -21,8 +21,8 @@ pub async fn task() {
 
     loop {
         let input = sub_data.next_message_pure().await; // millivolts, updated 1 second
-        let input_voltage = input[0]; // mV
-        let input_current = input[1]; // mA
+        let input_current = input[0]; // mA
+        let input_voltage = input[1]; // mV
         
         let power = (input_voltage * input_current) as u32; // milliwatts P=IV
 
@@ -45,7 +45,7 @@ pub async fn task() {
         //pub_power.publish_immediate(power);
         pub_current.publish_immediate(input_current);
         pub_voltage.publish_immediate(input_voltage);
-        info!("{}: current={} voltage={} power={}", TASK_ID, input_current, input_voltage, power);
+        info!("{}: current:{} voltage:{} power:{}", TASK_ID, input_current, input_voltage, power);
 
         // TODO: calculate power every few seconds
         // store 1 minutes worth of data, and calulate smooth averge per minute
