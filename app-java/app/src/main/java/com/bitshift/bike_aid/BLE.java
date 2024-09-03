@@ -127,7 +127,9 @@ public class BLE {
     }
 
     public void connectDevice() {
-        mDevice.createBond();
+        // TODO: do we need to bond??
+        //mDevice.createBond();
+
         // device connected will register the callbacks here
         // and so i have the gatt class to handle it
         mGatt = mDevice.connectGatt(mContext, true, mGattCallback);

@@ -125,7 +125,9 @@ async fn main(spawner: Spawner) {
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
 
+
     // == DEBUG ==
+
     //use embassy_nrf::gpio::{Level, Output, OutputDrive};
     //Output::new(p.P0_14, Level::Low, OutputDrive::Standard);
     //Output::new(p.P0_15, Level::Low, OutputDrive::Standard);
@@ -135,11 +137,16 @@ async fn main(spawner: Spawner) {
 
     use crate::examples::i2c_scan;
     spawner.must_spawn(i2c_scan::task(i2c_bus));
+
+    // turn device on for testing
+    Timer::after_millis(100).await;
+    let pub_power = signals::SWITCH_POWER.publisher().unwrap();
+    pub_power.publish(true).await;
     
     use crate::utils::signals;
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
     loop {
         let val = sub_minutes.next_message_pure().await;
-        info!("Min: {}", val);
+        info!("Main - Time: {}", val);
     }
 }

@@ -119,6 +119,12 @@ public class MainActivity extends AppCompatActivity {
                     item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOff));
                 }
             }
+
+            @Override
+            public void onBatteryLevel(String result) {
+                TextView item = findViewById(R.id.battery_level);
+                item.setText(result);
+            }
         });
 
         // reset log button

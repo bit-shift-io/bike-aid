@@ -40,6 +40,7 @@ public class Signals {
         void onClockHours(String result);
         void onPower(boolean result);
         void onAlarm(boolean result);
+        void onBatteryLevel(String result);
     }
 
 
@@ -67,6 +68,16 @@ public class Signals {
             public void run() { mOnEventListener.onSpeed(String.format("%02d", v)); }
         });
     }
+
+
+    public void setBatteryLevel(int v) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
+            public void run() {
+                mOnEventListener.onBatteryLevel(String.valueOf(v));
+            }
+        });
+    }
+
 
     public void setTemperature(int v) {
         new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
@@ -130,7 +141,10 @@ public class Signals {
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
         String id = Functions.string16FromUUID(characteristic.getUuid());
         String st = new String(value, StandardCharsets.UTF_8);
+
+        // debug read
         log.info("read " + id + " " + st);
+
         // uart
 
         // rx - 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
@@ -179,6 +193,14 @@ public class Signals {
         // clock hours
         if (id.equals("2006")) {
             setClockHours(value[0]);
+        }
+
+
+        // 0x180f series is battery
+
+        // level - 0x2a19
+        if (id.equals("2a19")) {
+            setBatteryLevel(value[0]);
         }
 
 

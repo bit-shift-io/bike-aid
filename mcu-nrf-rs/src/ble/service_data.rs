@@ -1,10 +1,9 @@
 use super::server::{self, *};
-use crate::utils::functions;
 use crate::utils::signals;
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
-use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
+use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 use embassy_futures::join;
@@ -98,7 +97,6 @@ impl DataService {
 
 
 pub async fn run(connection: &Connection, server: &Server) {
-    // TODO: add data points here
     /*
     speed: CharacteristicHandles,
     trip_duration: CharacteristicHandles,

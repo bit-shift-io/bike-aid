@@ -12,7 +12,7 @@ use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID: &str = "BATTERY ADC";
-const INTERVAL: u64 = 1000;
+const INTERVAL: u64 = 30; // 30 seconds
 
 // consts for voltage divider
 const VOLTAGE_CALIBATION : u16 = 10; // calibration level = multimeter - measured
@@ -66,8 +66,6 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     let address = SlaveAddr::Alternative(true, false); // new_sda(); //// sda 0x4A
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
 
-    info!("here!!");
-    //Timer::after_millis(100).await;
     let result = adc.set_full_scale_range(FullScaleRange::Within4_096V); // set range to 4.096v
     match result {
         Ok(()) => {},
@@ -81,33 +79,42 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         let value_a0 = block!(adc.read(ChannelSelection::SingleA0)).unwrap(); // current
         let value_a1 = block!(adc.read(ChannelSelection::SingleA1)).unwrap(); // voltage
 
-        // convert to voltage
-        // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-        // 4096.0 / 32768.0 = 0.125
-        let input_voltage_a0: u16 = (f32::from(value_a0) * 4096.0 / 32768.0) as u16; // converted to mv
-        let mut input_voltage_a1: u16 = (f32::from(value_a1) * 4096.0 / 32768.0) as u16; // converted to mv
+        let voltage = calculate_voltage(value_a1);
+        let current = calculate_current(value_a0);
 
-        // calibration
-        input_voltage_a1 += VOLTAGE_CALIBATION; 
-
-        //info!("{}: a0: {} -> {}, a1: {} -> {}", TASK_ID, value_a0, input_voltage_a0, value_a1, input_voltage_a1);
-        //info!("{}: multiplier: {}", TASK_ID, VOLTAGE_MULTIPLIER);
-        
-        // voltage before the resitor divider
-        let real_voltage = (f32::from(input_voltage_a1) * VOLTAGE_MULTIPLIER) as u16; // mv
-
-        // TODO: current sensor
-        let current_voltage = f32::from(input_voltage_a0) - QOV + NON_ZERO;
-        let mut current = current_voltage / FACTOR;
-        if abs(current) < CUTOFF { // cutoff in mA
-            current = 0.0;
-        }
-        let real_current = (current * 1000.0) as u16; // convert to mA
-
-        //info!("{}, {}, {}", CUTOFF, current_voltage, current);
-        //info!("{}: voltage: {}mV, current: {}mA", TASK_ID, real_voltage, real_current);
-
-        pub_data.publish_immediate([real_current, real_voltage]);
-        Timer::after_millis(INTERVAL).await;
+        pub_data.publish_immediate([voltage, current]);
+        Timer::after_secs(INTERVAL).await;
     }
+}
+
+
+fn calculate_voltage(voltage: i16) -> u16 {
+    // convert to voltage
+    // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
+    let mut input_voltage_a1: u16 = (f32::from(voltage) * 4096.0 / 32768.0) as u16; // converted to mv
+
+    // calibration
+    input_voltage_a1 += VOLTAGE_CALIBATION; 
+
+    //info!("{}: a0: {} -> {}, a1: {} -> {}", TASK_ID, value_a0, input_voltage_a0, value_a1, input_voltage_a1);
+    //info!("{}: multiplier: {}", TASK_ID, VOLTAGE_MULTIPLIER);
+    
+    // voltage before the resitor divider
+    (f32::from(input_voltage_a1) * VOLTAGE_MULTIPLIER) as u16 // mv
+}
+
+
+fn calculate_current(current: i16) -> u16 {
+    // convert to voltage
+    // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
+    let input_voltage_a0: u16 = (f32::from(current) * 4096.0 / 32768.0) as u16; // converted to mv
+
+    // TODO: current sensor
+    let current_voltage = f32::from(input_voltage_a0) - QOV + NON_ZERO;
+    let mut current = current_voltage / FACTOR;
+    if abs(current) < CUTOFF { // cutoff in mA
+        current = 0.0;
+    }
+    
+    (current * 1000.0) as u16 // convert to mA
 }

@@ -1,11 +1,12 @@
+use super::server::{self, *};
+use crate::utils::signals;
 use defmt::{*};
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Presentation, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
-use nrf_softdevice::ble::{gatt_server, Connection, Uuid};
+use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::{raw, Softdevice};
-
-use super::server::Server;
+use embassy_futures::join;
 
 const BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);
 const BATTERY_LEVEL: Uuid = Uuid::new_16(0x2a19);
@@ -126,6 +127,55 @@ impl BatteryService {
 
 
 pub async fn run(connection: &Connection, server: &Server) {
-    info!("TODO: run battery service");
+    // TODO: add services here
+    // do we need to mutpin?
+    join::join4(
+        update_level(connection, server), 
+        update_power(connection, server), 
+        update_voltage(connection, server), 
+        update_current(connection, server),
+        ).await;
+}
 
+
+pub async fn update_level(connection: &Connection, server: &Server) {
+    let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    let handle = server.battery.level.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        let _ = server::notify_value(connection, handle, &[val]);
+    }
+}
+
+
+pub async fn update_power(connection: &Connection, server: &Server) {
+    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let handle = server.battery.level.value_handle;
+    // loop {
+    //     let val = sub.next_message_pure().await;
+    //     //let val = functions::bitshift_split_u16(val);
+    //     let _ = server::notify_value(connection, handle, &[val]);
+    // }
+}
+
+
+pub async fn update_voltage(connection: &Connection, server: &Server) {
+    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let handle = server.battery.level.value_handle;
+    // loop {
+    //     let val = sub.next_message_pure().await;
+    //     //let val = functions::bitshift_split_u16(val);
+    //     let _ = server::notify_value(connection, handle, &[val]);
+    // }
+}
+
+
+pub async fn update_current(connection: &Connection, server: &Server) {
+    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let handle = server.battery.level.value_handle;
+    // loop {
+    //     let val = sub.next_message_pure().await;
+    //     //let val = functions::bitshift_split_u16(val);
+    //     let _ = server::notify_value(connection, handle, &[val]);
+    // }
 }

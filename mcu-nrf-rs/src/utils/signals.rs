@@ -26,6 +26,7 @@ pub static TEMPERATURE: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel
 pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
+pub static BATTERY_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 1, 1> = PubSubChannel::new();
 
 // Internal
 pub static BATTERY_IN: PubSubChannel<ChannelMutex, [u16;2], 1, 2, 2> = PubSubChannel::new();
