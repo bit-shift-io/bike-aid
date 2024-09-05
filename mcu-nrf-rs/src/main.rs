@@ -135,8 +135,8 @@ async fn main(spawner: Spawner) {
 
     // spawner.must_spawn(fake_signals::task());
 
-    use crate::examples::i2c_scan;
-    spawner.must_spawn(i2c_scan::task(i2c_bus));
+    // use crate::examples::i2c_scan;
+    // spawner.must_spawn(i2c_scan::task(i2c_bus));
 
     // turn device on for testing
     Timer::after_millis(100).await;
