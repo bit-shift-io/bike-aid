@@ -96,7 +96,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
 
-    spawner.must_spawn(brake::task(p.P1_04.degrade()));
+    spawner.must_spawn(brake::task(p.P0_17.degrade()));
 
     spawner.must_spawn(switch_power::task(p.P1_01.degrade()));
 
