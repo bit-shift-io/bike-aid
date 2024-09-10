@@ -27,15 +27,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="484.27976"
-     inkscape:cy="345.59844"
+     inkscape:zoom="2"
+     inkscape:cx="475.25"
+     inkscape:cy="320.5"
      inkscape:window-width="1875"
      inkscape:window-height="1052"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="g48"
      showguides="true">
     <inkscape:grid
        id="grid1"
@@ -4064,6 +4064,61 @@
          x="148.55035"
          y="46.200592"
          id="tspan36">LED Module</tspan></text>
+    <rect
+       style="display:inline;fill:#000000;fill-opacity:0.1;stroke:none;stroke-width:0.0995138;stroke-dasharray:none;stroke-opacity:0.3"
+       id="rect33-3"
+       width="2.5399957"
+       height="2.5400083"
+       x="-41.91"
+       y="147.31996"
+       transform="rotate(-90)" />
+    <ellipse
+       style="display:inline;fill:#000000;fill-opacity:0.2;stroke:none;stroke-width:0.1325;stroke-opacity:0.3"
+       id="ellipse34-5"
+       cx="-40.640003"
+       cy="149.85995"
+       rx="0.63499981"
+       ry="0.625"
+       transform="rotate(-90)" />
+    <ellipse
+       style="display:inline;fill:#000000;fill-opacity:0.2;stroke:none;stroke-width:0.1325;stroke-opacity:0.3"
+       id="ellipse35-6"
+       cx="-40.640003"
+       cy="147.31996"
+       rx="0.63499981"
+       ry="0.625"
+       transform="rotate(-90)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;display:inline;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
+       x="147.01349"
+       y="41.090275"
+       id="text35-2"><tspan
+         sodipodi:role="line"
+         id="tspan35-9"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:start;writing-mode:lr-tb;text-orientation:sideways;text-anchor:start;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="147.01349"
+         y="41.090275">470R</tspan></text>
+    <rect
+       style="display:inline;fill:none;fill-opacity:0.2;stroke:#000000;stroke-width:0.2;stroke-dasharray:0.799995, 0.2;stroke-dashoffset:0;stroke-opacity:0.3"
+       id="rect35-1"
+       width="5.0600076"
+       height="2.5399973"
+       x="146.04997"
+       y="39.370003"
+       inkscape:label="bounds" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:center;writing-mode:lr-tb;text-orientation:sideways;text-anchor:middle;display:inline;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-opacity:0.3"
+       x="148.55035"
+       y="38.580593"
+       id="text36-2"
+       inkscape:label="title"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:center;writing-mode:lr-tb;text-orientation:sideways;text-anchor:middle;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="148.55035"
+         y="38.580593"
+         id="tspan36-70">5v LED Tester</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"

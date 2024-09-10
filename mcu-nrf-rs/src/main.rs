@@ -10,9 +10,9 @@ P0.06 - I2C SCL - Orange ( Green on breadboard )
 P1.04 - Brake
 P1.06 - Speed
 
-P1.01 - Power Switch
-P1.02 - Light
-P1.07 - Horn
+P0.09 - Power Switch
+P0.10 - Light
+P1.11 - Horn
 
 nfc-pins-as-gpio Allow using the NFC pins as regular GPIO P0_09/P0_10 on nRF52
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO P0_18
@@ -98,11 +98,11 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
 
-    spawner.must_spawn(switch_power::task(p.P1_01.degrade()));
+    spawner.must_spawn(switch_power::task(p.P0_09.degrade()));
 
-    spawner.must_spawn(switch_horn::task(p.P1_07.degrade()));
+    spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
 
-    spawner.must_spawn(switch_light::task(p.P1_02.degrade()));
+    spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
 
     spawner.must_spawn(speed::task(p.P1_06.degrade()));
 
