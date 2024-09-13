@@ -7,6 +7,7 @@ use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
 use embassy_futures::join;
+use futures::join;
 
 const SERVICE_ID: Uuid = Uuid::new_16(0x2000);
 const SPEED: Uuid = Uuid::new_16(0x2001);
@@ -107,12 +108,20 @@ pub async fn run(connection: &Connection, server: &Server) {
      */
     // TODO: add services here
     // do we need to mutpin?
+    futures::join!(
+        update_speed(connection, server), 
+        update_temperature(connection, server), 
+        update_clock_minutes(connection, server), 
+        update_clock_hours(connection, server),
+    );
+    /*
     join::join4(
         update_speed(connection, server), 
         update_temperature(connection, server), 
         update_clock_minutes(connection, server), 
         update_clock_hours(connection, server),
         ).await;
+     */
 }
 
 

@@ -7,6 +7,7 @@ pub mod cli;
 pub mod clock;
 pub mod gyroscope;
 pub mod led;
+pub mod manual_override;
 pub mod piezo;
 pub mod speed;
 pub mod store;
