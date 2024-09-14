@@ -7,12 +7,14 @@ P0.29 - Piezo
 P0.08 - I2C SDA - Yellow
 P0.06 - I2C SCL - Orange ( Green on breadboard )
 
-P1.04 - Brake
-P1.06 - Speed
+// TODO: update pins!
 
-P0.09 - Power Switch
-P0.10 - Light
-P1.11 - Horn
+P0.17 - Brake
+P0.09 - Speed
+
+P0.10 - Power Switch
+//P0.10 - Light
+//P1.11 - Horn
 
 nfc-pins-as-gpio Allow using the NFC pins as regular GPIO P0_09/P0_10 on nRF52
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO P0_18
@@ -81,16 +83,17 @@ async fn main(spawner: Spawner) {
     };
 
     // == INIT DEVICES ==
+    // Causes issues if there is no pullups for the i2c bus
 
-    spawner.must_spawn(throttle_adc::task(i2c_bus));
+    // spawner.must_spawn(throttle_adc::task(i2c_bus));
 
-    spawner.must_spawn(throttle_dac::task(i2c_bus));
+    // spawner.must_spawn(throttle_dac::task(i2c_bus));
 
-    spawner.must_spawn(gyroscope::task(i2c_bus));
+    // spawner.must_spawn(gyroscope::task(i2c_bus));
 
-    spawner.must_spawn(temperature::task(i2c_bus));
+    // spawner.must_spawn(temperature::task(i2c_bus));
 
-    spawner.must_spawn(battery_adc::task(i2c_bus));
+    // spawner.must_spawn(battery_adc::task(i2c_bus));
 
     // == INIT TASKS ==
 
@@ -98,13 +101,15 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
 
-    spawner.must_spawn(switch_power::task(p.P0_09.degrade()));
+    spawner.must_spawn(speed::task(p.P0_09.degrade()));
 
-    spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
+    spawner.must_spawn(switch_power::task(p.P0_10.degrade()));
 
-    spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
+    spawner.must_spawn(manual_override::task(p.P0_20.degrade()));
 
-    spawner.must_spawn(speed::task(p.P1_06.degrade()));
+    //spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
+
+    //spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
 
     spawner.must_spawn(battery::task());
 
@@ -139,9 +144,9 @@ async fn main(spawner: Spawner) {
     // spawner.must_spawn(i2c_scan::task(i2c_bus));
 
     // turn device on for testing
-    Timer::after_millis(100).await;
-    let pub_power = signals::SWITCH_POWER.publisher().unwrap();
-    pub_power.publish(true).await;
+    //Timer::after_millis(100).await;
+    //let pub_power = signals::SWITCH_POWER.publisher().unwrap();
+    //pub_power.publish(true).await;
     
     use crate::utils::signals;
     let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
