@@ -15,9 +15,11 @@ pub async fn task(
 
     loop {
         pin_state.wait_for_high().await; // brake off
-        pub_button.publish_immediate(true);
+        pub_button.publish_immediate(false);
+        //info!("{}: brake off", TASK_ID);
 
         pin_state.wait_for_low().await; // brake on
-        pub_button.publish_immediate(false);
+        pub_button.publish_immediate(true);
+        //info!("{}: brake on", TASK_ID);
     }
 }

@@ -45,8 +45,8 @@ pub struct ThrottleSettings {
     pub passthrough: bool, // disable smoothing and limiting
     pub increase_smooth_factor: i16, // rate of smoothing to acceleration
     pub decrease_smooth_factor: i16, // rate of smoothing to deceleration
-    pub no_throttle: i16, // mv no throttle
-    pub full_throttle: i16, // mv full throttle
+    pub throttle_min: i16, // mv no throttle
+    pub throttle_max: i16, // mv full throttle
     pub deadband_min: i16, // mv just before motor active
     pub deadband_max: i16,
     pub speed_limit: i16, // mv just after max speed, or supply voltage
@@ -56,27 +56,13 @@ pub struct ThrottleSettings {
 /*
 Controller supply voltage - 4.36v = 4360mv
 */
-// pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
-//     passthrough: false, // disable smoothing and limiting
-//     increase_smooth_factor: 4000, // rate of smoothing to acceleration
-//     decrease_smooth_factor: 100, // rate of smoothing to deceleration
-//     no_throttle: 850, // mv no throttle
-//     full_throttle: 3580, // mv full throttle
-//     deadband_min: 1230, // mv just before motor active
-//     deadband_max: 2600, // mv just after max speed, or supply voltage
-//     speed_limit: 4096, // as mv
-// });
-
-/*
-testing values stright mapping
-*/
 pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
     increase_smooth_factor: 80, // rate of smoothing to acceleration
     decrease_smooth_factor: 150, // rate of smoothing to deceleration
-    no_throttle: 850, // mv no throttle
-    full_throttle: 2300, // mv full throttle
-    deadband_min: 850, // mv just before motor active
-    deadband_max: 2300, // mv just after max speed, or supply voltage
-    speed_limit: 4096, // as mv
+    throttle_min: 910, // mv no throttle
+    throttle_max: 3400, // mv full throttle
+    deadband_min: 1200, // mv just before motor active
+    deadband_max: 2500, // mv just after max speed, or supply voltage
+    speed_limit: 4000, // as mv
 });

@@ -5,6 +5,7 @@ const TASK_ID: &str = "BATTERY";
 const BATTERY_CAPACITY: u16 = 2400; // mAh
 const BATTERY_MAX_VOLTAGE: u16 = 54_600; // mV
 const BATTERY_MIN_VOLTAGE: u16 = 39_000; // mv
+const BATTERY_RANGE: u16 = BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE; // mv
 
 
 #[embassy_executor::task]
@@ -61,5 +62,7 @@ pub async fn task() {
 fn calculate_percentage(voltage: u16) -> u8 {
         // battery cant be less than min, unless its not plugged in
         let voltage = functions::max(voltage, BATTERY_MIN_VOLTAGE);
-        ((voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100) as u8
+        // Calculate the percentage using larger integer type to avoid overflow
+        let voltage_adjusted = (voltage - BATTERY_MIN_VOLTAGE) as u32;
+        (voltage_adjusted * 100 / BATTERY_RANGE as u32) as u8 // percent
 }

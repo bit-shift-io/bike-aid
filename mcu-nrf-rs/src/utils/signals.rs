@@ -19,7 +19,7 @@ pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChann
 pub static INSTANT_SPEED: PubSubChannel<ChannelMutex, u32, 1, 2, 2> = PubSubChannel::new();
 pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 pub static WHEEL_ROTATIONS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static ODOMETER: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+pub static ODOMETER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 
 pub static TEMPERATURE: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 

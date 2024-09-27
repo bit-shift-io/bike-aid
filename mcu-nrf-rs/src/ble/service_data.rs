@@ -1,5 +1,5 @@
 use super::server::{self, *};
-use crate::utils::signals;
+use crate::utils::{functions, signals};
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
@@ -109,6 +109,7 @@ pub async fn run(connection: &Connection, server: &Server) {
     // TODO: add services here
     // do we need to mutpin?
     futures::join!(
+        update_odometer(connection, server),
         update_speed(connection, server), 
         update_temperature(connection, server), 
         update_clock_minutes(connection, server), 
@@ -122,6 +123,23 @@ pub async fn run(connection: &Connection, server: &Server) {
         update_clock_hours(connection, server),
         ).await;
      */
+}
+
+
+pub async fn update_odometer(connection: &Connection, server: &Server) {
+    let mut sub = signals::ODOMETER.subscriber().unwrap();
+    let handle = server.data.odometer.value_handle;
+    loop {
+        let val = sub.next_message_pure().await;
+        //let val = functions::bitshift_split_u16(val);
+
+        let bytes: [u8; 2] = val.to_le_bytes(); // Convert to little-endian byte array
+        // If you want a slice
+        //let val: &[u8] = &bytes;
+
+        // TODO: crash here, panic
+        //let _ = server::notify_value(connection, handle, &bytes);
+    }
 }
 
 

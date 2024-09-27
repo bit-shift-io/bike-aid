@@ -44,14 +44,14 @@ pub async fn task() {
         if string.starts_with("no_throttle") || string.starts_with("4") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().next().unwrap();
-            throttle_settings.no_throttle = value.parse::<i16>().unwrap();
+            throttle_settings.throttle_min = value.parse::<i16>().unwrap();
             result = true;
         }
 
         if string.starts_with("full_throttle") || string.starts_with("5") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().next().unwrap();
-            throttle_settings.full_throttle = value.parse::<i16>().unwrap();
+            throttle_settings.throttle_max = value.parse::<i16>().unwrap();
             result = true;
         }
 

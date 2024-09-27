@@ -6,7 +6,7 @@ const TASK_ID : &str = "FAKE SIGNALS";
 const INTERVAL: u64 = 5000;
 
 #[embassy_executor::task]
-pub async fn fake_signals () {
+pub async fn task () {
     info!("{}: start", TASK_ID);
 
     // change here for testing

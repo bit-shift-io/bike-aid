@@ -5,7 +5,7 @@ use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
 const TASK_ID: &str = "BLINKY";
 
 #[embassy_executor::task]
-pub async fn blinky (
+pub async fn task (
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
@@ -13,8 +13,8 @@ pub async fn blinky (
 
     loop { 
         led.set_high();
-        Timer::after_millis(3000).await;
+        Timer::after_millis(1000).await;
         led.set_low();
-        Timer::after_millis(3000).await;
+        Timer::after_millis(1000).await;
     };
 }

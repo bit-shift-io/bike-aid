@@ -1,26 +1,38 @@
 /*
 Pin Guide
-
+----------
 P0.31 - LED
 P0.29 - Piezo
-
-P0.08 - I2C SDA - Yellow
-P0.06 - I2C SCL - Orange ( Green on breadboard )
-
-// TODO: update pins!
-
+P0.20 - Manual Override
 P0.17 - Brake
 P0.09 - Speed
-
 P0.10 - Power Switch
+
 //P0.10 - Light
 //P1.11 - Horn
 
+P0.06 - I2C SCL - Orange ( Green on breadboard )
+P0.08 - I2C SDA - Yellow
+
+Notes
+----------
 nfc-pins-as-gpio Allow using the NFC pins as regular GPIO P0_09/P0_10 on nRF52
 reset-pin-as-gpio Allow using the RST pin as a regular GPIO P0_18
 
 P0.13 controls vcc output on/off 3.3v
 P0.14-0.16 set low resets ?
+p0.15 Debug LED
+
+Todo
+----------
+fix ble power on/off (phone issue?)
+battery power reading
+odometer
+alarm on/off/beeps
+cruise - auto
+
+alarm - auto on/off
+speedo
 */
 
 #![no_std]
@@ -85,15 +97,15 @@ async fn main(spawner: Spawner) {
     // == INIT DEVICES ==
     // Causes issues if there is no pullups for the i2c bus
 
-    // spawner.must_spawn(throttle_adc::task(i2c_bus));
+    spawner.must_spawn(throttle_adc::task(i2c_bus));
 
-    // spawner.must_spawn(throttle_dac::task(i2c_bus));
+    spawner.must_spawn(throttle_dac::task(i2c_bus));
 
-    // spawner.must_spawn(gyroscope::task(i2c_bus));
+    spawner.must_spawn(gyroscope::task(i2c_bus));
 
-    // spawner.must_spawn(temperature::task(i2c_bus));
+    spawner.must_spawn(temperature::task(i2c_bus));
 
-    // spawner.must_spawn(battery_adc::task(i2c_bus));
+    spawner.must_spawn(battery_adc::task(i2c_bus));
 
     // == INIT TASKS ==
 
@@ -123,7 +135,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(cli::task());
 
-    spawner.must_spawn(led::task(p.P0_31.degrade()));
+    spawner.must_spawn(led::task(p.P0_31.degrade())); // 0.31, 0.15
 
     spawner.must_spawn(clock::task());
 
@@ -139,6 +151,9 @@ async fn main(spawner: Spawner) {
     //Output::new(p.P0_16, Level::Low, OutputDrive::Standard);
 
     // spawner.must_spawn(fake_signals::task());
+
+    //use crate::examples::blinky;
+    //spawner.must_spawn(blinky::task(p.P0_03.degrade()));
 
     // use crate::examples::i2c_scan;
     // spawner.must_spawn(i2c_scan::task(i2c_bus));

@@ -1,4 +1,5 @@
-use crate::utils::{functions::min, signals};
+use crate::utils::signals;
+use crate::utils::functions;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
@@ -11,7 +12,11 @@ use mcp4725::MCP4725;
 
 const TASK_ID : &str = "THROTTLE DAC";
 const ADDRESS: u8 = 0x60;
-const SUPPLY_VOLTAGE: i32 = 4880; // TODO: mv supply for calibration
+// TODO: mv supply for calibration
+// set just under voltage across the g and v pins of the throttle module
+// Controller supply voltage - 4.36v = 4360mv
+// onboard power supply - 4.98v = 4980mv
+const SUPPLY_VOLTAGE: u16 = 5000; // mv
 
 #[embassy_executor::task]
 pub async fn task(
@@ -53,23 +58,29 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     }
 
     loop {
-        /*
-        // for testing calibration
-        dac.set_dac(mcp4725::PowerDown::Normal, (1000 * 4095.0 / supply_voltage) as u16);    //Set voltage to 1V
-        Timer::after_secs(2).await;
-        dac.set_dac(mcp4725::PowerDown::Normal, (2000 * 4095.0 / supply_voltage) as u16);    //Set voltage to 2V
-        Timer::after_secs(2).await;
-        dac.set_dac(mcp4725::PowerDown::Normal, (3000 * 4095.0 / supply_voltage) as u16);    //Set voltage to 3V
-        Timer::after_secs(2).await;
-        dac.set_dac(mcp4725::PowerDown::Normal, (4000 * 4095.0 / supply_voltage) as u16);    //Set voltage to 4V
-        Timer::after_secs(2).await;
-        dac.set_dac(mcp4725::PowerDown::Normal, (5000 * 4095.0 / supply_voltage) as u16);              //Set voltage to 5V or (Vcc)
-        Timer::after_secs(2).await;
-        */
+  
+        // testing calibration
+        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (1000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 1V
+        // info!("{} : 1V", TASK_ID);
+        // Timer::after_secs(5).await;
+        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (2000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 2V
+        // info!("{} : 2V", TASK_ID);
+        // Timer::after_secs(5).await;
+        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (3000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 3V
+        // info!("{} : 3V", TASK_ID);
+        // Timer::after_secs(5).await;
+        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 4V
+        // info!("{} : 4V", TASK_ID);
+        // Timer::after_secs(5).await;
+        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4095.0) as u16);    //Set voltage to 5V or (Vcc)
+        // info!("{} : 5V", TASK_ID);
+        // Timer::after_secs(5).await;
+   
 
         let value = sub_throttle.next_message_pure().await; // desired mv
         let dac_value = (f32::from(value) * 4095.0 / SUPPLY_VOLTAGE as f32) as u16;
-        let dac_value = min(4095, dac_value);
+        let dac_value = functions::min(4095, dac_value); // 4095 is supply voltage, cant go above this
         let _ = dac.set_dac(mcp4725::PowerDown::Normal, dac_value as u16);
+        //info!("{} : {}", TASK_ID, dac_value); // dac value, not in mv
     }
 }

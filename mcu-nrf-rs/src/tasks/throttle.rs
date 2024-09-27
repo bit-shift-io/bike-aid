@@ -46,7 +46,7 @@ async fn run() {
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
-            info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
+            //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
             pub_throttle.publish_immediate(input_voltage as i16);
             continue;
         }
@@ -115,19 +115,19 @@ async fn run() {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = functions::map(output_voltage, &(throttle_settings.no_throttle as f32), &(throttle_settings.full_throttle as f32), &(throttle_settings.deadband_min as f32), &(throttle_settings.deadband_max as f32));
+        let mapped_output = functions::map(output_voltage, &(throttle_settings.throttle_min as f32), &(throttle_settings.throttle_max as f32), &(throttle_settings.deadband_min as f32), &(throttle_settings.deadband_max as f32));
 
         // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output as i16); 
-        info!("in: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
+        info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
-        // TODO: remove this as it will clog up the ble connection
+        // DEBUG: remove this as it will clog up the ble connection
         // publish to uart for debug
-        let mut buf = [0u8; 32];
-        let text = format_no_std::show(&mut buf, format_args!("{},{}\n", input_smooth, output_voltage)).unwrap();
-        let s = String::try_from(text).unwrap();
-        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
+        // let mut buf = [0u8; 32];
+        // let text = format_no_std::show(&mut buf, format_args!("{},{}\n", input_smooth, output_voltage)).unwrap();
+        // let s = String::try_from(text).unwrap();
+        // signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
     }
 }
 
@@ -135,14 +135,14 @@ async fn run() {
 
 // a helper class to keep a track of smoothing
 struct InputHistory {
-    data: [f32; 10],
+    data: [f32; 3],
     index: usize,
 }
 
 impl InputHistory {
     fn new() -> Self {
         InputHistory { 
-            data: [0.0; 10],
+            data: [0.0; 3],
             index: 0,
         }
     }

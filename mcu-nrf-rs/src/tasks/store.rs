@@ -49,8 +49,8 @@ async fn write_store<E: defmt::Format>(
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     write_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
     write_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.no_throttle).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.full_throttle).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
+    write_i16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     write_i16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
     write_i16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
     write_i16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
@@ -71,8 +71,8 @@ async fn read_store<E: defmt::Format>(
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     read_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
     read_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.no_throttle).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.full_throttle).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
+    read_i16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     read_i16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
     read_i16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
     read_i16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
