@@ -67,7 +67,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         // convert to voltage
         // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-        let input_voltage: i16 = (f32::from(value) * 6144.0 / 32768.0) as i16; // converted to mv
+        let input_voltage: u16 = (f32::from(value) * 6144.0 / 32768.0) as u16; // converted to mv
 
 
         // voltage of the actual throttle before the resitor divider

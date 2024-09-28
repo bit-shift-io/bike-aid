@@ -133,7 +133,7 @@ pub const MARIO_UNDERWORLD: [isize; 112] = [
 ];
 
 
-pub const SUPER_MARIO_TEMPO: i32 = 200;
+pub const SUPER_MARIO_BROS_TEMPO: i32 = 200;
 pub const SUPER_MARIO_BROS: [isize; 642] = [
     // Super Mario Bros theme
     // Score available at https://musescore.com/user/2123/scores/2145

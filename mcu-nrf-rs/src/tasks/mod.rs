@@ -5,6 +5,7 @@ pub mod bluetooth;
 pub mod brake;
 pub mod cli;
 pub mod clock;
+pub mod cruise;
 pub mod gyroscope;
 pub mod led;
 pub mod manual_override;

@@ -1,5 +1,4 @@
 use crate::utils::functions;
-use crate::utils::store;
 use crate::utils::signals;
 use defmt::*;
 use embassy_futures::select::{select, Either};
@@ -43,12 +42,12 @@ async fn run() {
         // we are converting to f32 as we have divide issues with i16
         let input_voltage = sub_throttle.next_message_pure().await as f32; // millivolts
 
-        let throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+        let throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
             //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
-            pub_throttle.publish_immediate(input_voltage as i16);
+            pub_throttle.publish_immediate(input_voltage as u16);
             continue;
         }
         
@@ -120,7 +119,7 @@ async fn run() {
 
         // TODO: check if these can be negative values, the dac only takes positive values
 
-        pub_throttle.publish_immediate(mapped_output as i16); 
+        pub_throttle.publish_immediate(mapped_output as u16); 
         info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
         // DEBUG: remove this as it will clog up the ble connection

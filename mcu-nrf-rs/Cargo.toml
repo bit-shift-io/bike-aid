@@ -91,7 +91,6 @@ nb = "1.1.0"
 mcp4725 = "0.4.2"
 ads1x1x = "0.2.2"
 mpu6050 = "0.1.6"
-panic-reset = "0.1.1"
 
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:

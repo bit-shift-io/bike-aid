@@ -1,4 +1,4 @@
-use crate::utils::{melody, signals};
+use crate::utils::{note::*, melody, signals};
 use embassy_nrf::gpio::AnyPin;
 use defmt::*;
 use embassy_nrf::peripherals::PWM0;
@@ -15,35 +15,117 @@ pub async fn task(
     info!("{}: start", TASK_ID);
 
     let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
-    let mut sub_alarm = signals::ALARM_ALERT_ACTIVE.subscriber().unwrap();
-    let mut sub_warning = signals::ALARM_MOTION_DETECTED.subscriber().unwrap();
+    let mut sub_mode = signals::PIEZO_MODE.subscriber().unwrap();
+    let mut piezo_mode = PiezoMode::None;
 
     loop {
-        if sub_alarm.next_message_pure().await {
-            play_alarm(&mut pwm).await;
-        }
-        
+        // Try to poll read new mode
+        // doing this way allows us to use the default mode, if no value is set
+        if let Some(b) = sub_mode.try_next_message_pure() {piezo_mode = b}
+
+        match piezo_mode {
+            PiezoMode::None => {
+                pwm.disable();
+                piezo_mode = sub_mode.next_message_pure().await;
+            },
+            PiezoMode::Boot => {
+                boot(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            }, 
+            PiezoMode::PowerOn => {
+                power_on(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            },
+            PiezoMode::PowerOff => {
+                power_off(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            }
+            PiezoMode::Warning => {
+                warning(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            }
+            PiezoMode::Alarm => alarm(&mut pwm).await, // loop
+            PiezoMode::Tune => {
+                play_tune(&mut pwm, melody::SUPER_MARIO_BROS.as_slice(), melody::SUPER_MARIO_BROS_TEMPO).await;
+                piezo_mode = PiezoMode::None;
+            }
+            PiezoMode::Beep => {
+                beep(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            }
+        };
     }
 }
 
-async fn play_alarm(
+
+#[allow(dead_code)]
+#[derive(Clone,Copy)]
+pub enum PiezoMode {
+    None,
+    Boot,
+    PowerOn,
+    PowerOff,
+    Warning,
+    Alarm,
+    Tune,
+    Beep,
+}
+
+
+async fn beep(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    let tempo: i32 = 120;
+    let tune: [isize; 12] = [
+        NOTE_C4, 12, NOTE_C5, 12, NOTE_A3, 12, NOTE_A4, 12 ,NOTE_AS3, 12, NOTE_AS4, 12
+    ];
+    play_tune(pwm, tune.as_slice(), tempo).await;
+}
+
+
+async fn boot(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    play_tune(pwm, melody::STAR_TREK.as_slice(), melody::STAR_TREK_TEMPO).await;
+}
+
+
+async fn power_on(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    play_tune(pwm, melody::NOKIA.as_slice(), melody::NOKIA_TEMPO).await;
+}
+
+
+async fn power_off(
     pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
 ) {
     info!("{}: alarm", TASK_ID);
 }
 
-async fn play_warning(
+
+async fn alarm(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    info!("{}: alarm", TASK_ID);
+}
+
+
+async fn warning(
     pwm: &mut SimplePwm<'_, PWM0>,
 ) {
     info!("{}: warning", TASK_ID);
 }
 
+
 async fn play_tune(
-    pwm: &mut SimplePwm<'_, PWM0>,
+    pwm: &mut SimplePwm<'_, PWM0>, 
+    tune: &[isize], 
+    tempo: i32
 ) {
     //let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
-    let tune = melody::SUPER_MARIO_BROS;
-    let tempo = melody::SUPER_MARIO_TEMPO; // beats per minute
+    //let tune = melody::SUPER_MARIO_BROS;
+    //let tempo = melody::SUPER_MARIO_TEMPO; // beats per minute
     let length = tune.len() / 2;
     let wholenote = (60000.0 * 4.0) / tempo as f32; // wholenote (ms) = 60,000 (1 minute in ms) * 4 (length of whole note) / tempo (bpm)
     let duty = pwm.max_duty() / 10; // piezo driver suggests 50% of max duty

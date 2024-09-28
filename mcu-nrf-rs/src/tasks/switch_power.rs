@@ -12,6 +12,7 @@ pub async fn task(
     let mut sub_button = signals::SWITCH_POWER.subscriber().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
     let pub_led = signals::LED_MODE.publisher().unwrap();
+    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
     loop {
         let val = sub_button.next_message_pure().await;
@@ -20,10 +21,12 @@ pub async fn task(
             true => {
                 pin_state.set_high();
                 pub_led.publish_immediate(signals::LedModeType::Double);
+                pub_piezo.publish_immediate(signals::PiezoModeType::PowerOn);
             }
             false => {
                 pin_state.set_low();
                 pub_led.publish_immediate(signals::LedModeType::None);
+                pub_piezo.publish_immediate(signals::PiezoModeType::PowerOff);
             }
         }
     }

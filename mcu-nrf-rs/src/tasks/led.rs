@@ -24,8 +24,12 @@ pub async fn task(
                 led.set_low();
                 led_mode = sub_mode.next_message_pure().await;
             },
-            LedMode::Double => double(&mut led).await,
-            LedMode::Single => single(&mut led).await,
+            LedMode::Once => {
+                single(&mut led).await;
+                led_mode = LedMode::None;
+            }
+            LedMode::Double => double(&mut led).await, // loop
+            LedMode::Single => single(&mut led).await, // loop
         };
     }
 
@@ -38,6 +42,7 @@ pub enum LedMode {
     None,
     Single,
     Double,
+    Once,
 }
 
 

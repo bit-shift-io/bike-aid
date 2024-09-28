@@ -57,8 +57,8 @@ use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
-use {defmt_rtt as _, panic_probe as _};
-use panic_reset as _; // comment this out for debug purposes
+use {defmt_rtt as _, panic_probe as _}; // this should reset device on panic!
+
 
 
 // Static i2c/twi mutex for shared-bus functionality
@@ -136,6 +136,8 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(throttle::task());
 
+    spawner.must_spawn(cruise::task());
+
     spawner.must_spawn(bluetooth::task(spawner));
 
     spawner.must_spawn(cli::task());
@@ -146,6 +148,15 @@ async fn main(spawner: Spawner) {
 
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
+
+    // boot ok feedback
+    // single blink led
+    // boot tune
+    let pub_led = signals::LED_MODE.publisher().unwrap();
+    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    pub_led.publish_immediate(signals::LedModeType::Once);
+    pub_piezo.publish_immediate(signals::PiezoModeType::Boot);
+
 
 
     // == DEBUG ==

@@ -1,4 +1,4 @@
-use crate::utils::{signals, store};
+use crate::utils::signals;
 use defmt::*;
 use embassy_nrf::nvmc::Nvmc;
 use embedded_storage_async::nor_flash::MultiwriteNorFlash;
@@ -44,7 +44,7 @@ async fn write_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     write_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
@@ -67,7 +67,7 @@ async fn read_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     read_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
     read_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
