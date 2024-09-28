@@ -29,50 +29,50 @@ pub async fn task() {
 
         if string.starts_with("increase_smooth_factor") || string.starts_with("2") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.increase_smooth_factor = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.increase_smooth_factor = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("decrease_smooth_factor") || string.starts_with("3") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.decrease_smooth_factor = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.decrease_smooth_factor = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("no_throttle") || string.starts_with("4") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.throttle_min = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.throttle_min = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("full_throttle") || string.starts_with("5") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.throttle_max = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.throttle_max = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("deadband_min") || string.starts_with("6") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.deadband_min = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.deadband_min = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("deadband_max") || string.starts_with("7") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.deadband_max = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.deadband_max = value.parse::<u16>().unwrap();
             result = true;
         }
 
         if string.starts_with("speed_limit") || string.starts_with("8") {
             let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().next().unwrap();
-            throttle_settings.speed_limit = value.parse::<i16>().unwrap();
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.speed_limit = value.parse::<u16>().unwrap();
             result = true;
         }
 
@@ -83,6 +83,11 @@ pub async fn task() {
                // signals::THROTTLE_SETTINGS_CHANGE.dyn_immediate_publisher().publish_immediate(true);
             }
             result = true;
+        }
+
+        if string.starts_with("reboot") || string.starts_with("restart") {
+            cortex_m::peripheral::SCB::sys_reset();
+            result = true; // should never get here!
         }
 
         if string.starts_with("power") {

@@ -11,7 +11,7 @@ use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID : &str = "THROTTLE ADC";
-const INTERVAL: u64 = 200;
+const INTERVAL: u64 = 100;
 
 #[embassy_executor::task]
 pub async fn task(

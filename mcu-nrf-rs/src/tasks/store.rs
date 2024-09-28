@@ -47,13 +47,13 @@ async fn write_store<E: defmt::Format>(
     let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
-    write_i16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
     // == settings end ==
 }
 
@@ -69,13 +69,13 @@ async fn read_store<E: defmt::Format>(
     // == settings begin ==
     let mut throttle_settings = store::THROTTLE_SETTINGS.lock().await;
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
-    read_i16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
 
     // == settings end ==
 
@@ -95,14 +95,14 @@ async fn write_bool(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setti
 }
 
 
-async fn write_i16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut i16) {
+async fn write_u16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut u16) {
     let mut buf = [0u8; 2];
     if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
-        if *setting != i16::from_le_bytes([buf[0], buf[1]]) { // i16
+        if *setting != u16::from_le_bytes([buf[0], buf[1]]) { // u16
             let _ = flash.write(FLASH_ADDRESS + (*offset * BYTE_SIZE), &setting.to_le_bytes()).await;
         }
     }
-    *offset += 2; // i16
+    *offset += 2; // u16
 }
 
 
@@ -115,13 +115,13 @@ async fn read_bool(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, settin
 }
 
 
-async fn read_i16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut i16) {
+async fn read_u16(flash: &mut impl MultiwriteNorFlash, offset: &mut u32, setting: &mut u16) {
     let mut buf = [0u8; 2];
     if let Ok(_result) = flash.read(FLASH_ADDRESS + (*offset * BYTE_SIZE), &mut buf).await {
-        let value = i16::from_le_bytes([buf[0], buf[1]]);
+        let value = u16::from_le_bytes([buf[0], buf[1]]);
         if value != 0 {
-            *setting = value; // Convert i16 to usize
+            *setting = value; // Convert u16 to usize
         }
     }
-    *offset += 2; // Increment offset for i16
+    *offset += 2; // Increment offset for u16
 }

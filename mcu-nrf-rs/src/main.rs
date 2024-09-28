@@ -25,14 +25,17 @@ p0.15 Debug LED
 
 Todo
 ----------
-fix ble power on/off (phone issue?)
-battery power reading
-odometer
+smoothing to ignore large changes in throttle
+cli reboot
+exponential throttle curve, lower values are more valuable
+
+fix app reconnect
 alarm on/off/beeps
 cruise - auto
 
 alarm - auto on/off
 speedo
+odometer
 */
 
 #![no_std]
@@ -55,6 +58,8 @@ use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt::*;
 use {defmt_rtt as _, panic_probe as _};
+use panic_reset as _; // comment this out for debug purposes
+
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;

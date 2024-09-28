@@ -124,7 +124,7 @@ pub async fn update_power(connection: &Connection, server: &Server) {
     let handle = server.settings.power_switch.value_handle;
     loop {
         let val = sub.next_message_pure().await;
-        Timer::after_millis(100).await; // TODO: fix ble to be async? delay to avoid flooding
+        Timer::after_millis(300).await; // TODO: fix ble to be async? delay to avoid flooding
         let _ = server::notify_value(connection, handle, &[val as u8]);
     }
 }

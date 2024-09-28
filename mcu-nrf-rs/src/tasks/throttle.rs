@@ -3,7 +3,8 @@ use crate::utils::store;
 use crate::utils::signals;
 use defmt::*;
 use embassy_futures::select::{select, Either};
-use heapless::String;
+use num_traits::Pow;
+use num_traits::Float;
 
 const TASK_ID: &str = "THROTTLE";
 
@@ -34,7 +35,7 @@ pub async fn task() {
 async fn run() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
-    let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
+    //let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
     let mut output_voltage = 0.0;
     let mut input_history = InputHistory::new();
 
@@ -68,7 +69,7 @@ async fn run() {
                 adjustment = input_smooth - output_voltage;
             }
         } else { // decrease speed
-            adjustment = -throttle_settings.decrease_smooth_factor as f32;
+            adjustment = -(throttle_settings.decrease_smooth_factor as f32);
             // cap step so we dont go under
             if adjustment + output_voltage < input_smooth {
                 adjustment = input_smooth - output_voltage;
@@ -131,6 +132,23 @@ async fn run() {
     }
 }
 
+
+// function for applying throttle curve
+// we can make the lower values of the range easier to use on the throttle
+// exponent of 1 is linear, while 0.3 will increase the lower range of values
+// this will output a 0-1 value
+fn apply_throttle_curve(input_value: i32, min_input: i32, max_input: i32, min_output: i32, max_output: i32, exponent: f32) -> i32 {
+    // Normalize the input value to the range [0, 1]
+    let normalized_value = (input_value - min_input) as f32 / (max_input - min_input) as f32;
+    
+    // Apply the curve function (e.g., power function)
+    let curved_value = normalized_value.pow(exponent);
+    
+    // Map back to the output range
+    let output_value = min_output + (curved_value * (max_output - min_output) as f32).round() as i32;
+    
+    output_value
+}
 
 
 // a helper class to keep a track of smoothing
