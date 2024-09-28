@@ -100,7 +100,7 @@ async fn power_on(
 async fn power_off(
     pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
 ) {
-    info!("{}: alarm", TASK_ID);
+    play_tune(pwm, melody::NOKIA.as_slice(), melody::NOKIA_TEMPO).await;
 }
 
 
@@ -123,9 +123,6 @@ async fn play_tune(
     tune: &[isize], 
     tempo: i32
 ) {
-    //let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
-    //let tune = melody::SUPER_MARIO_BROS;
-    //let tempo = melody::SUPER_MARIO_TEMPO; // beats per minute
     let length = tune.len() / 2;
     let wholenote = (60000.0 * 4.0) / tempo as f32; // wholenote (ms) = 60,000 (1 minute in ms) * 4 (length of whole note) / tempo (bpm)
     let duty = pwm.max_duty() / 10; // piezo driver suggests 50% of max duty

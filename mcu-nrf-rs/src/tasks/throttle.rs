@@ -120,7 +120,7 @@ async fn run() {
         // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output as u16); 
-        info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
+        //info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
 
         // DEBUG: remove this as it will clog up the ble connection
         // publish to uart for debug

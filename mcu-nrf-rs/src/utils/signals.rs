@@ -39,7 +39,7 @@ pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 1, 2, 2> = PubSubChannel::new();
 
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
-pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 1> = PubSubChannel::new();
+pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 2> = PubSubChannel::new();
 
 pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 

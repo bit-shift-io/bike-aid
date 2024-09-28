@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::{piezo::PiezoMode, utils::signals};
 use defmt::*;
 use embassy_time::Timer;
 use heapless::String;
@@ -112,6 +112,20 @@ pub async fn task() {
 
             result = true;
         }
+
+
+        if string.starts_with("play") {
+            if string.ends_with("tune") {
+                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::Tune);
+            } else if string.ends_with("power") {
+                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::PowerOn);
+            } else {
+                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::Tune);
+            }
+
+            result = true;
+        }
+
 
         if string.starts_with("help") {
             // TODO: fix ble to be async? delay to avoid flooding
