@@ -38,13 +38,55 @@ pub async fn task(
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { power_state = sub_power.next_message_pure().await; }
+            false => { 
+                stop(i2c_bus).await; // set power to device off
+                power_state = sub_power.next_message_pure().await; 
+            }
         }
     }
 }
 
 
-async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn calibrate(
+    i2c_bus: &'static Mutex<NoopRawMutex, 
+    RefCell<Twim<'static, TWISPI0>>>
+) {
+    let i2c = I2cDevice::new(i2c_bus);
+    let mut dac = MCP4725::new(i2c, ADDRESS);
+    let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
+    match result {
+        Ok(()) => {},
+        Err(_e) => {
+            info!("{} : device error", TASK_ID);
+            return
+        }, // unable to communicate with device
+    }
+
+    loop {
+        // testing calibration
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, (1000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 1V
+        info!("{} : 1V", TASK_ID);
+        Timer::after_secs(5).await;
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, (2000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 2V
+        info!("{} : 2V", TASK_ID);
+        Timer::after_secs(5).await;
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, (3000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 3V
+        info!("{} : 3V", TASK_ID);
+        Timer::after_secs(5).await;
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 4V
+        info!("{} : 4V", TASK_ID);
+        Timer::after_secs(5).await;
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4095.0) as u16);    //Set voltage to 5V or (Vcc)
+        info!("{} : 5V", TASK_ID);
+        Timer::after_secs(5).await;
+    }
+}
+
+
+async fn run(
+    i2c_bus: &'static Mutex<NoopRawMutex, 
+    RefCell<Twim<'static, TWISPI0>>>
+) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut sub_throttle = signals::THROTTLE_OUT.subscriber().unwrap();
     let mut dac = MCP4725::new(i2c, ADDRESS);
@@ -58,29 +100,34 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     }
 
     loop {
-  
-        // testing calibration
-        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (1000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 1V
-        // info!("{} : 1V", TASK_ID);
-        // Timer::after_secs(5).await;
-        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (2000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 2V
-        // info!("{} : 2V", TASK_ID);
-        // Timer::after_secs(5).await;
-        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (3000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 3V
-        // info!("{} : 3V", TASK_ID);
-        // Timer::after_secs(5).await;
-        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16);    //Set voltage to 4V
-        // info!("{} : 4V", TASK_ID);
-        // Timer::after_secs(5).await;
-        // let _ = dac.set_dac(mcp4725::PowerDown::Normal, (4095.0) as u16);    //Set voltage to 5V or (Vcc)
-        // info!("{} : 5V", TASK_ID);
-        // Timer::after_secs(5).await;
-   
-
         let value = sub_throttle.next_message_pure().await; // desired mv
         let dac_value = (f32::from(value) * 4095.0 / SUPPLY_VOLTAGE as f32) as u16;
         let dac_value = functions::min(4095, dac_value); // 4095 is supply voltage, cant go above this
         let _ = dac.set_dac(mcp4725::PowerDown::Normal, dac_value as u16);
         //info!("{} : {}", TASK_ID, dac_value); // dac value, not in mv
+    }
+}
+
+
+async fn stop(
+    i2c_bus: &'static Mutex<NoopRawMutex, 
+    RefCell<Twim<'static, TWISPI0>>>
+) {
+    let i2c = I2cDevice::new(i2c_bus);
+    let mut dac = MCP4725::new(i2c, ADDRESS);
+    let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
+    match result {
+        Ok(()) => {},
+        Err(_e) => {
+            info!("{} : device error", TASK_ID);
+            return
+        }, // unable to communicate with device
+    }
+
+    loop {
+        let value = 0.0; // desired mv
+        let dac_value = (f32::from(value) * 4095.0 / SUPPLY_VOLTAGE as f32) as u16;
+        let dac_value = functions::min(4095, dac_value); // 4095 is supply voltage, cant go above this
+        let _ = dac.set_dac(mcp4725::PowerDown::Normal, dac_value as u16);
     }
 }

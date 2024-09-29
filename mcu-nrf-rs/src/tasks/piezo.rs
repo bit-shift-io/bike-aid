@@ -45,12 +45,16 @@ pub async fn task(
                 piezo_mode = PiezoMode::None;
             }
             PiezoMode::Alarm => alarm(&mut pwm).await, // loop
-            PiezoMode::Tune => {
+            PiezoMode::SuperMarioBros => {
                 play_tune(&mut pwm, melody::SUPER_MARIO_BROS.as_slice(), melody::SUPER_MARIO_BROS_TEMPO).await;
                 piezo_mode = PiezoMode::None;
             }
             PiezoMode::Beep => {
                 beep(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            },
+            PiezoMode::RydeOfTheWalkyries => {
+                play_tune(&mut pwm, melody::RYDE_OF_THE_WALKYRIES.as_slice(), melody::RYDE_OF_THE_WALKYRIES_TEMPO).await;
                 piezo_mode = PiezoMode::None;
             }
         };
@@ -67,8 +71,9 @@ pub enum PiezoMode {
     PowerOff,
     Warning,
     Alarm,
-    Tune,
+    SuperMarioBros,
     Beep,
+    RydeOfTheWalkyries,
 }
 
 
@@ -108,6 +113,7 @@ async fn alarm(
     pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
 ) {
     info!("{}: alarm", TASK_ID);
+    play_tune(pwm, melody::NOKIA.as_slice(), melody::NOKIA_TEMPO).await;
 }
 
 
@@ -115,6 +121,7 @@ async fn warning(
     pwm: &mut SimplePwm<'_, PWM0>,
 ) {
     info!("{}: warning", TASK_ID);
+    play_tune(pwm, melody::NOKIA.as_slice(), melody::NOKIA_TEMPO).await;
 }
 
 

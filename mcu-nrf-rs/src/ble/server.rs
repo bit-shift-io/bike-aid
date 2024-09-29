@@ -1,3 +1,4 @@
+use crate::utils::signals;
 use super::service_data::{self, DataService};
 use super::service_device::DeviceInformationService;
 use super::service_battery::{self, BatteryService};
@@ -95,6 +96,8 @@ impl gatt_server::Server for Server {
 
 pub async fn run(connection: &Connection, server: &Server) {
     info!("BLUETOOTH: device connected");
+    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
     // TODO: add services here
     // do we need to mutpin? pin_mut!(...);
     join::join4(
@@ -109,8 +112,6 @@ pub async fn run(connection: &Connection, server: &Server) {
 // shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
     //gatt_server::notify_value(conn, handle, val) // old direct call
-
-    
     // try notify, if fails, set
     let result = gatt_server::notify_value(conn, handle, val);
     match result { // notify
@@ -118,7 +119,6 @@ pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), No
         Err(_) => unwrap!(set_value(handle, val)), // else set
     };
     result // return notify result
-     
 }
 
 

@@ -116,11 +116,11 @@ pub async fn task() {
 
         if string.starts_with("play") {
             if string.ends_with("tune") {
-                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::Tune);
+                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::SuperMarioBros);
             } else if string.ends_with("power") {
                 signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::PowerOn);
             } else {
-                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::Tune);
+                signals::PIEZO_MODE.dyn_immediate_publisher().publish_immediate(PiezoMode::SuperMarioBros);
             }
 
             result = true;

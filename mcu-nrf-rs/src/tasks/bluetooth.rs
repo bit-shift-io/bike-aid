@@ -1,21 +1,15 @@
 use crate::ble::server::{self, Server};
-use crate::ble::security::Bonder;
-
+use crate::utils::signals;
 use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{AdvertisementDataType, Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
+use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
-use static_cell::StaticCell;
 use futures::future::{select, Either};
 use futures::pin_mut;
 
 const TASK_ID: &str = "BLUETOOTH";
-const DEVICE_NAME: &str = "Bronson Scooter";
-const PERIPHERAL_REQUESTS_SECURITY: bool = false;
-
-
 
 // softdevice task
 #[embassy_executor::task]
@@ -29,6 +23,7 @@ pub async fn task(
     spawner: Spawner
 ) {
     info!("{}: start", TASK_ID);
+    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
     // configure bluetooth
     let config = nrf_softdevice::Config {
@@ -100,8 +95,8 @@ pub async fn task(
     //static SCAN_DATA: [u8; 0] = [];
 
     // bonder / security
-    static BONDER: StaticCell<Bonder> = StaticCell::new();
-    let bonder = BONDER.init(Bonder::default());
+    //static BONDER: StaticCell<Bonder> = StaticCell::new();
+    //let bonder = BONDER.init(Bonder::default());
 
     loop {
         let config = peripheral::Config::default();
@@ -138,10 +133,13 @@ pub async fn task(
         //  - when the GATT server finishes operating, our ADC future is also automatically aborted.
         let _ = match select(server_future, gatt_future).await {
             Either::Left((_, _)) => {
-                info!("BLE update task encountered an error and stopped!")
+                info!("{}: server run encountered an error and stopped!", TASK_ID);
+                pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
             }
             Either::Right((e, _)) => {
-                info!("gatt_server run exited with error: {:?}", e);
+                info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
+                pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
+
             }
         };
     }

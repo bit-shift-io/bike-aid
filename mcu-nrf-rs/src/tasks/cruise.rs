@@ -17,6 +17,7 @@ pub async fn task() {
     loop {
         Timer::after_millis(INTERVAL).await;
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
         if throttle_voltage >= MIN_VOLTAGE {
             data[index] = throttle_voltage;
@@ -26,9 +27,10 @@ pub async fn task() {
             let max = data.iter().max().unwrap();
             let diff = max - min;
 
-            info!("{}: min: {}, max: {}, diff: {}", TASK_ID, min, max, diff);
+            //info!("{}: min: {}, max: {}, diff: {}", TASK_ID, min, max, diff);
             if diff <= RANGE {
                 info!("{}: cruise enabled", TASK_ID);
+                pub_piezo.publish_immediate(signals::PiezoModeType::RydeOfTheWalkyries);
             }
         }
 

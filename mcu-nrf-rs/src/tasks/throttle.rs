@@ -40,22 +40,22 @@ async fn run() {
 
     loop {
         // we are converting to f32 as we have divide issues with i16
-        let input_voltage = sub_throttle.next_message_pure().await as f32; // millivolts
+        let throttle_voltage = sub_throttle.next_message_pure().await as f32; // millivolts
 
         let throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
             //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
-            pub_throttle.publish_immediate(input_voltage as u16);
+            pub_throttle.publish_immediate(throttle_voltage as u16);
             continue;
         }
         
         // moving averages smoothing
-        let input_smooth = input_history.add(input_voltage);
+        let input_smooth = throttle_voltage; //input_history.add(input_voltage); // disabled for now
 
         // delta computer from last output value
-        let delta = input_smooth - output_voltage;
+        let delta = input_smooth - output_voltage; // input_smooth
 
 
         // let use linear steps to control smoothing

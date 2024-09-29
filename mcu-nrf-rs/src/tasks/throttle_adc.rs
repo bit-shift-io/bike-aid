@@ -38,8 +38,6 @@ pub async fn task(
     }
 }
 
-// TODO: when power off, run another function that passes value zero volts
-// TODO:
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);

@@ -47,6 +47,7 @@ mod examples;
 mod ble;
 mod utils;
 use crate::tasks::*;
+use crate::utils::signals;
 
 // external imports
 use core::cell::RefCell;
@@ -179,10 +180,10 @@ async fn main(spawner: Spawner) {
     //let pub_power = signals::SWITCH_POWER.publisher().unwrap();
     //pub_power.publish(true).await;
     
-    use crate::utils::signals;
-    let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
-    loop {
-        let val = sub_minutes.next_message_pure().await;
-        info!("Main - Time: {}", val);
-    }
+    // 
+    // let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
+    // loop {
+    //     let val = sub_minutes.next_message_pure().await;
+    //     info!("Main - Time: {}", val);
+    // }
 }
