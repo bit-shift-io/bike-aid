@@ -44,6 +44,7 @@ pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 4> = Pub
 pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // cruise
+pub static CRUISE_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 1, 1> = PubSubChannel::new();
 pub static CRUISE_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 1, 1> = PubSubChannel::new();
 pub static CRUISE_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 1, 1> = PubSubChannel::new();
 

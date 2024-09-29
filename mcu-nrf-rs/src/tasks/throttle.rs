@@ -34,11 +34,14 @@ pub async fn task() {
 async fn run() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
+    let mut sub_cruise_level = signals::CRUISE_LEVEL.subscriber().unwrap();
     //let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
     let mut output_voltage = 0.0;
-    let mut input_history = InputHistory::new();
+    //let mut input_history = InputHistory::new();
 
     loop {
+        // TODO: convert this to not use floating points
+
         // we are converting to f32 as we have divide issues with i16
         let throttle_voltage = sub_throttle.next_message_pure().await as f32; // millivolts
 
@@ -50,12 +53,23 @@ async fn run() {
             pub_throttle.publish_immediate(throttle_voltage as u16);
             continue;
         }
-        
+
+        // TODO: cruise control here
+        // replace the throttle_voltage with the cruise voltage
+        let cruise_level = sub_cruise_level.try_next_message_pure().unwrap();
+        if cruise_level > 0 {
+            let deadband_range = throttle_settings.deadband_max - throttle_settings.deadband_min;
+            let cruise_step = deadband_range / 5; // 5 cruise levels
+            let cruise_voltage = throttle_settings.deadband_min + (cruise_step * cruise_level as u16);
+            info!("{}: cruise mv: {} ", TASK_ID, cruise_voltage);
+        }
+
+
         // moving averages smoothing
         let input_smooth = throttle_voltage; //input_history.add(input_voltage); // disabled for now
 
         // delta computer from last output value
-        let delta = input_smooth - output_voltage; // input_smooth
+        let delta = input_smooth - output_voltage;
 
 
         // let use linear steps to control smoothing
@@ -75,34 +89,6 @@ async fn run() {
             }
         }
 
-
-        /*
-        old smoothing method
-        // how much to change throttle this itteration (+/-)
-        // use smoothing factor as scale
-        // TODO: clamp to 0-100 range smoothing settings
-        // TODO: to ensure multiplier is never 0 or over 1
-        let multiplier;
-        if delta > 0.0 {
-            multiplier = (100.0 - (throttle_settings.increase_smooth_factor as f32)) * SMOOTHING_MULTIPLIER; 
-        } else {
-            multiplier = (100.0 - (throttle_settings.decrease_smooth_factor as f32)) * SMOOTHING_MULTIPLIER;
-        }
-        let mut adjustment = delta * multiplier;
-         */
-
-
-         /*
-        // old speed limiter
-        // this could go at the end of this code and map to the range of the deadband?
-
-        // apply speed limit - allow increase  only if bellow limit
-        // if output_voltage is larger than speed limit... set adjustment to 0
-        if output_voltage > (throttle_settings.speed_limit as f32) {
-            adjustment = functions::min(adjustment, 0.0); // always allow decrease
-        }
-         */
-
         // apply adjustment/step
         output_voltage += adjustment;
 
@@ -117,17 +103,9 @@ async fn run() {
         // throttle to output value map - mapping to controller range
         let mapped_output = functions::map(output_voltage, &(throttle_settings.throttle_min as f32), &(throttle_settings.throttle_max as f32), &(throttle_settings.deadband_min as f32), &(throttle_settings.deadband_max as f32));
 
-        // TODO: check if these can be negative values, the dac only takes positive values
 
         pub_throttle.publish_immediate(mapped_output as u16); 
         //info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
-
-        // DEBUG: remove this as it will clog up the ble connection
-        // publish to uart for debug
-        // let mut buf = [0u8; 32];
-        // let text = format_no_std::show(&mut buf, format_args!("{},{}\n", input_smooth, output_voltage)).unwrap();
-        // let s = String::try_from(text).unwrap();
-        // signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(s);
     }
 }
 
