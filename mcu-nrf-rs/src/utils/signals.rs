@@ -39,14 +39,12 @@ pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 1, 2, 2> = PubSubChannel::new();
 
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
-pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 4> = PubSubChannel::new();
+pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 5> = PubSubChannel::new();
 
 pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // cruise
-pub static CRUISE_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 1, 1> = PubSubChannel::new();
-pub static CRUISE_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 1, 1> = PubSubChannel::new();
-pub static CRUISE_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 1, 1> = PubSubChannel::new();
+//pub static CRUISE_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 
 // alarm
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
@@ -79,6 +77,7 @@ pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubCha
 // https://docs.rs/scoped-mutex/latest/scoped_mutex/struct.BlockingMutex.html <-- comming soon no refcell required!
 
 
+pub static CRUISE_LEVEL: Mutex<SettingsMutex, u8> = Mutex::new(0u8);
 
 
 pub static SYSTEM_POWER_ACTIVE: Mutex<SettingsMutex, bool> = Mutex::new(false);

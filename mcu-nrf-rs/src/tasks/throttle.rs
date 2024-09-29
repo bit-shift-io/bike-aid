@@ -34,8 +34,6 @@ pub async fn task() {
 async fn run() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
-    let mut sub_cruise_level = signals::CRUISE_LEVEL.subscriber().unwrap();
-    //let sub_instant_speed = signals::INSTANT_SPEED.subscriber().unwrap();
     let mut output_voltage = 0.0;
     //let mut input_history = InputHistory::new();
 
@@ -54,19 +52,19 @@ async fn run() {
             continue;
         }
 
-        // TODO: cruise control here
+        // moving averages smoothing
+        let mut input_smooth = throttle_voltage; //input_history.add(input_voltage); // disabled for now
+        
+
+        // cruise control
         // replace the throttle_voltage with the cruise voltage
-        let cruise_level = sub_cruise_level.try_next_message_pure().unwrap();
+        let cruise_level = *signals::CRUISE_LEVEL.lock().await;
         if cruise_level > 0 {
             let deadband_range = throttle_settings.deadband_max - throttle_settings.deadband_min;
             let cruise_step = deadband_range / 5; // 5 cruise levels
-            let cruise_voltage = throttle_settings.deadband_min + (cruise_step * cruise_level as u16);
-            info!("{}: cruise mv: {} ", TASK_ID, cruise_voltage);
+            input_smooth = (throttle_settings.deadband_min + (cruise_step * cruise_level as u16)) as f32;
         }
 
-
-        // moving averages smoothing
-        let input_smooth = throttle_voltage; //input_history.add(input_voltage); // disabled for now
 
         // delta computer from last output value
         let delta = input_smooth - output_voltage;

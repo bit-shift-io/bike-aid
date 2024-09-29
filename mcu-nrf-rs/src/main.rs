@@ -191,7 +191,7 @@ fn panic(info: &PanicInfo) -> ! {
     cortex_m::interrupt::disable();
     defmt::error!("Panicked: {}", defmt::Display2Format(info));
     //panic_persist::report_panic_info(info);
-    for _ in 0..1_000_000 { // delay before reset
+    for _ in 0..10_000_000 { // delay before reset
         nop()
     }
     cortex_m::peripheral::SCB::sys_reset();
