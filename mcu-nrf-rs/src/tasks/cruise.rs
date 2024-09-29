@@ -1,7 +1,9 @@
 use crate::utils::signals;
+use embassy_executor::Spawner;
 use embassy_time::Timer;
 use defmt::*;
 use embassy_futures::select::{select, Either};
+use super::brake;
 
 const TASK_ID: &str = "CRUISE";
 const INTERVAL: u64 = 500; // 0.5 sec
@@ -12,8 +14,13 @@ const FULL_THROTTLE_THRESHOLD: u16 = 2700;
 const MAX_COUNT: u8 = 10; // this equals 1 seoncd of throttle updates
 
 #[embassy_executor::task]
-pub async fn task() {
+pub async fn task(
+    spawner: Spawner,
+) {
     info!("{}: start", TASK_ID);
+
+    // spawn sub tasks
+    spawner.must_spawn(cruise_reset());
 
     run().await;
 
@@ -73,6 +80,19 @@ async fn run() {
                 current_level = (current_level + 1) % 5;
                 pub_cruise_level.publish_immediate(current_level);
             }
+        }
+    }
+}
+
+
+#[embassy_executor::task]
+async fn cruise_reset() {
+    let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
+    let pub_cruise_level = signals::CRUISE_LEVEL.publisher().unwrap();
+
+    loop {
+        if sub_brake.next_message_pure().await { // reset if brake on
+            pub_cruise_level.publish_immediate(0);
         }
     }
 }

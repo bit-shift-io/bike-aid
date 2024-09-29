@@ -134,7 +134,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(throttle::task());
 
-    spawner.must_spawn(cruise::task());
+    spawner.must_spawn(cruise::task(spawner));
 
     spawner.must_spawn(bluetooth::task(spawner));
 
