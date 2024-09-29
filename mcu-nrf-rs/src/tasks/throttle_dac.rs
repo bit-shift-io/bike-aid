@@ -123,11 +123,4 @@ async fn stop(
             return
         }, // unable to communicate with device
     }
-
-    loop {
-        let value = 0.0; // desired mv
-        let dac_value = (f32::from(value) * 4095.0 / SUPPLY_VOLTAGE as f32) as u16;
-        let dac_value = functions::min(4095, dac_value); // 4095 is supply voltage, cant go above this
-        let _ = dac.set_dac(mcp4725::PowerDown::Normal, dac_value as u16);
-    }
 }

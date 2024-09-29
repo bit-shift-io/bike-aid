@@ -67,7 +67,7 @@ cortex-m = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt = "0.7.3"
 
 # misc
-panic-probe = { version = "0.3.1", features = ["print-defmt"] }
+#panic-probe = { version = "0.3.1", features = ["print-defmt"] }
 embedded-hal = "1.0.0"
 static_cell = "2.0.0"
 format_no_std = "1.2.0"

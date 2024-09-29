@@ -25,14 +25,9 @@ p0.15 Debug LED
 
 Todo
 ----------
-smoothing to ignore large changes in throttle
-cli reboot
-exponential throttle curve, lower values are more valuable
-
-fix app reconnect
-alarm on/off/beeps
 cruise - auto
-
+fix app reconnect spam
+exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
 alarm - auto on/off
 speedo
 odometer
@@ -51,15 +46,17 @@ use crate::utils::signals;
 
 // external imports
 use core::cell::RefCell;
+use cortex_m::asm::nop;
+use defmt::info;
 use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_nrf::peripherals::{self};
 use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
-use defmt::*;
-use {defmt_rtt as _, panic_probe as _}; // this should reset device on panic!
-
+use defmt_rtt as _;
+//use panic_probe as _; // this should reset device on panic!
+use core::panic::PanicInfo;
 
 
 // Static i2c/twi mutex for shared-bus functionality
@@ -186,4 +183,16 @@ async fn main(spawner: Spawner) {
     //     let val = sub_minutes.next_message_pure().await;
     //     info!("Main - Time: {}", val);
     // }
+}
+
+
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    cortex_m::interrupt::disable();
+    defmt::error!("Panicked: {}", defmt::Display2Format(info));
+    //panic_persist::report_panic_info(info);
+    for _ in 0..1_000_000 { // delay before reset
+        nop()
+    }
+    cortex_m::peripheral::SCB::sys_reset();
 }
