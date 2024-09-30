@@ -40,7 +40,7 @@ pub async fn task(
 
             if count < MAX_COUNT {
                 //info!("{}: Detected throttle tap + increment cruise 0, 1-5", TASK_ID);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
+                //pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
                 // increment cruise - wrap around if larger than 5 cruise levels
                 let mut cruise_level_lock = signals::CRUISE_LEVEL.lock().await;
                 let mut current_level = *cruise_level_lock;

@@ -58,11 +58,16 @@ async fn run() {
 
         // cruise control
         // replace the throttle_voltage with the cruise voltage
-        let cruise_level = *signals::CRUISE_LEVEL.lock().await;
-        if cruise_level > 0 {
-            let deadband_range = throttle_settings.deadband_max - throttle_settings.deadband_min;
-            let cruise_step = deadband_range / 5; // 5 cruise levels
-            input_smooth = (throttle_settings.deadband_min + (cruise_step * cruise_level as u16)) as f32;
+        let cruise_voltage = {
+            let cruise_level = *signals::CRUISE_LEVEL.lock().await as u16;
+            let cruise_range = throttle_settings.throttle_max - throttle_settings.throttle_min;
+            let cruise_step = cruise_range / 5; // 5 cruise levels
+            (throttle_settings.throttle_min + (cruise_step * cruise_level)) as f32
+        };
+
+        // if throttle bellow cruise, use cruise
+        if input_smooth < cruise_voltage {
+            input_smooth = cruise_voltage;
         }
 
 
