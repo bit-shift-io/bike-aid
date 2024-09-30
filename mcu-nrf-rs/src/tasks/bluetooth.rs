@@ -37,7 +37,7 @@ pub async fn task(
             conn_count: 6, // 6
             event_length: 24, // 24
         }),
-        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // was 256 - wants 517 
+        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // 517 is the android default
         gatts_attr_tab_size: Some(raw::ble_gatts_cfg_attr_tab_size_t { attr_tab_size: 2048 }), // increase if nomem error, default: attr_tab_size: raw::BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
         gap_role_count: Some(raw::ble_gap_cfg_role_count_t {
             adv_set_count: 1,

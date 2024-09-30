@@ -14,13 +14,16 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -127,12 +130,13 @@ public class BLE {
     }
 
     public void connectDevice() {
-        // TODO: do we need to bond??
+        // we dont need to bond
         //mDevice.createBond();
 
         // device connected will register the callbacks here
         // and so i have the gatt class to handle it
-        mGatt = mDevice.connectGatt(mContext, true, mGattCallback);
+        // disable autoconnect, as my scanning is faster
+        mGatt = mDevice.connectGatt(mContext, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
     }
 
 
@@ -154,19 +158,22 @@ public class BLE {
 
     public void startScan() {
         if (!mScanning) {
-            // Stops scanning after a predefined scan period.
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    log.info("stop scan");
-                    mScanning = false;
-                    mScanner.stopScan(mScanCallback);
-                }
-            }, SCAN_PERIOD);
+            ScanFilter filter = new ScanFilter.Builder()
+                    .setDeviceName("BScooter") // Filter by device name
+                    .build();
+
+            // optimised for speed
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+                    .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+                    .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
+                    .setReportDelay(0L)
+                    .build();
 
             log.info("start scan");
             mScanning = true;
-            mScanner.startScan(mScanCallback);
+            mScanner.startScan(Collections.singletonList(filter), settings, mScanCallback);
         } else {
             stopScan();
         }
@@ -174,6 +181,7 @@ public class BLE {
     }
 
     public void stopScan() {
+        log.info("stop scan");
         mScanning = false;
         mScanner.stopScan(mScanCallback);
     }
@@ -215,6 +223,11 @@ public class BLE {
                 stopScan();
             }
         }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            log.info("scan failed");
+        }
     };
 
 
@@ -230,27 +243,51 @@ public class BLE {
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                log.info("connected: " + mDevice.getName());
+            // newState = STATE_CONNECTED, STATE_DISCONNECTED, STATE_CONNECTING, STATE_DISCONNECTING
+            // status = GATT_SUCCESS, GATT_ERROR
+            // bondState = BOND_NONE, BOND_BONDING or BOND_BONDED
 
-                /* TODO: some wired issue with doubling up
-                // reset settings
-                mReadCharacteristics = new ArrayList<>();;
-                mReadCharacteristicsComplete = false;
-                mProcessedCharacteristics = new ArrayList<>();;
-                mProcessedCharacteristicsComplete = false;
-                 */
+            // if we need bonding stuff
+            // https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07
+            //int bondState = mDevice.getBondState();
 
-                gatt.discoverServices();
+            if(status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    // We successfully connected, proceed with service discovery
+                    log.info("connected: " + mDevice.getName());
+                    gatt.discoverServices();
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    // We successfully disconnected on our own request
+                    log.info("disconnected from device");
+                    gatt.close();
+                    gatt = null;
+                    mGatt = null;
+                } else {
+                    // We're CONNECTING or DISCONNECTING, ignore for now
+                }
+            } else {
+                // An error happened...figure out what happened!
+                log.info("error connecting to device");
+                gatt.close();
+                gatt = null;
+                mGatt = null;
             }
-            if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                log.info("disconnected from device");
-                connect();
-            }
+
+            /*
+            // reset settings
+            // TODO: some issue with duplicate services
+            mReadCharacteristics = new ArrayList<>();;
+            mReadCharacteristicsComplete = false;
+            mProcessedCharacteristics = new ArrayList<>();;
+            mProcessedCharacteristicsComplete = false;
+            */
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
+            // TODO: test this again by first making a copy
+            // it may contain the data already!
+            // https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
             gatt.readCharacteristic(characteristic);
         }
 
@@ -270,6 +307,14 @@ public class BLE {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            // Check if the service discovery succeeded. If not disconnect
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                log.info("service discovery failed");
+                gatt.disconnect();
+                return;
+            }
+
+            // success
             processNextCharacteristic(gatt);
         }
 
@@ -279,6 +324,8 @@ public class BLE {
         // then process the next in the list
         public void processNextCharacteristic(BluetoothGatt gatt) {
             // get list of all services
+            // note these are cached
+            // https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07
             List<BluetoothGattService> services = gatt.getServices();
 
             // 1. read characteristics

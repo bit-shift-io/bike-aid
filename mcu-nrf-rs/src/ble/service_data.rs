@@ -19,7 +19,7 @@ const CLOCK_HOURS: Uuid = Uuid::new_16(0x2006);
 
 pub struct DataService {
     speed: CharacteristicHandles,
-    trip_duration: CharacteristicHandles,
+    //trip_duration: CharacteristicHandles,
     odometer: CharacteristicHandles,
     temperature: CharacteristicHandles,
     clock_minutes: CharacteristicHandles,
@@ -37,12 +37,12 @@ impl DataService {
         )?;
         let speed_handle = characteristic_builder.build();
 
-        let characteristic_builder = service_builder.add_characteristic(
-            TRIP_DURATION,
-            Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().notify()),
-        )?;
-        let trip_duration_handle = characteristic_builder.build();
+        // let characteristic_builder = service_builder.add_characteristic(
+        //     TRIP_DURATION,
+        //     Attribute::new(&[0u8]),
+        //     Metadata::new(Properties::new().read().notify()),
+        // )?;
+        // let trip_duration_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             ODOMETER,
@@ -76,7 +76,7 @@ impl DataService {
         
         Ok(DataService {
             speed: speed_handle,
-            trip_duration: trip_duration_handle,
+            //trip_duration: trip_duration_handle,
             odometer: odometer_handle,
             temperature: temperature_handle,
             clock_minutes: clock_minutes_handle,
