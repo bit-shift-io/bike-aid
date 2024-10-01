@@ -63,7 +63,7 @@ public class BLE {
 
     // ==== listener interface ====
     public interface OnReadListener {
-        void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status);
+        void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value);
     }
     private OnReadListener mOnReadListener;
     public void setOnReadListener(OnReadListener listener) { this.mOnReadListener = listener; }
@@ -225,11 +225,11 @@ public class BLE {
 
     // ==== read & write functions ====
 
-    public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+    public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
         if (value.length == 0)
             return;
 
-        mOnReadListener.onRead(gatt, characteristic, value, status);
+        mOnReadListener.onRead(gatt, characteristic, value);
     }
 
 
@@ -317,17 +317,37 @@ public class BLE {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
-            // TODO: test this again by first making a copy
-            // it may contain the data already!
+            // limit on size of data, so for uart tx request a manual read instead
+            if (characteristic.getUuid().toString().equalsIgnoreCase("6E400003-B5A3-F393-E0A9-E50E24DCCA9E")) {
+                gatt.readCharacteristic(characteristic);
+                return;
+            }
+
+            // Copy the byte array so we have a threadsafe copy
+            final byte[] value_copy = new byte[value.length];
+            System.arraycopy(value, 0, value_copy, 0, value.length );
+
+            // Characteristic has new value so pass it on for processing
+            handler.post(new Runnable() {
+                @Override
+                public void run() { onRead(gatt, characteristic, value); }
+            });
+
+
+            // new method above seems to have a limit on the size of the uart strings....
             // https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
-            gatt.readCharacteristic(characteristic);
+            //gatt.readCharacteristic(characteristic);
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
             if (!mReadCharacteristicsComplete)
                 processNextCharacteristic(gatt);
-            onRead(gatt, characteristic, value, status);
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() { onRead(gatt, characteristic, value); }
+            });
         }
 
         @Override

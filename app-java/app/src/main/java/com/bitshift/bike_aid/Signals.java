@@ -129,7 +129,7 @@ public class Signals {
     }
 
     public void setUART(String s) {
-        log.info("UART Write: " + s);
+        log.info("> " + s);
         UUID uart_service = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
         UUID uart_write_characteristic = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
         byte[] b = s.getBytes(StandardCharsets.UTF_8);
@@ -138,7 +138,7 @@ public class Signals {
 
 
     // ==== on ble read ====
-    public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value, int status) {
+    public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
         String id = Functions.string16FromUUID(characteristic.getUuid());
         String st = new String(value, StandardCharsets.UTF_8);
 
@@ -153,7 +153,7 @@ public class Signals {
         // tx - 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
         if (id.equals("0003")) {
             String s = new String(value, StandardCharsets.UTF_8);
-            log.info("UART Read: " + s);
+            log.info(s);
         }
 
 
