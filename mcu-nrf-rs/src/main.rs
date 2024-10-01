@@ -155,7 +155,7 @@ async fn main(spawner: Spawner) {
     // boot tune
     let pub_led = signals::LED_MODE.publisher().unwrap();
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_led.publish_immediate(signals::LedModeType::Once);
+    pub_led.publish_immediate(signals::LedModeType::SingleSlow);
     pub_piezo.publish_immediate(signals::PiezoModeType::Boot);
 
 

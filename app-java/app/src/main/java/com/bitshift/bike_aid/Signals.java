@@ -46,7 +46,7 @@ public class Signals {
 
     // ==== functions ====
     private Signals () {
-        ble.setOnEventListener(this::onRead);
+        ble.setOnReadListener(this::onRead);
     };
 
 

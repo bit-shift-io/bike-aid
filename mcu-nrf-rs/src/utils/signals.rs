@@ -53,7 +53,7 @@ pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = P
 
 // throttle
 pub static THROTTLE_SETTINGS_CHANGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-pub static THROTTLE_IN: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
+pub static THROTTLE_IN: PubSubChannel<ChannelMutex, u16, 1, 3, 2> = PubSubChannel::new();
 pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 
 // ble uart

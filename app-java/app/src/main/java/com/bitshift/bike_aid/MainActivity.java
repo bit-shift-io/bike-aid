@@ -1,6 +1,8 @@
 package com.bitshift.bike_aid;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
@@ -34,15 +36,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initGui();
 
-        // check permissions
+        // check permissions & init
         new Permissions(this);
-
-        // start ble
         ble.init(getApplicationContext());
-        if (!ble.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
+        ble.setOnRequestEnableBLEListener(this::onRequestEnableBLE);
+    }
+
+
+    private void onRequestEnableBLE() {
+        // check ble is still enabled
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     }
 
 
@@ -52,10 +56,20 @@ public class MainActivity extends AppCompatActivity {
         ble.close();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // called before app losses focus, or we can use onpause for dialogs
+        ble.stopScan();
+    }
+
 
     @Override
     protected void onResume() {
+        // this is called each time the app is brought to focus and on first start
         super.onResume();
+
+        // connect or reconnect - this will also scan if it needs
         ble.connect();
     }
 

@@ -46,7 +46,7 @@ async fn park_brake() {
             count += 1;
 
             if count > MAX_COUNT {
-                info!("{} park brake on", TASK_ID);
+                //info!("{} park brake on", TASK_ID);
             }
         } else {
             count = 0;

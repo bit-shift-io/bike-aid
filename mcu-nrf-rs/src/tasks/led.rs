@@ -55,7 +55,7 @@ async fn single_slow<'a>(led: &mut Output<'a>) {
     Timer::after_millis(150).await;
 
     led.set_low(); // Long low
-    Timer::after_secs(30).await;
+    Timer::after_secs(10).await;
 }
 
 
@@ -70,7 +70,7 @@ async fn double_slow<'a>(led: &mut Output<'a>) {
     Timer::after_millis(150).await;
 
     led.set_low(); // Long low
-    Timer::after_secs(30).await;
+    Timer::after_secs(10).await;
 }
 
 
