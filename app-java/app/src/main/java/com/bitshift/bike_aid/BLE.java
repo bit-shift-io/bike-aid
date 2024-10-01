@@ -90,7 +90,6 @@ public class BLE {
         mContext = c;
         mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mAdapter = mBluetoothManager.getAdapter();
-        connectDelay();
     }
 
 
