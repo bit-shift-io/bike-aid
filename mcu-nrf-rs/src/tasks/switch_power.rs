@@ -20,12 +20,12 @@ pub async fn task(
         match val {
             true => {
                 pin_state.set_high();
-                pub_led.publish_immediate(signals::LedModeType::Double);
+                pub_led.publish_immediate(signals::LedModeType::None);
                 pub_piezo.publish_immediate(signals::PiezoModeType::PowerOn);
             }
             false => {
                 pin_state.set_low();
-                pub_led.publish_immediate(signals::LedModeType::None);
+                pub_led.publish_immediate(signals::LedModeType::SingleSlow);
                 pub_piezo.publish_immediate(signals::PiezoModeType::PowerOff);
             }
         }

@@ -62,6 +62,7 @@ public class BLE {
     ArrayList<BluetoothGattCharacteristic> mReadCharacteristics = new ArrayList<>();
     private boolean mReadCharacteristicsComplete = false;
     final static UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    private BluetoothManager mBluetoothManager;
 
 
 
@@ -88,14 +89,22 @@ public class BLE {
 
     public void init(Context c) {
         mContext = c;
-        BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-        mAdapter = bluetoothManager.getAdapter();
+        mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = mBluetoothManager.getAdapter();
         connect();
     }
 
 
     public boolean isEnabled() {
         return mAdapter.isEnabled();
+    }
+
+
+    public void close() {
+        log.info("close");
+        mGatt.disconnect();
+        mGatt.close();
+        mGatt = null;
     }
 
 
@@ -106,11 +115,24 @@ public class BLE {
             return;
         }
 
+        // check for existing connection
+        List<BluetoothDevice> connectedDevices = mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
+        if (connectedDevices != null) {
+            for (BluetoothDevice dev : connectedDevices) {
+                if (isMyDevice(dev)) {
+                    log.info("connected device");
+                    connectDevice();
+                    return;
+                }
+            }
+        }
+
         // check for bonded devices
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         if (bondedDevices != null) {
             for (BluetoothDevice dev : bondedDevices) {
                 if (isMyDevice(dev)) {
+                    log.info("bonded device");
                     connectDevice();
                     return;
                 }
@@ -130,11 +152,12 @@ public class BLE {
     }
 
     public void connectDevice() {
-        // we dont need to bond
+        // stop scan if scanning
+        stopScan();
+
+        // we dont need to bond for BLE
         //mDevice.createBond();
 
-        // device connected will register the callbacks here
-        // and so i have the gatt class to handle it
         // disable autoconnect, as my scanning is faster
         mGatt = mDevice.connectGatt(mContext, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
     }
@@ -157,30 +180,33 @@ public class BLE {
 
 
     public void startScan() {
-        if (!mScanning) {
-            ScanFilter filter = new ScanFilter.Builder()
-                    .setDeviceName("BScooter") // Filter by device name
-                    .build();
-
-            // optimised for speed
-            ScanSettings settings = new ScanSettings.Builder()
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                    .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
-                    .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-                    .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
-                    .setReportDelay(0L)
-                    .build();
-
-            log.info("start scan");
-            mScanning = true;
-            mScanner.startScan(Collections.singletonList(filter), settings, mScanCallback);
-        } else {
-            stopScan();
+        if (mScanning) {
+            log.info("resume scan");
+            return;
         }
 
+        ScanFilter filter = new ScanFilter.Builder()
+                .setDeviceName("BScooter") // Filter by device name
+                .build();
+
+        // optimised for speed
+        ScanSettings settings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+                .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+                .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
+                .setReportDelay(0L)
+                .build();
+
+        log.info("start scan");
+        mScanning = true;
+        mScanner.startScan(Collections.singletonList(filter), settings, mScanCallback);
     }
 
+
     public void stopScan() {
+        if (!mScanning) return;
+
         log.info("stop scan");
         mScanning = false;
         mScanner.stopScan(mScanCallback);
@@ -220,7 +246,6 @@ public class BLE {
             BluetoothDevice dev = result.getDevice();
             if (isMyDevice(dev)) {
                 connectDevice();
-                stopScan();
             }
         }
 
@@ -259,18 +284,14 @@ public class BLE {
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     // We successfully disconnected on our own request
                     log.info("disconnected from device");
-                    gatt.close();
-                    gatt = null;
-                    mGatt = null;
+                    close();
                 } else {
                     // We're CONNECTING or DISCONNECTING, ignore for now
                 }
             } else {
                 // An error happened...figure out what happened!
                 log.info("error connecting to device");
-                gatt.close();
-                gatt = null;
-                mGatt = null;
+                close();
             }
 
             /*

@@ -30,6 +30,8 @@ pub async fn task(
             }
             LedMode::Double => double(&mut led).await, // loop
             LedMode::Single => single(&mut led).await, // loop
+            LedMode::SingleSlow => single_slow(&mut led).await, // loop
+            LedMode::DoubleSlow => double_slow(&mut led).await, // loop
         };
     }
 
@@ -43,6 +45,32 @@ pub enum LedMode {
     Single,
     Double,
     Once,
+    SingleSlow,
+    DoubleSlow,
+}
+
+
+async fn single_slow<'a>(led: &mut Output<'a>) {
+    led.set_high(); // Short high
+    Timer::after_millis(150).await;
+
+    led.set_low(); // Long low
+    Timer::after_secs(30).await;
+}
+
+
+async fn double_slow<'a>(led: &mut Output<'a>) {
+    led.set_high(); // Short high
+    Timer::after_millis(150).await;
+
+    led.set_low(); // Long low
+    Timer::after_millis(300).await;
+
+    led.set_high(); // Short high
+    Timer::after_millis(150).await;
+
+    led.set_low(); // Long low
+    Timer::after_secs(30).await;
 }
 
 

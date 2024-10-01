@@ -25,11 +25,14 @@ p0.15 Debug LED
 
 Todo
 ----------
-cruise - auto
-fix app reconnect spam
+fix app reconnect spam/reliability
+use future without either
+parkbrake select throttle dac
+
+reset push button - hw
 exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
 alarm - auto on/off
-speedo
+speedo - hardware/oscilliscope
 odometer
 */
 
