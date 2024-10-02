@@ -10,7 +10,7 @@ use mpu6050::*;
 use embassy_futures::select::{select, Either};
 
 const TASK_ID : &str = "TEMPERATURE";
-const INTERVAL: u64 = 20;
+const INTERVAL: u64 = 20; // seconds
 
 #[embassy_executor::task]
 pub async fn task(

@@ -12,27 +12,27 @@ use nrf_softdevice::{RawError, Softdevice};
 use nrf_softdevice::raw;
 
 pub struct Server {
-    pub _device_informaton: DeviceInformationService,
-    pub battery: BatteryService,
     pub settings: SettingsService,
+    pub battery: BatteryService,
     pub data: DataService,
     pub uart: UARTService,
+    pub _device_informaton: DeviceInformationService,
 }
 
 impl Server {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
-        let device_informaton = DeviceInformationService::new(sd)?;
-        let battery = BatteryService::new(sd)?;
         let settings = SettingsService::new(sd)?;
+        let battery = BatteryService::new(sd)?;
         let data = DataService::new(sd)?;
         let uart = UARTService::new(sd)?;
+        let device_informaton = DeviceInformationService::new(sd)?;
 
         Ok(Self {
-            _device_informaton: device_informaton,
-            battery,
             settings,
+            battery,   
             data,
             uart,
+            _device_informaton: device_informaton,
         })
     }
 }
@@ -97,7 +97,7 @@ impl gatt_server::Server for Server {
 pub async fn run(connection: &Connection, server: &Server) {
     info!("BLUETOOTH: device connected");
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
+    pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
     // TODO: add services here
     // do we need to mutpin? pin_mut!(...);
     join::join4(

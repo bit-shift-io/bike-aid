@@ -1,11 +1,12 @@
 use crate::utils::signals;
 use embassy_executor::Spawner;
 use defmt::*;
+use embassy_futures::select::{select, Either};
 
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
 const FULL_THROTTLE_THRESHOLD: u16 = 2700;
-const MAX_COUNT: u8 = 10; // this equals 1 seoncd of throttle updates
+const MAX_COUNT: u8 = 8; // this equals 10 x 100ms = 1 seoncd of throttle updates
 
 #[embassy_executor::task]
 pub async fn task(
@@ -15,6 +16,42 @@ pub async fn task(
 
     // spawn sub tasks
     spawner.must_spawn(cruise_reset());
+
+    // brake on/off
+    let mut sub = signals::BRAKE_ON.subscriber().unwrap();
+    let mut state = false;
+
+    loop { 
+        if let Some(b) = sub.try_next_message_pure() {state = b}
+        match state {
+            false => {
+                let sub_future = sub.next_message_pure();
+                let task_future = run();
+                match select(sub_future, task_future).await {
+                    Either::First(val) => { state = val; }
+                    Either::Second(_) => {} // other task will never end
+                }
+            },
+            true => { state = sub.next_message_pure().await; }
+        }
+    }
+
+}
+
+
+#[embassy_executor::task]
+async fn cruise_reset() {
+    let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
+
+    loop {
+        sub_brake.next_message_pure().await; // reset if brake on or off
+        *signals::CRUISE_LEVEL.lock().await = 0;
+        assign_voltage(0).await;
+    }
+}
+
+
+async fn run() {
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
@@ -37,31 +74,27 @@ pub async fn task(
                 count +=1;
             }
 
-
             if count < MAX_COUNT {
+                // increment cruise level
+                let mut cruise_level = signals::CRUISE_LEVEL.lock().await;
+                let mut current_level = *cruise_level;
+                current_level = (current_level + 1) % 5; // wrap around
+                if current_level == 0 { current_level = 5; } // 0 -> 5 = range 1-5 instead of 0-4
+                *cruise_level = current_level; // assign
+                
+                assign_voltage(current_level).await;
+
+                pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
                 //info!("{}: Detected throttle tap + increment cruise 0, 1-5", TASK_ID);
-                //pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
-                // increment cruise - wrap around if larger than 5 cruise levels
-                let mut cruise_level_lock = signals::CRUISE_LEVEL.lock().await;
-                let mut current_level = *cruise_level_lock;
-                current_level = (current_level + 1) % 5;
-                if current_level == 0 { // treat 0 as 5 so we get range 1-5 instead of 0-4
-                    current_level = 5;
-                }
-                *cruise_level_lock = current_level; // assign to mutex
             }
         }
     }
 }
 
 
-#[embassy_executor::task]
-async fn cruise_reset() {
-    let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
-
-    loop {
-        if sub_brake.next_message_pure().await { // reset if brake on
-            *signals::CRUISE_LEVEL.lock().await = 0;
-        }
-    }
+async fn assign_voltage(level: u8) {
+    // assign voltage
+    let cruise_voltages = *signals::CRUISE_VOLTAGES.lock().await;
+    if level == 0 { *signals::CRUISE_VOLTAGE.lock().await = 0; }
+    else { *signals::CRUISE_VOLTAGE.lock().await = cruise_voltages[(level -1) as usize]; } 
 }

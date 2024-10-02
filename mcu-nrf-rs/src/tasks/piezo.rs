@@ -49,14 +49,22 @@ pub async fn task(
                 play_tune(&mut pwm, melody::SUPER_MARIO_BROS.as_slice(), melody::SUPER_MARIO_BROS_TEMPO).await;
                 piezo_mode = PiezoMode::None;
             }
-            PiezoMode::Beep => {
-                beep(&mut pwm).await;
+            PiezoMode::Notify => {
+                notify(&mut pwm).await;
                 piezo_mode = PiezoMode::None;
             },
             PiezoMode::RydeOfTheWalkyries => {
                 play_tune(&mut pwm, melody::RYDE_OF_THE_WALKYRIES.as_slice(), melody::RYDE_OF_THE_WALKYRIES_TEMPO).await;
                 piezo_mode = PiezoMode::None;
-            }
+            },
+            PiezoMode::BeepShort => {
+                beep_short(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            },
+            PiezoMode::BeepLong => {
+                beep_long(&mut pwm).await;
+                piezo_mode = PiezoMode::None;
+            },
         };
     }
 }
@@ -72,12 +80,36 @@ pub enum PiezoMode {
     Warning,
     Alarm,
     SuperMarioBros,
-    Beep,
+    Notify,
     RydeOfTheWalkyries,
+    BeepShort,
+    BeepLong,
 }
 
 
-async fn beep(
+async fn beep_short(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    pwm.enable();
+    pwm.set_period(NOTE_F6.try_into().unwrap());
+    pwm.set_duty(0, pwm.max_duty() / 10); // duty changes with period, so needs to be reset each time
+    Timer::after_millis(100).await;
+    pwm.disable();
+}
+
+
+async fn beep_long(
+    pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
+) {
+    pwm.enable();
+    pwm.set_period(NOTE_D3.try_into().unwrap());
+    pwm.set_duty(0, pwm.max_duty() / 10); // duty changes with period, so needs to be reset each time
+    Timer::after_millis(400).await;
+    pwm.disable();
+}
+
+
+async fn notify(
     pwm: &mut SimplePwm<'_, PWM0>, // dont need 'static here
 ) {
     let tempo: i32 = 120;

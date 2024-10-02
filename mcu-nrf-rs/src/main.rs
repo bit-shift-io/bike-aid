@@ -23,12 +23,19 @@ P0.13 controls vcc output on/off 3.3v
 P0.14-0.16 set low resets ?
 p0.15 Debug LED
 
+
+App Todo
+----------
+app reconnect spam
+onread copy code like characteristics
+app restores /reads states on reconnect?
+
 Todo
 ----------
-fix app reconnect spam/reliability
-use future without either
-parkbrake select throttle dac
-
+cruise 1,2 restore speed if brake is less than 3 seconds?
+double tap cruise current speed. store initial voltage at the start of the tap detection
+command que for ble
+ble tracker
 reset push button - hw
 exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
 alarm - auto on/off

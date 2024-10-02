@@ -35,7 +35,6 @@ async fn run() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output_voltage = 0.0;
-    //let mut input_history = InputHistory::new();
 
     loop {
         // TODO: convert this to not use floating points
@@ -55,19 +54,19 @@ async fn run() {
         // moving averages smoothing
         let mut input_smooth = throttle_voltage; //input_history.add(input_voltage); // disabled for now
         
-
         // cruise control
-        // replace the throttle_voltage with the cruise voltage
-        let cruise_voltage = {
-            let cruise_level = *signals::CRUISE_LEVEL.lock().await as u16;
-            let cruise_range = throttle_settings.throttle_max - throttle_settings.throttle_min;
-            let cruise_step = cruise_range / 5; // 5 cruise levels
-            (throttle_settings.throttle_min + (cruise_step * cruise_level)) as f32
-        };
+        let cruise_voltage = *signals::CRUISE_VOLTAGE.lock().await as f32;
 
         // if throttle bellow cruise, use cruise
         if input_smooth < cruise_voltage {
             input_smooth = cruise_voltage;
+        }
+
+        // check if brake is on
+        let brake_on = { *signals::BRAKE_ON_MUTEX.lock().await };
+        if brake_on {
+            input_smooth = 0.0;
+            output_voltage = 0.0;
         }
 
 
@@ -128,35 +127,4 @@ fn apply_throttle_curve(input_value: i32, min_input: i32, max_input: i32, min_ou
     let output_value = min_output + (curved_value * (max_output - min_output) as f32).round() as i32;
     
     output_value
-}
-
-
-// a helper class to keep a track of smoothing
-struct InputHistory {
-    data: [f32; 3],
-    index: usize,
-}
-
-impl InputHistory {
-    fn new() -> Self {
-        InputHistory { 
-            data: [0.0; 3],
-            index: 0,
-        }
-    }
-
-    fn add(&mut self, value: f32) -> f32 {
-        // add to current index
-        self.data[self.index] = value;
-
-        let length = self.data.len();
-
-        // increase index, wrap around if larger than size
-        self.index = (self.index + 1) % length;
-
-        // Calculate the average if we have at least 5 elements
-        let sum: f32 = self.data.iter().sum();
-        sum / length as f32 // Return the average
-    }
-
 }

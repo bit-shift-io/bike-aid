@@ -34,7 +34,7 @@ pub async fn task(
             accuracy: raw::NRF_CLOCK_LF_ACCURACY_500_PPM as u8,
         }),
         conn_gap: Some(raw::ble_gap_conn_cfg_t {
-            conn_count: 6, // 6
+            conn_count: 2, // 6
             event_length: 24, // 24
         }),
         conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // 517 is the android default
@@ -47,9 +47,9 @@ pub async fn task(
             _bitfield_1: raw::ble_gap_cfg_role_count_t::new_bitfield_1(0),
         }),
         gap_device_name: Some(raw::ble_gap_cfg_device_name_t {
-            p_value: b"Bronson Scooter" as *const u8 as _, // TODO: use device name here
-            current_len: 15,
-            max_len: 15,
+            p_value: b"BScooter" as *const u8 as _, // TODO: use device name here
+            current_len: 8,
+            max_len: 8,
             write_perm: unsafe { mem::zeroed() },
             _bitfield_1: raw::ble_gap_cfg_device_name_t::new_bitfield_1(raw::BLE_GATTS_VLOC_STACK as u8),
         }),
@@ -82,17 +82,17 @@ pub async fn task(
         .build();
 
 
-    static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
-        .services_16(
-            ServiceList::Incomplete,
-            &[
-                ServiceUuid16::DEVICE_INFORMATION,
-                ServiceUuid16::BATTERY,
-                ServiceUuid16::USER_DATA,
-            ])
-        .build();
+    // static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
+    //     .services_16(
+    //         ServiceList::Incomplete,
+    //         &[
+    //             ServiceUuid16::DEVICE_INFORMATION,
+    //             ServiceUuid16::BATTERY,
+    //             ServiceUuid16::USER_DATA,
+    //         ])
+    //     .build();
 
-    //static SCAN_DATA: [u8; 0] = [];
+    static SCAN_DATA: [u8; 0] = [];
 
     // bonder / security
     //static BONDER: StaticCell<Bonder> = StaticCell::new();
@@ -134,11 +134,11 @@ pub async fn task(
         let _ = match select(server_future, gatt_future).await {
             Either::Left((_, _)) => {
                 info!("{}: server run encountered an error and stopped!", TASK_ID);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
+                pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
             }
             Either::Right((e, _)) => {
                 info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Beep);
+                pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
 
             }
         };

@@ -79,7 +79,7 @@ num-traits = { version = "0.2.19", default-features = false, features = ["libm"]
 nrf-softdevice-s140 = { version = "0.1.2", optional = true }
 nrf-softdevice = { version = "0.1.0", features = ["nrf52840", "s140", "defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
 #nrf-softdevice-macro = "0.1.0"
-futures = { version = "0.3.29", default-features = false, features = ["async-await"]}
+futures = { version = "0.3.30", default-features = false, features = ["async-await"]}
 heapless = "0.8.0"
 
 # flash

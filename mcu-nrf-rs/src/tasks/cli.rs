@@ -87,7 +87,6 @@ pub async fn task() {
 
         if string.starts_with("reboot") || string.starts_with("restart") {
             cortex_m::peripheral::SCB::sys_reset();
-            result = true; // should never get here!
         }
 
         if string.starts_with("power") {

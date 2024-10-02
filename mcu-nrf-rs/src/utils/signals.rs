@@ -5,7 +5,7 @@ use heapless::{pool::boxed::Box, String};
 use nrf_softdevice::ble::Connection;
 
 // configure types
-type SettingsMutex = ThreadModeRawMutex;
+type SignalMutex = ThreadModeRawMutex;
 type ChannelMutex = CriticalSectionRawMutex;
 
 // == CHANNELS ==
@@ -32,19 +32,16 @@ pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubCh
 pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 pub static BATTERY_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 1, 1> = PubSubChannel::new();
 
-// Internal
 pub static BATTERY_IN: PubSubChannel<ChannelMutex, [u16;2], 1, 2, 2> = PubSubChannel::new();
 
 pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 1, 2, 2> = PubSubChannel::new();
 
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
-pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 5> = PubSubChannel::new();
+pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 6> = PubSubChannel::new();
 
 pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-
-// cruise
-//pub static CRUISE_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+pub static PARK_BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 1, 2> = PubSubChannel::new();
 
 // alarm
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
@@ -76,11 +73,21 @@ pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubCha
 // https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/sharing.rs
 // https://docs.rs/scoped-mutex/latest/scoped_mutex/struct.BlockingMutex.html <-- comming soon no refcell required!
 
+// TODO: custom voltage from the app could override the cruise? need an extra mutex for that
+pub static CRUISE_VOLTAGE: Mutex<SignalMutex, u16> = Mutex::new(0u16);
+pub static CRUISE_LEVEL: Mutex<SignalMutex, u8> = Mutex::new(0u8);
+pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
+        1600u16, // 1408 a little too slow, 1500 a little slow
+        2000u16, // 1906 a little to slow
+        2300u16, // 2400 a little fast?
+        2800u16, // 2900 ?
+        3400u16, // 3400 max
+    ]);
 
-pub static CRUISE_LEVEL: Mutex<SettingsMutex, u8> = Mutex::new(0u8);
+pub static BRAKE_ON_MUTEX: Mutex<SignalMutex, bool> = Mutex::new(false);
+pub static PARK_BRAKE_ON_MUTEX: Mutex<SignalMutex, bool> = Mutex::new(true); // TODO: true
 
-
-pub static SYSTEM_POWER_ACTIVE: Mutex<SettingsMutex, bool> = Mutex::new(false);
+pub static SYSTEM_POWER_ACTIVE: Mutex<SignalMutex, bool> = Mutex::new(false);
 
 pub struct AlarmSettings {
     pub active: bool,
@@ -88,7 +95,7 @@ pub struct AlarmSettings {
     pub warning_interval: u8,
     pub sensitivity: u8,
 }
-pub static ALARM_ACTIVE: Mutex<SettingsMutex, bool> = Mutex::new(false);
+pub static ALARM_ACTIVE: Mutex<SignalMutex, bool> = Mutex::new(false);
 
 
 /* 
@@ -128,10 +135,10 @@ pub struct ThrottleSettings {
 /*
 Controller supply voltage - 4.36v = 4360mv
 */
-pub static THROTTLE_SETTINGS: Mutex<SettingsMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
+pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
     increase_smooth_factor: 75, // rate of smoothing to acceleration
-    decrease_smooth_factor: 120, // rate of smoothing to deceleration
+    decrease_smooth_factor: 150, // rate of smoothing to deceleration
     throttle_min: 910, // mv no throttle
     throttle_max: 3400, // mv full throttle
     deadband_min: 1200, // mv just before motor active
