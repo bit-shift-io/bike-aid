@@ -52,8 +52,8 @@ public class BLE {
     BluetoothGatt mGatt;
     boolean mDeviceFound = false;
     private Context mContext;
-    ArrayList<BluetoothGattCharacteristic> mProcessedCharacteristics = new ArrayList<>();
-    private boolean mProcessedCharacteristicsComplete = false;
+    ArrayList<BluetoothGattCharacteristic> mNotifyCharacteristics = new ArrayList<>();
+    private boolean mNotifyCharacteristicsComplete = false;
     ArrayList<BluetoothGattCharacteristic> mReadCharacteristics = new ArrayList<>();
     private boolean mReadCharacteristicsComplete = false;
     final static UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
@@ -107,9 +107,20 @@ public class BLE {
         mGatt = null;
         mDeviceFound = false;
         mScanning = false;
-        // TODO: clean out the characteristics and all that too??
+        //resetSettings(true, true);
     }
 
+
+    public void resetSettings(boolean readCharacteristics, boolean notifyCharacteristics) {
+        if (readCharacteristics) {
+            mReadCharacteristics = new ArrayList<>();
+            mReadCharacteristicsComplete = false;
+        }
+        if (notifyCharacteristics) {
+            mNotifyCharacteristics = new ArrayList<>();
+            mNotifyCharacteristicsComplete = false;
+        }
+    }
 
     public void connectDelay() {
         // used when we are closing first, the need to wait for that to complete before reconnecting
@@ -136,6 +147,7 @@ public class BLE {
             for (BluetoothDevice dev : connectedDevices) {
                 if (isMyDevice(dev)) {
                     log.info("existing connected device");
+                    resetSettings(true, false); // reread only, i think it must reconfig notifications
                     connectDevice();
                     return;
                 }
@@ -148,16 +160,16 @@ public class BLE {
             for (BluetoothDevice dev : bondedDevices) {
                 if (isMyDevice(dev)) {
                     log.info("existing bonded device");
+                    resetSettings(true, false); // reread only, i think it must reconfig notifications
                     connectDevice();
                     return;
                 }
             }
         }
 
-        // scan
+        // scan for new device
         mScanner = mAdapter.getBluetoothLeScanner();
-
-        // device not found, scan
+        resetSettings(true, true); // reset notify & read as we have a new connection
         if (!mDeviceFound) startScan();
     }
 
@@ -304,15 +316,6 @@ public class BLE {
                 close();
                 connectDelay();
             }
-
-            /*
-            // reset settings
-            // TODO: some issue with duplicate services
-            mReadCharacteristics = new ArrayList<>();;
-            mReadCharacteristicsComplete = false;
-            mProcessedCharacteristics = new ArrayList<>();;
-            mProcessedCharacteristicsComplete = false;
-            */
         }
 
         @Override
@@ -344,9 +347,13 @@ public class BLE {
             if (!mReadCharacteristicsComplete)
                 processNextCharacteristic(gatt);
 
+            // Copy the byte array so we have a threadsafe copy
+            final byte[] value_copy = new byte[value.length];
+            System.arraycopy(value, 0, value_copy, 0, value.length );
+
             handler.post(new Runnable() {
                 @Override
-                public void run() { onRead(gatt, characteristic, value); }
+                public void run() { onRead(gatt, characteristic, value_copy); }
             });
         }
 
@@ -413,7 +420,7 @@ public class BLE {
             }
 
             // 2. configure notify characteristics
-            if (!mProcessedCharacteristicsComplete) {
+            if (!mNotifyCharacteristicsComplete) {
                 // loop services
                 for (BluetoothGattService s : services) {
                     List<BluetoothGattCharacteristic> characteristics = s.getCharacteristics();
@@ -422,7 +429,7 @@ public class BLE {
                     for (BluetoothGattCharacteristic c : characteristics) {
 
                         // have we already been configured?
-                        if (mProcessedCharacteristics.contains(c))
+                        if (mNotifyCharacteristics.contains(c))
                             continue;
 
                         // check if we have notify
@@ -437,7 +444,7 @@ public class BLE {
                         }
 
                         // add to completed list
-                        mProcessedCharacteristics.add(c);
+                        mNotifyCharacteristics.add(c);
 
                         // has notify, so wait for response
                         // if not try another characteristic
@@ -446,7 +453,7 @@ public class BLE {
                     }
                 }
 
-                mProcessedCharacteristicsComplete = true;
+                mNotifyCharacteristicsComplete = true;
             }
 
             log.info("finish processing characteristics");

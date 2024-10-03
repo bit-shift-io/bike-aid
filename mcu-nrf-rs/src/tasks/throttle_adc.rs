@@ -75,8 +75,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
             return
         }, // unable to communicate with device
     }
-    //let _ = adc.set_data_rate(DataRate16Bit::Sps8);
-
+    
     loop {
         Timer::after_millis(INTERVAL).await;
 

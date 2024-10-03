@@ -8,7 +8,7 @@ use embassy_time::Timer;
 
 const TASK_ID: &str = "BRAKE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
-const MAX_COUNT: u8 = 10 * 10; // this equals 10 seonds of throttle updates
+const MAX_COUNT: u16 = 30 * 10; // this equals 30 seonds of throttle updates
 
 #[embassy_executor::task]
 pub async fn task(
