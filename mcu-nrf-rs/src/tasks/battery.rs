@@ -31,7 +31,8 @@ pub async fn task() {
         
         let percentage = calculate_percentage(input_voltage);
 
-        let power = (input_voltage * input_current) as u16; // milliwatts P=IV - watts
+        // overflow, convert u32 then convert to larger units from ma
+        //let power = (input_voltage as u32 * input_current as u32) as u16; // milliwatts P=IV - watts
 
         // TODO: calculate power every few seconds
         // store 1 minutes worth of data, and calulate smooth averge per minute
@@ -50,7 +51,7 @@ pub async fn task() {
         //     time_count = 0;
         // }
 
-        pub_power.publish_immediate(power);
+        //pub_power.publish_immediate(power);
         pub_current.publish_immediate(input_current);
         pub_voltage.publish_immediate(input_voltage);
         pub_percent.publish_immediate(percentage);

@@ -143,7 +143,7 @@ public class Signals {
         String st = new String(value, StandardCharsets.UTF_8);
 
         // debug read
-        log.info("read " + id + " " + st);
+        //log.info("read " + id + " " + st);
 
         // uart
 

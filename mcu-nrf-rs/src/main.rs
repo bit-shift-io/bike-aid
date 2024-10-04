@@ -24,12 +24,6 @@ P0.14-0.16 set low resets ?
 p0.15 Debug LED
 
 
-App Todo
-----------
-app reconnect spam
-onread copy code like characteristics
-app restores /reads states on reconnect?
-
 Todo
 ----------
 cruise 1,2 restore speed if brake is less than 3 seconds?
@@ -201,7 +195,7 @@ fn panic(info: &PanicInfo) -> ! {
     cortex_m::interrupt::disable();
     defmt::error!("Panicked: {}", defmt::Display2Format(info));
     //panic_persist::report_panic_info(info);
-    for _ in 0..10_000_000 { // delay before reset
+    for _ in 0..2_000_000 { // delay before reset
         nop()
     }
     cortex_m::peripheral::SCB::sys_reset();

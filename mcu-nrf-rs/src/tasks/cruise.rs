@@ -6,7 +6,7 @@ use embassy_futures::select::{select, Either};
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
 const FULL_THROTTLE_THRESHOLD: u16 = 2700;
-const MAX_COUNT: u8 = 6; // this equals X x 100ms of throttle updates
+const MAX_COUNT: u8 = 4; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
 pub async fn task(

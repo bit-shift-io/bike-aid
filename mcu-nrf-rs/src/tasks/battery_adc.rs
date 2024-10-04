@@ -12,7 +12,7 @@ use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID: &str = "BATTERY ADC";
-const INTERVAL: u64 = 30; // 30 seconds
+const INTERVAL: u64 = 10; // seconds
 
 // consts for voltage divider
 const VOLTAGE_CALIBATION : u16 = 10; // calibration level = multimeter - measured
@@ -22,13 +22,11 @@ const R2 : f32 = 51_000.0; // 51_270.0
 const VOLTAGE_MULTIPLIER : f32 = ((R1 + R2) / R2) - R_CALIBRATION; // ((R1 + R2) / R2)
 
 // consts for ACS758LCB-100B
-const VCC : f32 = 3300.0; // 3.3v = 3,300mV
-const QUIESCENT_OUTPUT_VOLTAGE : f32 = 500.0; // 0.5v for ACS758LCB-100B = 500mV
-const FACTOR: f32 = 20.0/1000.0; // 20.0 for ACS758LCB-100B
-const QOV: f32 = QUIESCENT_OUTPUT_VOLTAGE * VCC; // set quiescent Output voltage
-const CUTOFF_LIMIT: f32 = 2.0; // for model use 2A
-const CUTOFF: f32 = FACTOR / CUTOFF_LIMIT; // convert current cut off to mV
-const NON_ZERO: f32 = 7.0; // 0.007v = 7mV value to make voltage zero when there is no current
+const VCC : u16 = 3300; // 3.3v = 3,300mV
+const QUIESCENT_VOLTAGE : u16 = VCC / 2; // 0.5 (half) for ACS758LCB-100B
+const SENSITIVITY: u16 = 100; // Sensitivity in mV/A for ACS758LCB-100B
+const CUTOFF_LIMIT: u16 = 2000; // for model use 2000ma
+const NON_ZERO: u16 = 7; // 7mV value to make voltage zero when there is no current
 
 
 #[embassy_executor::task]
@@ -88,10 +86,10 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 }
 
 
-fn calculate_voltage(voltage: i16) -> u16 {
+fn calculate_voltage(input: i16) -> u16 {
     // convert to voltage
     // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-    let mut input_voltage_a1: u16 = (f32::from(voltage) * 4096.0 / 32768.0) as u16; // converted to mv
+    let mut input_voltage_a1: u16 = (f32::from(input) * 4096.0 / 32768.0) as u16; // converted to mv
 
     // calibration
     input_voltage_a1 += VOLTAGE_CALIBATION; 
@@ -104,17 +102,18 @@ fn calculate_voltage(voltage: i16) -> u16 {
 }
 
 
-fn calculate_current(current: i16) -> u16 {
+fn calculate_current(input: i16) -> u16 {
     // convert to voltage
     // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-    let input_voltage_a0: u16 = (f32::from(current) * 4096.0 / 32768.0) as u16; // converted to mv
+    let input_voltage_a0: u16 = (f32::from(input) * 4096.0 / 32768.0) as u16; // converted to mv
 
     // TODO: current sensor
-    let current_voltage = f32::from(input_voltage_a0) - QOV + NON_ZERO;
-    let mut current = current_voltage / FACTOR;
-    if abs(current) < CUTOFF { // cutoff in mA
-        current = 0.0;
-    }
+    let differential_voltage = input_voltage_a0 - QUIESCENT_VOLTAGE + NON_ZERO;
+    let mut current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
+    // if current < CUTOFF_LIMIT {
+    //     current = 0;
+    // }
     
-    (current * 1000.0) as u16 // convert to mA
+    info!("{} -> {} -> {} -> {}", input, input_voltage_a0, differential_voltage, current);
+    current
 }

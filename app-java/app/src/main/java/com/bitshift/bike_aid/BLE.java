@@ -369,11 +369,12 @@ public class BLE {
             // Check if the service discovery succeeded. If not disconnect
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 log.info("service discovery failed");
-                gatt.disconnect();
+                close();
                 return;
             }
 
             // success
+            log.info("begin service discovery");
             processNextCharacteristic(gatt);
         }
 
@@ -456,7 +457,8 @@ public class BLE {
                 mNotifyCharacteristicsComplete = true;
             }
 
-            log.info("finish processing characteristics");
+            log.info("complete service discovery");
+            log.info("ready!");
         }
 
     };

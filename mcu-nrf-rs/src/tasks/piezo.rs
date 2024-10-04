@@ -12,6 +12,8 @@ pub async fn task(
     pwm_device: PWM0,
     pin: AnyPin
 ) {
+    return; // debug
+
     info!("{}: start", TASK_ID);
 
     let mut pwm = SimplePwm::new_1ch(pwm_device, pin);

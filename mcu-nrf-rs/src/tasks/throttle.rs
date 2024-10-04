@@ -41,6 +41,7 @@ pub async fn task() {
 
         // minimum speed step
         if throttle_voltage > SPEED_STEP && output_voltage < SPEED_STEP {
+            //info!("speed step");
             output_voltage = SPEED_STEP;
         }
 
@@ -51,9 +52,10 @@ pub async fn task() {
 
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
-        let mapped_output = functions::map(output_voltage, &throttle_settings.throttle_min, &throttle_settings.throttle_max, &throttle_settings.deadband_min, &throttle_settings.deadband_max);
+        //info!("{} | {} -> {} {} -> {} {}", throttle_voltage, output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
+        let mapped_output = functions::map(output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
         pub_throttle.publish_immediate(mapped_output); 
-        //info!("throttle: {} | out: {} | map: {}  -  delta: {} | adj: {}", input_smooth as i16, output_voltage as i16, mapped_output as i16, delta, adjustment);
+        //info!("throttle: {} | out: {} | map: {}", throttle_voltage, output_voltage, mapped_output);
     }
 }
 
@@ -81,6 +83,7 @@ async fn apply_smoothing(
         }
     }
 
+    //info!("delta {} | adj {}", delta, adjustment);
     // Apply the adjustment to the output voltage
     let result_voltage = (output_voltage as i16 + adjustment) as u16;
     result_voltage
