@@ -120,6 +120,7 @@ Speed Limit
 Adjusts throttle output speed limit.
 */
 
+#[derive(Clone)]
 pub struct ThrottleSettings {
     pub passthrough: bool, // disable smoothing and limiting
     pub increase_smooth_factor: u16, // rate of smoothing to acceleration

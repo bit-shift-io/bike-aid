@@ -6,6 +6,7 @@ use embassy_futures::select::{select, Either};
 use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
+use heapless::String;
 use num_traits::abs;
 use core::cell::RefCell;
 use embassy_time::Timer;
@@ -79,6 +80,10 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         let voltage = calculate_voltage(value_a1);
         let current = calculate_current(value_a0);
+
+        // debug uart
+        let str: String<32> = String::try_from(current).unwrap();
+        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
 
         pub_data.publish_immediate([voltage, current]);
         Timer::after_secs(INTERVAL).await;

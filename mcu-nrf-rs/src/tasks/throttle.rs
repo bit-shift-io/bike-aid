@@ -13,10 +13,10 @@ pub async fn task() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output_voltage = 0u16;
+    let throttle_settings = signals::THROTTLE_SETTINGS.lock().await.clone();
 
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-        let throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
@@ -28,18 +28,24 @@ pub async fn task() {
         // get throttle voltage
         let mut input_voltage = throttle_voltage;
         
-        // cruise control
-        let cruise_voltage = *signals::CRUISE_VOLTAGE.lock().await;
-
-        // if throttle bellow cruise, use cruise
-        if input_voltage < cruise_voltage {
-            input_voltage = cruise_voltage;
+        // get mutex values, minimise lock time
+        let (cruise_voltage, brake_on) = {
+            let cruise_voltage = *signals::CRUISE_VOLTAGE.lock().await;
+            let brake_on = *signals::BRAKE_ON_MUTEX.lock().await;
+            (cruise_voltage, brake_on)
+        };
+    
+        // check brake & cruise conditions
+        if brake_on { 
+            input_voltage = throttle_settings.throttle_min; // use min
+        } else if input_voltage < cruise_voltage {
+            input_voltage = cruise_voltage; // if throttle bellow cruise, use cruise
         }
-
+        
         // smoothing
-        output_voltage = apply_smoothing(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
+        output_voltage = smooth(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
 
-        // minimum speed step
+        // minimum speed step if throttle is above threshold
         if throttle_voltage > SPEED_STEP && output_voltage < SPEED_STEP {
             //info!("speed step");
             output_voltage = SPEED_STEP;
@@ -60,7 +66,7 @@ pub async fn task() {
 }
 
 
-async fn apply_smoothing(
+async fn smooth(
     input_voltage: u16, 
     output_voltage: u16, 
     increase_smooth_factor: u16, 
@@ -90,7 +96,7 @@ async fn apply_smoothing(
 }
 
 
-fn apply_throttle_curve(
+fn throttle_curve(
     input_value: u16,
     min_input: u16,
     max_input: u16,
