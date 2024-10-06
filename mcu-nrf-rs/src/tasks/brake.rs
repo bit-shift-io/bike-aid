@@ -5,6 +5,7 @@ use embassy_nrf::gpio::{Input, Pull};
 use defmt::*;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
+use heapless::String;
 
 const TASK_ID: &str = "BRAKE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
@@ -53,12 +54,20 @@ async fn brake(pin: AnyPin) {
         *signals::BRAKE_ON_MUTEX.lock().await = false;
         pub_brake_on.publish_immediate(false);
         //info!("{}: brake off", TASK_ID);
+        // debug uart
+        let str: String<32> = String::try_from("brake off").unwrap();
+        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
+     
 
         pin_state.wait_for_low().await; // brake on
         *signals::BRAKE_ON_MUTEX.lock().await = true;
         pub_brake_on.publish_immediate(true);
         park_brake_off().await;
         //info!("{}: brake on", TASK_ID);
+        // debug uart
+        let str: String<32> = String::try_from("brake on").unwrap();
+        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
+     
     }
 }
 

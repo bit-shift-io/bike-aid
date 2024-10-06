@@ -1,5 +1,5 @@
-# ACS758 Current Sensor
-ACS758 100amp Range Linear Current Sensor Analog Signal Output for Arduino Hall Effect Based
+# ACS758LCB-050B Current Sensor
+ACS758LCB-050B Range Linear Current Sensor Analog Signal Output for Arduino Hall Effect Based
 Features and Benefits
 
 ## Notes

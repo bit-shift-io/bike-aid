@@ -4,7 +4,7 @@ use defmt::*;
 use num_traits::Float;
 
 const TASK_ID: &str = "THROTTLE";
-const SPEED_STEP: u16 = 1200;
+const SPEED_STEP: u16 = 1400;
 
 #[embassy_executor::task]
 pub async fn task() {
@@ -13,10 +13,10 @@ pub async fn task() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output_voltage = 0u16;
-    let throttle_settings = signals::THROTTLE_SETTINGS.lock().await.clone();
-
+    
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        let throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
@@ -45,10 +45,15 @@ pub async fn task() {
         // smoothing
         output_voltage = smooth(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
 
-        // minimum speed step if throttle is above threshold
+        
         if throttle_voltage > SPEED_STEP && output_voltage < SPEED_STEP {
+            // minimum speed step if throttle is above threshold
             //info!("speed step");
             output_voltage = SPEED_STEP;
+        } else if throttle_voltage < SPEED_STEP { 
+            // no throttle till hit threshold
+            // this is to overcome the issue with the increasing voltage on the throttle line from the controller
+            output_voltage = throttle_settings.deadband_min;
         }
 
         // how to do speed based limit:

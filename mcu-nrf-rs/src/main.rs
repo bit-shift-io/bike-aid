@@ -24,17 +24,26 @@ P0.14-0.16 set low resets ?
 p0.15 Debug LED
 
 
+HW Todo
+----------
+try a smaller pulldown on the throttle module, replace 100k with 47k to see if it helps with floating throttle
+brake plug seems wobbly
+reset push button - hw
+speedo - hardware/oscilliscope
+brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off power.
+
 Todo
 ----------
+exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
+power meter working, can be used to guess speed
+auto off after x mins of park brake?
 cruise 1,2 restore speed if brake is less than 3 seconds?
 double tap cruise current speed. store initial voltage at the start of the tap detection
 command que for ble
 ble tracker
-reset push button - hw
-exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
 alarm - auto on/off
-speedo - hardware/oscilliscope
-odometer
+odometer/speed
+
 */
 
 #![no_std]

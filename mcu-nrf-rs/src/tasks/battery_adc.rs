@@ -82,8 +82,8 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         let current = calculate_current(value_a0);
 
         // debug uart
-        let str: String<32> = String::try_from(current).unwrap();
-        signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
+        //let str: String<32> = String::try_from(current).unwrap();
+        //signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
 
         pub_data.publish_immediate([voltage, current]);
         Timer::after_secs(INTERVAL).await;
@@ -119,6 +119,6 @@ fn calculate_current(input: i16) -> u16 {
     //     current = 0;
     // }
     
-    info!("{} -> {} -> {} -> {}", input, input_voltage_a0, differential_voltage, current);
+    //info!("{} -> {} -> {} -> {}", input, input_voltage_a0, differential_voltage, current);
     current
 }

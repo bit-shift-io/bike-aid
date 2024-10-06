@@ -41,7 +41,7 @@ pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
 pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 6> = PubSubChannel::new();
 
 pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-pub static PARK_BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 1, 2> = PubSubChannel::new();
+pub static PARK_BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // alarm
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
@@ -120,7 +120,7 @@ Speed Limit
 Adjusts throttle output speed limit.
 */
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ThrottleSettings {
     pub passthrough: bool, // disable smoothing and limiting
     pub increase_smooth_factor: u16, // rate of smoothing to acceleration
@@ -138,7 +138,7 @@ Controller supply voltage - 4.36v = 4360mv
 */
 pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
-    increase_smooth_factor: 80, // rate of smoothing to acceleration
+    increase_smooth_factor: 75, // rate of smoothing to acceleration
     decrease_smooth_factor: 150, // rate of smoothing to deceleration
     throttle_min: 870, // mv no throttle
     throttle_max: 3600, // mv full throttle

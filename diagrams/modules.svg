@@ -28,14 +28,14 @@
      inkscape:document-units="mm"
      showgrid="true"
      inkscape:zoom="2.8284271"
-     inkscape:cx="571.1655"
+     inkscape:cx="223.7993"
      inkscape:cy="439.82042"
      inkscape:window-width="1875"
      inkscape:window-height="1052"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="g57"
      showguides="true">
     <inkscape:grid
        id="grid1"
@@ -3481,7 +3481,7 @@
            id="tspan56-1-1"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:center;writing-mode:lr-tb;text-orientation:sideways;text-anchor:middle;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="27.494152"
-           y="-277.67346">1R2</tspan></text>
+           y="-277.67346">R22k</tspan></text>
     </g>
     <g
        id="g60-0"
@@ -3519,7 +3519,7 @@
            id="tspan56-1-4-4"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111px;font-family:Consolas;-inkscape-font-specification:Consolas;text-align:center;writing-mode:lr-tb;text-orientation:sideways;text-anchor:middle;fill:#009912;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="248.89169"
-           y="29.200274">2R2</tspan></text>
+           y="29.200274">R39k</tspan></text>
     </g>
     <rect
        style="display:inline;fill:none;fill-opacity:0.2;stroke:#000000;stroke-width:0.2;stroke-dasharray:0.800002, 0.2;stroke-dashoffset:0;stroke-opacity:0.3"
