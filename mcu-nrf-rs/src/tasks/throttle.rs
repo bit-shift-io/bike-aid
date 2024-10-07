@@ -46,10 +46,8 @@ pub async fn task() {
         output_voltage = smooth(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
 
         
-        if throttle_voltage > SPEED_STEP && output_voltage < SPEED_STEP {
-            // minimum speed step if throttle is above threshold
-            output_voltage = SPEED_STEP;
-        } else if cruise_voltage != 0 && cruise_voltage < SPEED_STEP && output_voltage < SPEED_STEP {
+        // initial speed step
+        if (throttle_voltage > SPEED_STEP || cruise_voltage > SPEED_STEP) && output_voltage < SPEED_STEP {
             // minimum speed step if throttle is above threshold
             output_voltage = SPEED_STEP;
         } else if throttle_voltage < SPEED_STEP && cruise_voltage == 0 { 
