@@ -22,21 +22,21 @@ pub async fn task(
 ) {
     info!("{}: start", TASK_ID);
 
-    let mut sub_alarm = signals::ALARM_ENABLED.subscriber().unwrap();
-    let mut alarm_state = false;
+    let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
+    let mut state = false;
 
     loop { 
-        if let Some(b) = sub_alarm.try_next_message_pure() {alarm_state = b}
-        match alarm_state {
+        if let Some(b) = sub.try_next_message_pure() {state = b}
+        match state {
             true => {
-                let alarm_future = sub_alarm.next_message_pure();
+                let sub_future = sub.next_message_pure();
                 let task_future = run(i2c_bus);
-                match select(alarm_future, task_future).await {
-                    Either::First(val) => { alarm_state = val; }
+                match select(sub_future, task_future).await {
+                    Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { alarm_state = sub_alarm.next_message_pure().await; }
+            false => { state = sub.next_message_pure().await; }
         }
     }
 }
@@ -67,13 +67,14 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
     loop {
         Timer::after_millis(INTERVAL).await;
+        let mut motion_detected = false;
 
         // get roll and pitch estimate
         let acc_angles = mpu.get_acc_angles().unwrap();
         let x_acc_delta = acc_angles.x - last_acc_angles.x;
         let y_acc_delta = acc_angles.y - last_acc_angles.y;
         if x_acc_delta > ANGLE_SENSITIVITY || y_acc_delta > ANGLE_SENSITIVITY {
-            pub_motion.publish_immediate(true);
+            motion_detected = true;
             //info!("{}: angles detected", TASK_ID);
         }
 
@@ -83,14 +84,14 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         let y_gyro_delta = gyro.y - last_gyro.y;
         let z_gyro_delta = gyro.z - last_gyro.z;
         if x_gyro_delta > GYRO_SENSITIVITY || y_gyro_delta > GYRO_SENSITIVITY || z_gyro_delta > GYRO_SENSITIVITY {
-            pub_motion.publish_immediate(true);
+            motion_detected = true;
             //info!("{}: gyro detected", TASK_ID);
         }
         
         // get accelerometer data, scaled with sensitivity
         let acc = mpu.get_acc().unwrap(); // in G's
         if acc.abs().amax() > ACC_SENSITIVITY {
-            pub_motion.publish_immediate(true);
+            motion_detected = true;
             //info!("{}: acc detected", TASK_ID);
         }
 
@@ -99,6 +100,10 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         //info!("{} | {} | {}", x_gyro_delta, y_gyro_delta, z_gyro_delta);
         //info!("{} | {}", acc.abs().amin(), acc.abs().amax());
         //info!("acc: {} | gyro: {} | r/p: {}", Debug2Format(&acc), Debug2Format(&gyro), Debug2Format(&acc_angles));
+
+        if motion_detected {
+            pub_motion.publish_immediate(true);
+        }
 
         last_gyro = gyro;
         last_acc_angles = acc_angles;

@@ -6,7 +6,7 @@ use embassy_futures::select::{select, Either};
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
 const FULL_THROTTLE_THRESHOLD: u16 = 2700;
-const MAX_COUNT: u8 = 4; // this equals X x 100ms of throttle updates
+const MAX_COUNT: u8 = 6; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
 pub async fn task(
@@ -57,38 +57,62 @@ async fn run() {
 
     loop {
         let mut throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-
-        // go above the threshold
-        if throttle_voltage > NO_THROTTLE_THRESHOLD {
-            let mut count = 0;
-
-            // Wait for the throttle to exceed the high threshold
-            while throttle_voltage < FULL_THROTTLE_THRESHOLD && count < MAX_COUNT {
-                throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-                count += 1;
-            }
-
-            // Wait for the throttle to drop back below the low threshold
-            while throttle_voltage > NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
-                throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-                count +=1;
-            }
-
-            if count < MAX_COUNT {
-                // increment cruise level
-                let mut cruise_level = signals::CRUISE_LEVEL.lock().await;
-                let mut current_level = *cruise_level;
-                current_level = (current_level + 1) % 5; // wrap around
-                if current_level == 0 { current_level = 5; } // 0 -> 5 = range 1-5 instead of 0-4
-                *cruise_level = current_level; // assign
-                
-                assign_voltage(current_level).await;
-
-                pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
-                //info!("{}: Detected throttle tap + increment cruise 0, 1-5", TASK_ID);
-            }
+        
+        // wait for throttle to go above the threshold
+        if throttle_voltage < NO_THROTTLE_THRESHOLD {
+            continue;
         }
+
+        // count for timing, each update is 100ms
+        let mut count = 0; 
+
+
+        // Wait for the throttle to go above the NO_THROTTLE_THRESHOLD
+        // while throttle_voltage < NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
+        //     throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        //     count += 1;
+        // }
+
+        // if count > MAX_COUNT {
+        //     continue; // Restart the loop if we didn't detect a rise
+        // }
+
+        // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD
+        while throttle_voltage < FULL_THROTTLE_THRESHOLD && count < MAX_COUNT {
+            throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+            count += 1;
+        }
+
+        if count > MAX_COUNT {
+            continue; // Restart the loop if we didn't detect a full throttle
+        }
+
+        // Wait for the throttle to drop back below the NO_THROTTLE_THRESHOLD
+        while throttle_voltage > NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
+            throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+            count += 1;
+        }
+
+        if count > MAX_COUNT {
+            continue; // Restart the loop if we didn't detect a drop
+        }
+
+        // If we reached this point, a tap has been detected
+        increment_cruise().await;
+        pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
+        //info!("{}: Detected throttle tap + increment cruise 0, 1-5", TASK_ID);
     }
+}
+
+
+async fn increment_cruise() {
+    // increment cruise level
+    let mut cruise_level = signals::CRUISE_LEVEL.lock().await;
+    let mut current_level = *cruise_level;
+    current_level = (current_level + 1) % 5; // wrap around
+    if current_level == 0 { current_level = 5; } // 0 -> 5 = range 1-5 instead of 0-4
+    *cruise_level = current_level; // assign
+    assign_voltage(current_level).await;
 }
 
 

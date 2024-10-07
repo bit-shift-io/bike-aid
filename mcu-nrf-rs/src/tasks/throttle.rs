@@ -4,7 +4,7 @@ use defmt::*;
 use num_traits::Float;
 
 const TASK_ID: &str = "THROTTLE";
-const SPEED_STEP: u16 = 1400;
+const SPEED_STEP: u16 = 1500;
 
 #[embassy_executor::task]
 pub async fn task() {
@@ -27,7 +27,7 @@ pub async fn task() {
 
         // get throttle voltage
         let mut input_voltage = throttle_voltage;
-        
+
         // get mutex values, minimise lock time
         let (cruise_voltage, brake_on) = {
             let cruise_voltage = *signals::CRUISE_VOLTAGE.lock().await;
@@ -48,12 +48,14 @@ pub async fn task() {
         
         if throttle_voltage > SPEED_STEP && output_voltage < SPEED_STEP {
             // minimum speed step if throttle is above threshold
-            //info!("speed step");
             output_voltage = SPEED_STEP;
-        } else if throttle_voltage < SPEED_STEP { 
+        } else if cruise_voltage != 0 && cruise_voltage < SPEED_STEP && output_voltage < SPEED_STEP {
+            // minimum speed step if throttle is above threshold
+            output_voltage = SPEED_STEP;
+        } else if throttle_voltage < SPEED_STEP && cruise_voltage == 0 { 
             // no throttle till hit threshold
             // this is to overcome the issue with the increasing voltage on the throttle line from the controller
-            output_voltage = throttle_settings.deadband_min;
+            output_voltage = throttle_settings.throttle_min;
         }
 
         // how to do speed based limit:
@@ -117,8 +119,8 @@ fn throttle_curve(
     // Normalize the input value to the range [0, 1]
     let normalized_value = (input_value - min_input) as f32 / (max_input - min_input) as f32;
 
-    // Apply the curve function (e.g., power function)
-    let curved_value = normalized_value.powf(exponent);
+    // Apply a modified curve function to stretch lower values
+    let curved_value = 1.0 - (1.0 - normalized_value).powf(exponent);
 
     // Map back to the output range
     let output_value = min_output as f32 + (curved_value * (max_output - min_output) as f32).round();
