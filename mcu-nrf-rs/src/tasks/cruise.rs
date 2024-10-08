@@ -1,7 +1,6 @@
 use crate::utils::signals;
-use embassy_executor::Spawner;
 use defmt::*;
-use embassy_futures::select::{select, Either};
+use embassy_futures::{join::join, select::{select, Either}};
 
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
@@ -9,13 +8,8 @@ const FULL_THROTTLE_THRESHOLD: u16 = 2700;
 const MAX_COUNT: u8 = 6; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
-pub async fn task(
-    spawner: Spawner,
-) {
+pub async fn task() {
     info!("{}: start", TASK_ID);
-
-    // spawn sub tasks
-    spawner.must_spawn(cruise_reset());
 
     // brake on/off
     let mut sub = signals::BRAKE_ON.subscriber().unwrap();
@@ -26,7 +20,9 @@ pub async fn task(
         match state {
             false => {
                 let sub_future = sub.next_message_pure();
-                let task_future = run();
+                let task1_future = run();
+                let task2_future = cruise_reset();
+                let task_future = join(task1_future, task2_future);
                 match select(sub_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => {} // other task will never end
@@ -39,7 +35,6 @@ pub async fn task(
 }
 
 
-#[embassy_executor::task]
 async fn cruise_reset() {
     let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
 
@@ -57,50 +52,53 @@ async fn run() {
 
     loop {
         let mut throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-        
-        // wait for throttle to go above the threshold
-        if throttle_voltage < NO_THROTTLE_THRESHOLD {
-            continue;
+
+        // Wait for throttle to go below the NO_THROTTLE_THRESHOLD
+        while throttle_voltage >= NO_THROTTLE_THRESHOLD {
+            throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
         }
 
-        // count for timing, each update is 100ms
-        let mut count = 0; 
+        // Now we are below the NO_THROTTLE_THRESHOLD, wait for it to exceed the threshold
+        //info!("below no throttle threshold");
 
+        // Wait for the throttle to exceed the NO_THROTTLE_THRESHOLD
+        while throttle_voltage < NO_THROTTLE_THRESHOLD {
+            throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        }
 
-        // Wait for the throttle to go above the NO_THROTTLE_THRESHOLD
-        // while throttle_voltage < NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
-        //     throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
-        //     count += 1;
-        // }
+        // Count for timing, each update is 100ms
+        let mut count = 0;
 
-        // if count > MAX_COUNT {
-        //     continue; // Restart the loop if we didn't detect a rise
-        // }
+        //info!("above min throttle - {}", count);
 
         // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD
         while throttle_voltage < FULL_THROTTLE_THRESHOLD && count < MAX_COUNT {
             throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+            //info!("throttle {}", throttle_voltage);
             count += 1;
         }
 
-        if count > MAX_COUNT {
+        info!("full throttle {}", count);
+
+        if count >= MAX_COUNT {
             continue; // Restart the loop if we didn't detect a full throttle
         }
 
-        // Wait for the throttle to drop back below the NO_THROTTLE_THRESHOLD
+        // Now we are at full throttle, wait for it to drop below the NO_THROTTLE_THRESHOLD
+        //count = 0; // Reset count for timing the drop
         while throttle_voltage > NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
             throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
             count += 1;
         }
 
-        if count > MAX_COUNT {
-            continue; // Restart the loop if we didn't detect a drop
-        }
+        //info!("throttle dropped below no throttle threshold, count: {}", count);
 
-        // If we reached this point, a tap has been detected
-        increment_cruise().await;
-        pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
-        //info!("{}: Detected throttle tap + increment cruise 0, 1-5", TASK_ID);
+        // Check if the tap was detected within the time limit (0.6 seconds)
+        if count < MAX_COUNT {
+            //info!("tap detected");
+            increment_cruise().await;
+            pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
+        }
     }
 }
 

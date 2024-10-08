@@ -1,4 +1,3 @@
-pub mod security;
 pub mod server;
 pub mod service_battery;
 pub mod service_data;

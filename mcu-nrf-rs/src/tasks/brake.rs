@@ -1,7 +1,7 @@
 use crate::utils::signals;
-use embassy_executor::Spawner;
-use embassy_nrf::gpio::AnyPin;
-use embassy_nrf::gpio::{Input, Pull};
+//use embassy_executor::Spawner;
+use embassy_futures::join::join;
+use embassy_nrf::gpio::{AnyPin, Input, Pull};
 use defmt::*;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
@@ -13,13 +13,11 @@ const MAX_COUNT: u16 = 30 * 10; // this equals 30 seonds of throttle updates
 
 #[embassy_executor::task]
 pub async fn task(
-    spawner: Spawner,
     pin: AnyPin
 ) {
     info!("{}: start", TASK_ID);
 
-    // spawn sub tasks
-    spawner.must_spawn(brake(pin));
+    let mut pin_state = Input::new(pin, Pull::None); // high = brake off, low = brake on
 
     // power on/off
     let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
@@ -30,7 +28,9 @@ pub async fn task(
         match state {
             true => {
                 let sub_future = sub.next_message_pure();
-                let task_future = park_brake();
+                let task1_future = park_brake();
+                let task2_future = brake_state(&mut pin_state);
+                let task_future = join(task1_future, task2_future);
                 match select(sub_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
@@ -42,13 +42,9 @@ pub async fn task(
 }
 
 
-// TODO: move this to task_future using a join? as the beep can play when turning off with the park brake on
-// very unimportant
-#[embassy_executor::task]
-async fn brake(pin: AnyPin) {
+async fn brake_state(pin_state: &mut Input<'_>) {
     let pub_brake_on = signals::BRAKE_ON.publisher().unwrap();
-    let mut pin_state = Input::new(pin, Pull::None); // high = brake off, low = brake on
-
+    
     loop {
         pin_state.wait_for_high().await; // brake off
         *signals::BRAKE_ON_MUTEX.lock().await = false;
@@ -67,7 +63,6 @@ async fn brake(pin: AnyPin) {
         // debug uart
         let str: String<32> = String::try_from("brake on").unwrap();
         signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
-     
     }
 }
 

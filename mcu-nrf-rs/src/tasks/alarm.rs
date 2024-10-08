@@ -1,10 +1,9 @@
 use crate::utils::signals;
-use embassy_executor::Spawner;
 use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex::Mutex;
 use defmt::*;
-use embassy_futures::select::{select, Either};
+use embassy_futures::{join::join, select::{select, Either}};
 
 const TASK_ID: &str = "ALARM";
 const WARN_INTERVAL: u64 = 10000; // 10 sec
@@ -12,13 +11,8 @@ const WARNINGS: u8 = 3;
 static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 
 #[embassy_executor::task]
-pub async fn task(
-    spawner: Spawner,
-) {
+pub async fn task() {
     info!("{}: start", TASK_ID);
-
-    // spawn sub tasks
-    spawner.must_spawn(warning_cooldown());
 
     let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
     let mut state = false;
@@ -28,7 +22,9 @@ pub async fn task(
         match state {
             true => {
                 let sub_future = sub.next_message_pure();
-                let task_future = run();
+                let task1_future = run();
+                let task2_future = warning_cooldown();
+                let task_future = join(task1_future, task2_future);
                 match select(sub_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
@@ -85,7 +81,6 @@ async fn stop() {
 }
 
 
-#[embassy_executor::task]
 async fn warning_cooldown() {
     loop {
         Timer::after_millis(WARN_INTERVAL).await;

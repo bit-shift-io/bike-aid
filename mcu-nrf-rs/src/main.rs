@@ -40,10 +40,8 @@ show cruise status
 
 Todo
 ----------
-alarm - auto on/off
-
-exponential throttle curve, lower values are more valuable, initial increase should start from a higher value for responsiveness
-power meter working, can be used to guess speed
+alarm
+power meter
 auto off after x mins of park brake?
 cruise 1,2 restore speed if brake is less than 3 seconds?
 double tap cruise current speed. store initial voltage at the start of the tap detection
@@ -134,7 +132,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
 
-    spawner.must_spawn(brake::task(spawner, p.P0_17.degrade()));
+    spawner.must_spawn(brake::task(p.P0_17.degrade()));
 
     spawner.must_spawn(speed::task(p.P0_09.degrade()));
 
@@ -150,11 +148,11 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
 
-    spawner.must_spawn(alarm::task(spawner));
+    spawner.must_spawn(alarm::task());
 
     spawner.must_spawn(throttle::task());
 
-    spawner.must_spawn(cruise::task(spawner));
+    spawner.must_spawn(cruise::task());
 
     spawner.must_spawn(bluetooth::task(spawner));
 

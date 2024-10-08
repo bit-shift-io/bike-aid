@@ -44,7 +44,7 @@ pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel:
 pub static PARK_BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // alarm
-pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 3, 2> = PubSubChannel::new();
 pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 

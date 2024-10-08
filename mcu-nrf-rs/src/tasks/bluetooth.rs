@@ -3,7 +3,7 @@ use crate::utils::signals;
 use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
+use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use futures::future::{select, Either};
@@ -64,14 +64,6 @@ pub async fn task(
 
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
-        /*.services_16(
-            ServiceList::Incomplete, // or complete
-            &[
-               // ServiceUuid16::BATTERY, 
-               // ServiceUuid16::USER_DATA, 
-               // ServiceUuid16::DEVICE_INFORMATION, 
-            ]) // TODO: UART service id
-              */
         .services_128(
             ServiceList::Incomplete, 
             &[[
@@ -81,22 +73,7 @@ pub async fn task(
         .short_name("BScooter")
         .build();
 
-
-    // static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
-    //     .services_16(
-    //         ServiceList::Incomplete,
-    //         &[
-    //             ServiceUuid16::DEVICE_INFORMATION,
-    //             ServiceUuid16::BATTERY,
-    //             ServiceUuid16::USER_DATA,
-    //         ])
-    //     .build();
-
     static SCAN_DATA: [u8; 0] = [];
-
-    // bonder / security
-    //static BONDER: StaticCell<Bonder> = StaticCell::new();
-    //let bonder = BONDER.init(Bonder::default());
 
     loop {
         let config = peripheral::Config::default();
@@ -106,17 +83,7 @@ pub async fn task(
         };
         
         // with or without bonding
-        //let conn = unwrap!(peripheral::advertise_pairable(sd, adv, &config, bonder).await);
         let conn: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
-
-        /*
-        if PERIPHERAL_REQUESTS_SECURITY {
-            if let Err(err) = conn.request_security() {
-                error!("Security request failed: {:?}", err);
-                continue;
-            }
-        }
-         */
 
         // Create two futures:
         //  - My server which allows services to listens for signals and processes them 

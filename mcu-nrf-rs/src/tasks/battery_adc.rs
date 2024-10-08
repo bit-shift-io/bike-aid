@@ -6,8 +6,6 @@ use embassy_futures::select::{select, Either};
 use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
-use heapless::String;
-use num_traits::abs;
 use core::cell::RefCell;
 use embassy_time::Timer;
 use nb::block;
@@ -26,7 +24,6 @@ const VOLTAGE_MULTIPLIER : f32 = ((R1 + R2) / R2) - R_CALIBRATION; // ((R1 + R2)
 const VCC : u16 = 3300; // 3.3v = 3,300mV
 const QUIESCENT_VOLTAGE : u16 = VCC / 2; // 0.5 (half) for ACS758LCB-100B
 const SENSITIVITY: u16 = 100; // Sensitivity in mV/A for ACS758LCB-100B
-const CUTOFF_LIMIT: u16 = 2000; // for model use 2000ma
 const NON_ZERO: u16 = 7; // 7mV value to make voltage zero when there is no current
 
 
@@ -114,7 +111,7 @@ fn calculate_current(input: i16) -> u16 {
 
     // TODO: current sensor
     let differential_voltage = input_voltage_a0 - QUIESCENT_VOLTAGE + NON_ZERO;
-    let mut current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
+    let current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
     // if current < CUTOFF_LIMIT {
     //     current = 0;
     // }
