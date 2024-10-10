@@ -41,17 +41,15 @@ async fn run() {
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
 
+        // TODO: chain parkbrake & cruise here to disable instead of in the loop
         // if cruise on or park brake on
         let park_brake_on = { *signals::PARK_BRAKE_ON_MUTEX.lock().await };
         let cruise_on = { *signals::CRUISE_LEVEL.lock().await != 0 };
 
-        if cruise_on { 
-            // TODO: cruise as wait?
-            continue 
-        } else if park_brake_on { 
-            park_brake_off().await; // wait for park brake off
+        if cruise_on || park_brake_on { 
             continue;
-        } 
+        }
+   
 
         // detect park brake on
         if throttle_voltage < NO_THROTTLE_THRESHOLD {
