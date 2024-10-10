@@ -1,6 +1,6 @@
 use crate::utils::signals;
 use defmt::*;
-use embassy_futures::{join::join, select::{select, Either}};
+use embassy_futures::select::{select, Either};
 
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
@@ -17,18 +17,21 @@ pub async fn task() {
 
     loop { 
         if let Some(b) = sub.try_next_message_pure() {state = b}
+        cruise_reset().await;
         match state {
             false => {
                 let sub_future = sub.next_message_pure();
-                let task1_future = run();
-                let task2_future = cruise_reset();
-                let task_future = join(task1_future, task2_future);
+                let task_future = run();
+                //let task2_future = cruise_reset();
+                //let task_future = join(task1_future, task2_future);
                 match select(sub_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => {} // other task will never end
                 }
             },
-            true => { state = sub.next_message_pure().await; }
+            true => { 
+                state = sub.next_message_pure().await;
+            }
         }
     }
 
@@ -36,13 +39,13 @@ pub async fn task() {
 
 
 async fn cruise_reset() {
-    let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
+    //let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
 
-    loop {
-        sub_brake.next_message_pure().await; // reset if brake on or off
+    //loop {
+      //  sub_brake.next_message_pure().await; // reset if brake on or off
         *signals::CRUISE_LEVEL.lock().await = 0;
         assign_voltage(0).await;
-    }
+    //}
 }
 
 
@@ -78,7 +81,7 @@ async fn run() {
             count += 1;
         }
 
-        info!("full throttle {}", count);
+        //info!("full throttle {}", count);
 
         if count >= MAX_COUNT {
             continue; // Restart the loop if we didn't detect a full throttle
@@ -105,6 +108,7 @@ async fn run() {
 
 async fn increment_cruise() {
     // increment cruise level
+    // TODO: try cruise as watch instead of mutex so we can use it in park brake as channel
     let mut cruise_level = signals::CRUISE_LEVEL.lock().await;
     let mut current_level = *cruise_level;
     current_level = (current_level + 1) % 5; // wrap around

@@ -33,23 +33,23 @@ pub async fn task(
 ) {
     info!("{}: start", TASK_ID);
 
-    let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
-    let mut power_state = false;
+    let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut state = false;
 
     loop { 
-        if let Some(b) = sub_power.try_next_message_pure() {power_state = b}
-        match power_state {
+        if let Some(b) = sub.try_next_message_pure() {state = b}
+        match state {
             true => {
-                let power_future = sub_power.next_message_pure();
+                let sub_future = sub.next_message_pure();
                 let task_future = run(i2c_bus);
-                match select(power_future, task_future).await {
-                    Either::First(val) => { power_state = val; }
+                match select(sub_future, task_future).await {
+                    Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
             false => { 
                 // TODO: when power off, we still want to get voltage once an hour or so
-                power_state = sub_power.next_message_pure().await; 
+                state = sub.next_message_pure().await; 
             }
         }
     }

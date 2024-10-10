@@ -50,7 +50,7 @@ pub async fn task() {
         if (throttle_voltage > SPEED_STEP || cruise_voltage > SPEED_STEP) && output_voltage < SPEED_STEP {
             // minimum speed step if throttle is above threshold
             output_voltage = SPEED_STEP;
-        } else if throttle_voltage < SPEED_STEP && cruise_voltage == 0 { 
+        } else if throttle_voltage < SPEED_STEP && output_voltage < SPEED_STEP && cruise_voltage == 0 { 
             // no throttle till hit threshold
             // this is to overcome the issue with the increasing voltage on the throttle line from the controller
             output_voltage = throttle_settings.throttle_min;

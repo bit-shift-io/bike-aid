@@ -16,7 +16,7 @@ pub async fn task(
 
     loop {
         let val = sub_power.next_message_pure().await;
-        //info!("{}: {}", TASK_ID, val);
+        
         match val {
             true => {
                 pin_state.set_high();

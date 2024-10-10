@@ -40,6 +40,7 @@ show cruise status
 
 Todo
 ----------
+try use a watch instead of both pubsub & mutex for cruise, brake, alarm etc..
 alarm
 power meter
 auto off after x mins of park brake?
@@ -134,9 +135,13 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
 
+    spawner.must_spawn(park_brake::task());
+
     spawner.must_spawn(speed::task(p.P0_09.degrade()));
 
     spawner.must_spawn(switch_power::task(p.P0_10.degrade()));
+
+    spawner.must_spawn(power_down::task());
 
     spawner.must_spawn(manual_override::task(p.P0_20.degrade()));
 
