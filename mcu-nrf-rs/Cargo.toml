@@ -6,7 +6,7 @@ name = "bike-aid-nrf-rs"
 version = "0.1.0"
 authors = ["bronsonmathews@gmail.com"]
 license = ""
-description = "ebike micro controller unit"
+description = "ebike ev micro controller"
 keywords = ["embedded", "async", "ebike", "scooter", "embassy"]
 categories = ["embedded", "hardware-support", "no-std", "asynchronous"]
 repository = "https://github.com/bit-shift-io/bike-aid"
@@ -51,12 +51,12 @@ nrf52840 = [
 
 [dependencies]
 # embassy
-embassy-futures = { version = "0.1.0" }
+embassy-futures = { version = "0.1.1" }
 embassy-sync = { version = "0.6.0", features = ["defmt"] }
-embassy-executor = { version = "0.5.0", features = ["task-arena-size-8192", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
-embassy-time = { version = "0.3.1", features = ["defmt", "defmt-timestamp-uptime"] }
-embassy-nrf = { version = "0.1.0", features = ["defmt", "nrf52840", "time-driver-rtc1", "gpiote", "nfc-pins-as-gpio"] } # , "reset-pin-as-gpio"
-embassy-embedded-hal = { version = "0.1.0" }
+embassy-executor = { version = "0.6.0", features = ["task-arena-size-8192", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
+embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-nrf = { version = "0.2.0", features = ["defmt", "time-driver-rtc1", "gpiote", "nfc-pins-as-gpio", "nrf52840"] }
+embassy-embedded-hal = { version = "0.2.0" }
 
 # log
 defmt = "0.3.8"
@@ -95,13 +95,13 @@ mpu6050 = "0.1.6"
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:
 # https://github.com/embassy-rs/embassy/commits/main/
-embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
-embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
-embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
-embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
-embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
-embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "f91244bae6a4b277f8464c499e50c492a7671039"}
+embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
 
-nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
-nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
-#nrf-softdevice-macro = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "d5f023ba0f30d9d6779931f8a20a3c81c45b90f2"}
+nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
+nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
+#nrf-softdevice-macro = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}

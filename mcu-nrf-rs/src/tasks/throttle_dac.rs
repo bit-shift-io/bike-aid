@@ -73,8 +73,7 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 
 
 async fn run(
-    i2c_bus: &'static Mutex<NoopRawMutex, 
-    RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut sub_throttle = signals::THROTTLE_OUT.subscriber().unwrap();
@@ -105,8 +104,7 @@ async fn run(
 
 
 async fn stop(
-    i2c_bus: &'static Mutex<NoopRawMutex, 
-    RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut dac = MCP4725::new(i2c, ADDRESS);
@@ -122,8 +120,7 @@ async fn stop(
 
 
 async fn calibrate(
-    i2c_bus: &'static Mutex<NoopRawMutex, 
-    RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut dac = MCP4725::new(i2c, ADDRESS);
