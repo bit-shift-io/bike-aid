@@ -40,7 +40,7 @@ show cruise status
 
 Todo
 ----------
-try use a watch instead of both pubsub & mutex for cruise, brake, alarm etc..
+try use a watch instead of both pubsub & mutex for cruise, alarm, settings(settings change, restart throttle??) etc..
 alarm
 power meter
 auto off after x mins of park brake?
@@ -151,7 +151,8 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(battery::task());
 
-    spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
+    // disable when debug
+    //spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
 
     spawner.must_spawn(alarm::task());
 

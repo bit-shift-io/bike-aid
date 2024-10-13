@@ -1,12 +1,18 @@
 #![allow(unused)]
-
-use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, pubsub::PubSubChannel};
+use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, pubsub::PubSubChannel, watch::Watch};
 use heapless::{pool::boxed::Box, String};
 use nrf_softdevice::ble::Connection;
 
 // configure types
 type SignalMutex = ThreadModeRawMutex;
 type ChannelMutex = CriticalSectionRawMutex;
+type WatchMutex = CriticalSectionRawMutex;
+
+// == WATCHES ===
+// Return None if max recivers is reached
+pub static BRAKE_ON_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
+pub static PARK_BRAKE_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
+
 
 // == CHANNELS ==
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
@@ -40,8 +46,6 @@ pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 1, 2, 2> = PubSubC
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
 pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 6> = PubSubChannel::new();
 
-pub static BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-pub static PARK_BRAKE_ON: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // alarm
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 3, 2> = PubSubChannel::new();
@@ -83,11 +87,6 @@ pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
         2800u16, // 2900 ?
         3400u16, // 3400 max
     ]);
-
-pub static BRAKE_ON_MUTEX: Mutex<SignalMutex, bool> = Mutex::new(false);
-pub static PARK_BRAKE_ON_MUTEX: Mutex<SignalMutex, bool> = Mutex::new(true); // TODO: true
-
-pub static SYSTEM_POWER_ACTIVE: Mutex<SignalMutex, bool> = Mutex::new(false);
 
 pub struct AlarmSettings {
     pub active: bool,

@@ -49,23 +49,23 @@ pub async fn task(
 
 async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     // park brake on/off
-    let mut sub = signals::PARK_BRAKE_ON.subscriber().unwrap();
+    let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
     let mut state = true; // default to on
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = watch.try_changed() {state = b}
         match state {
             false => {
-                let sub_future = sub.next_message_pure();
+                let watch_future = watch.changed();
                 let task_future = run(i2c_bus);
-                match select(sub_future, task_future).await {
+                match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
             true => { 
                 stop(i2c_bus).await; // set power to device off
-                state = sub.next_message_pure().await; 
+                state = watch.changed().await; 
             }
         }
     }

@@ -12,25 +12,27 @@ pub async fn task() {
     info!("{}: start", TASK_ID);
 
     // brake on/off
-    let mut sub = signals::BRAKE_ON.subscriber().unwrap();
+    //let mut sub = signals::BRAKE_ON.subscriber().unwrap();
+    let mut watch = signals::BRAKE_ON_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = watch.try_changed() {state = b}
         cruise_reset().await;
+
         match state {
             false => {
-                let sub_future = sub.next_message_pure();
+                let watch_future = watch.changed();
                 let task_future = run();
                 //let task2_future = cruise_reset();
                 //let task_future = join(task1_future, task2_future);
-                match select(sub_future, task_future).await {
+                match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => {} // other task will never end
                 }
             },
             true => { 
-                state = sub.next_message_pure().await;
+                state = watch.changed().await;
             }
         }
     }
@@ -39,13 +41,8 @@ pub async fn task() {
 
 
 async fn cruise_reset() {
-    //let mut sub_brake = signals::BRAKE_ON.subscriber().unwrap();
-
-    //loop {
-      //  sub_brake.next_message_pure().await; // reset if brake on or off
-        *signals::CRUISE_LEVEL.lock().await = 0;
-        assign_voltage(0).await;
-    //}
+    *signals::CRUISE_LEVEL.lock().await = 0;
+    assign_voltage(0).await;
 }
 
 

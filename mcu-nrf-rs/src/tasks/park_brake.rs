@@ -31,36 +31,41 @@ pub async fn task() {
 }
 
 
+// TODO: chain cruise next...
+
+
+
 async fn run() {
+    loop {
+        park_brake_off().await;
+        park_brake_on().await;
+    }
+}
+
+
+async fn park_brake_on() {
+    // detect when to turn park brake on
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    let pub_park_brake_on = signals::PARK_BRAKE_ON.publisher().unwrap();
+    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut count = 0;
-    *signals::PARK_BRAKE_ON_MUTEX.lock().await = true; // reset/initial state
 
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
 
         // TODO: chain parkbrake & cruise here to disable instead of in the loop
-        // if cruise on or park brake on
-        let park_brake_on = { *signals::PARK_BRAKE_ON_MUTEX.lock().await };
         let cruise_on = { *signals::CRUISE_LEVEL.lock().await != 0 };
-
-        if cruise_on || park_brake_on { 
-            continue;
-        }
-   
+        if cruise_on { continue; };
 
         // detect park brake on
         if throttle_voltage < NO_THROTTLE_THRESHOLD {
             count += 1;
 
             if count > MAX_COUNT {
-                count = 0;
                 pub_piezo.publish_immediate(signals::PiezoModeType::BeepLong);
-                //info!("park brake on");
-                *signals::PARK_BRAKE_ON_MUTEX.lock().await = true;
-                pub_park_brake_on.publish_immediate(true);
+                watch_park_brake_on.send(true);
+                //info!("on: park brake on");
+                return;
             }
         } else {
             count = 0;
@@ -70,24 +75,14 @@ async fn run() {
 
 
 async fn park_brake_off() {
-    let mut sub_brake_on = signals::BRAKE_ON.subscriber().unwrap();
+    let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
+    let _ = watch_brake_on.changed_and(|x| *x == true).await; // predicate version to wait for brake to be on
+ 
+    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    pub_piezo.publish_immediate(signals::PiezoModeType::BeepLong);
 
-    loop {
-        let brake_on = sub_brake_on.next_message_pure().await;
-        if !brake_on { continue; }
+    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
+    watch_park_brake_on.send(false);
 
-        // assume park brake is on at this point...
-
-        // only send off signal if park brake is on
-        //let park_brake_on = *signals::PARK_BRAKE_ON_MUTEX.lock().await;
-        //if park_brake_on {  
-        let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-        pub_piezo.publish_immediate(signals::PiezoModeType::BeepLong);
-        *signals::PARK_BRAKE_ON_MUTEX.lock().await = false;
-        let pub_park_brake_on = signals::PARK_BRAKE_ON.publisher().unwrap();
-        pub_park_brake_on.publish_immediate(false);
-            //info!("parkbrake off");
-        //}
-        return;
-    }
+    //info!("off: turned parkbrake off");
 }

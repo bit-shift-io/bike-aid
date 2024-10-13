@@ -13,6 +13,7 @@ pub async fn task() {
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output_voltage = 0u16;
+    let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
     
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
@@ -31,7 +32,7 @@ pub async fn task() {
         // get mutex values, minimise lock time
         let (cruise_voltage, brake_on) = {
             let cruise_voltage = *signals::CRUISE_VOLTAGE.lock().await;
-            let brake_on = *signals::BRAKE_ON_MUTEX.lock().await;
+            let brake_on = watch_brake_on.try_get().unwrap();
             (cruise_voltage, brake_on)
         };
     
