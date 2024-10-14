@@ -9,7 +9,7 @@ const TASK_ID: &str = "LED";
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
     let mut sub_mode = signals::LED_MODE.subscriber().unwrap();
     let mut led_mode = LedMode::None;

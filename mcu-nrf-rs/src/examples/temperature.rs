@@ -12,7 +12,7 @@ const TASK_ID: &str = "TEMPERATURE";
 pub async fn temperature (
     temp: TEMP
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     
     // NOTE: This crashes when using the softdevice!
     // this is an example only for use without the softdevice

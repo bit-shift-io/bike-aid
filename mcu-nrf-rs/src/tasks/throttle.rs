@@ -8,12 +8,14 @@ const SPEED_STEP: u16 = 1500;
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     
     let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
     let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut output_voltage = 0u16;
     let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
+    
+    // TODO: when settings change, reload the loop, so we dont need to mutex lock each itter....
     
     loop {
         let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts

@@ -12,7 +12,7 @@ static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
     let mut state = false;

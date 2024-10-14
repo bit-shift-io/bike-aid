@@ -8,7 +8,7 @@ const TASK_ID: &str = "BRAKE";
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut pin_state = Input::new(pin, Pull::None); // high = brake off, low = brake on
     let watch_brake_on = signals::BRAKE_ON_WATCH.sender();

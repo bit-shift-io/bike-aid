@@ -8,7 +8,7 @@ const TASK_ID: &str = "SWITCH POWER";
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
     let pub_led = signals::LED_MODE.publisher().unwrap();

@@ -31,7 +31,7 @@ const NON_ZERO: u16 = 7; // 7mV value to make voltage zero when there is no curr
 pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
     let mut state = false;

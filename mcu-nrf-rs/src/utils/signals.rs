@@ -8,10 +8,21 @@ type SignalMutex = ThreadModeRawMutex;
 type ChannelMutex = CriticalSectionRawMutex;
 type WatchMutex = CriticalSectionRawMutex;
 
+// default values
+pub fn init() {
+    BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    PARK_BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(true); false });
+    CRUISE_LEVEL_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+}
+
+
+
 // == WATCHES ===
-// Return None if max recivers is reached
+// Return None if max receivers is reached
 pub static BRAKE_ON_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static PARK_BRAKE_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
+pub static CRUISE_LEVEL_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+
 
 
 // == CHANNELS ==

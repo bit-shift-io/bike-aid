@@ -9,17 +9,15 @@ const MAX_COUNT: u8 = 6; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     // brake on/off
-    //let mut sub = signals::BRAKE_ON.subscriber().unwrap();
     let mut watch = signals::BRAKE_ON_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = watch.try_changed() {state = b}
-        cruise_reset().await;
-
+        if let Some(b) = watch.try_get() {state = b}
+        
         match state {
             false => {
                 let watch_future = watch.changed();
@@ -32,17 +30,12 @@ pub async fn task() {
                 }
             },
             true => { 
+                reset_cruise().await;
                 state = watch.changed().await;
             }
         }
     }
 
-}
-
-
-async fn cruise_reset() {
-    *signals::CRUISE_LEVEL.lock().await = 0;
-    assign_voltage(0).await;
 }
 
 
@@ -104,20 +97,41 @@ async fn run() {
 
 
 async fn increment_cruise() {
-    // increment cruise level
-    // TODO: try cruise as watch instead of mutex so we can use it in park brake as channel
+    // old
     let mut cruise_level = signals::CRUISE_LEVEL.lock().await;
     let mut current_level = *cruise_level;
-    current_level = (current_level + 1) % 5; // wrap around
-    if current_level == 0 { current_level = 5; } // 0 -> 5 = range 1-5 instead of 0-4
-    *cruise_level = current_level; // assign
+
+    // wrap around 0-4, move 0 -> 5 = range 1-5 instead of 0-4
+    current_level = (current_level + 1) % 5; 
+    if current_level == 0 { current_level = 5; }
+
+    *cruise_level = current_level; // assign old
+
+    // new
+    let sen_cruise_level = signals::CRUISE_LEVEL_WATCH.sender();
+    sen_cruise_level.send(current_level);
+
+
     assign_voltage(current_level).await;
 }
 
 
 async fn assign_voltage(level: u8) {
-    // assign voltage
     let cruise_voltages = *signals::CRUISE_VOLTAGES.lock().await;
     if level == 0 { *signals::CRUISE_VOLTAGE.lock().await = 0; }
     else { *signals::CRUISE_VOLTAGE.lock().await = cruise_voltages[(level -1) as usize]; } 
+}
+
+
+async fn reset_cruise() {
+    *signals::CRUISE_LEVEL.lock().await = 0; // old method
+    signals::CRUISE_LEVEL_WATCH.dyn_sender().send_if_modified(|value| {
+        if *value != Some(0) {
+            *value = Some(0); // Set the value to 0 only if it is not already 0
+            true // Indicate that the value was modified
+        } else {
+            false // No modification made
+        }
+    });
+    assign_voltage(0).await;
 }

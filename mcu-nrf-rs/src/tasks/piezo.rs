@@ -14,7 +14,7 @@ pub async fn task(
 ) {
     //return; // debug
 
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
     let mut sub_mode = signals::PIEZO_MODE.subscriber().unwrap();

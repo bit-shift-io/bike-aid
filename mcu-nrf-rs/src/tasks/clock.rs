@@ -7,7 +7,7 @@ const TASK_ID: &str = "CLOCK";
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
     let mut power_state = false;

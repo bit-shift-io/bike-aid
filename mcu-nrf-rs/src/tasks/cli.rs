@@ -7,7 +7,7 @@ const TASK_ID: &str = "CLI";
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut sub_read = signals::UART_READ.subscriber().unwrap();
     let pub_write = signals::UART_WRITE.publisher().unwrap();
 

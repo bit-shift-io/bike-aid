@@ -12,7 +12,7 @@ const BYTE_SIZE: u32 = 8;
 pub async fn task(
     flash_controller: Nvmc<'static>
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     // https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/src/bin/nvmc.rs
     // https://github.com/tweedegolf/sequential-storage/blob/master/example/src/main.rs
 

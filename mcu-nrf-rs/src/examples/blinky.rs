@@ -8,7 +8,7 @@ const TASK_ID: &str = "BLINKY";
 pub async fn task (
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
 
     loop { 

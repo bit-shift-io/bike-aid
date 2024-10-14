@@ -35,15 +35,18 @@ brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off po
 
 App Todo
 ----------
-show brake status
-show cruise status
+park brake status
+brake status
+cruise status
+
 
 Todo
 ----------
-try use a watch instead of both pubsub & mutex for cruise, alarm, settings(settings change, restart throttle??) etc..
+auto off after x mins of park brake?
+try use a watch instead of both pubsub & mutex for cruise, power, alarm, settings(settings change, restart throttle??) etc..
+
 alarm
 power meter
-auto off after x mins of park brake?
 cruise 1,2 restore speed if brake is less than 3 seconds?
 double tap cruise current speed. store initial voltage at the start of the tap detection
 command que for ble
@@ -116,6 +119,9 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
+    // init default signals
+    signals::init();
+
     // == INIT DEVICES ==
     // Causes issues if there is no pullups for the i2c bus
 
@@ -152,7 +158,7 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(battery::task());
 
     // disable when debug
-    //spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
+    spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
 
     spawner.must_spawn(alarm::task());
 

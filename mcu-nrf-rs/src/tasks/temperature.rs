@@ -17,7 +17,7 @@ pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
     //mut i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
     let mut power_state = false;

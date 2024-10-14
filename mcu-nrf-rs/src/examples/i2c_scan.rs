@@ -12,7 +12,7 @@ const TASK_ID: &str = "I2C SCAN";
 pub async fn task (
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut i2c = I2cDevice::new(i2c_bus);
     let mut count = 0;
     for address in 1..128 {

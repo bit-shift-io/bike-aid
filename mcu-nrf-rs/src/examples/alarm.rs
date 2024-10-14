@@ -21,7 +21,7 @@ pub async fn alarm (
     spawner: Spawner,
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     //let pub_alarm = signals::ALARM.publisher().unwrap();
     
     // spawn sub tasks

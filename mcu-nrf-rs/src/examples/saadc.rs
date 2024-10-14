@@ -13,7 +13,7 @@ const TASK_ID: &str = "SAADC";
 pub async fn saadc (
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     /*
     For NRF52840
     Analog pin  GPIO pin

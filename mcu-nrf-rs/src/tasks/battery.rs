@@ -10,7 +10,7 @@ const BATTERY_RANGE: u16 = BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE; // mv
 
 #[embassy_executor::task]
 pub async fn task() {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     let pub_current = signals::BATTERY_CURRENT.publisher().unwrap();
     let pub_voltage = signals::BATTERY_VOLTAGE.publisher().unwrap();

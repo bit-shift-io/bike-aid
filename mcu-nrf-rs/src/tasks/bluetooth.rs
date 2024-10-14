@@ -22,7 +22,7 @@ async fn softdevice_task(sd: &'static Softdevice) {
 pub async fn task(
     spawner: Spawner
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
     // configure bluetooth

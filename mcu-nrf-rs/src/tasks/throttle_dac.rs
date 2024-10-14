@@ -22,7 +22,7 @@ const SUPPLY_VOLTAGE: u16 = 5000; // mv
 pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
   
     let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
     let mut state = false;
@@ -53,7 +53,7 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
     let mut state = true; // default to on
 
     loop { 
-        if let Some(b) = watch.try_changed() {state = b}
+        if let Some(b) = watch.try_get() {state = b}
         match state {
             false => {
                 let watch_future = watch.changed();

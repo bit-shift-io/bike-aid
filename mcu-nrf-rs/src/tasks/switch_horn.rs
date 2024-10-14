@@ -8,7 +8,7 @@ const TASK_ID: &str = "SWITCH HORN";
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let mut sub_button = signals::SWITCH_HORN.subscriber().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
 

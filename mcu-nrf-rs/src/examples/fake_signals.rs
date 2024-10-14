@@ -7,7 +7,7 @@ const INTERVAL: u64 = 5000;
 
 #[embassy_executor::task]
 pub async fn task () {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
 
     // change here for testing
     let pub_test = signals::CLOCK_HOURS.publisher().unwrap();

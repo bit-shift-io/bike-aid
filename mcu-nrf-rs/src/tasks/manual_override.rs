@@ -10,7 +10,7 @@ const INTERVAL: u64 = 500;
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     // TODO: add request_power or power_state toggle. This task can then handle requests to decide if power is on or off depending on the state
     let pub_button = signals::SWITCH_POWER.publisher().unwrap();
     let mut pin_state = Input::new(pin, Pull::Up); // high = off, low = on

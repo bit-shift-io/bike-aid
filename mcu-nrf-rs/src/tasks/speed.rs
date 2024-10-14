@@ -13,7 +13,7 @@ const SENSOR_SEGMENTS: u16 = 1000; // there are 15 segments on 1 revolution of t
 pub async fn task(
     pin: AnyPin
 ) {
-    info!("{}: start", TASK_ID);
+    info!("{}", TASK_ID);
     let pub_instant_speed = signals::INSTANT_SPEED.publisher().unwrap();
     let pub_smooth_speed = signals::SMOOTH_SPEED.publisher().unwrap();
     let pub_wheel_rotations = signals::WHEEL_ROTATIONS.publisher().unwrap();
