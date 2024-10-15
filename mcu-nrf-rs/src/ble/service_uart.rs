@@ -58,11 +58,11 @@ impl UARTService {
         }
 
         if handle == self.tx.cccd_handle {
-            info!("tx notifications: {}", (data[0] & 0x01) != 0);
+            //info!("tx notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.rx.cccd_handle {
-            info!("rx notifications: {}", (data[0] & 0x01) != 0);
+            //info!("rx notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.rx.value_handle {

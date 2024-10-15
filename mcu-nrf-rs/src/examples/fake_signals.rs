@@ -10,7 +10,7 @@ pub async fn task () {
     info!("{}", TASK_ID);
 
     // change here for testing
-    let pub_test = signals::CLOCK_HOURS.publisher().unwrap();
+    let pub_test = signals::CLOCK_HOURS_WATCH.sender();
 
     let mut count = 7;
 
@@ -19,7 +19,7 @@ pub async fn task () {
         Timer::after_millis(INTERVAL).await;
 
         info!("{}: {}", TASK_ID, count);
-        pub_test.publish_immediate(count);
+        pub_test.send(count);
 
     }
 }

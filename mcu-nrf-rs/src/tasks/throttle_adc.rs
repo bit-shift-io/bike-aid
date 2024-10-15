@@ -64,7 +64,8 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
+    //let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
+    let send_throttle = signals::THROTTLE_IN_WATCH.sender();
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
     let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
@@ -98,7 +99,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         // note ive added 100k pulldown resistor to remove fluctation during power off
         // so do a check, if value is larger than 20 we can report it
         if input_voltage > 20 {
-            pub_throttle.publish_immediate(input_voltage);
+            send_throttle.send(input_voltage);
         }
     }
 }

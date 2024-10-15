@@ -10,21 +10,23 @@ const SPEED_STEP: u16 = 1500;
 pub async fn task() {
     info!("{}", TASK_ID);
     
-    let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
-    let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
+    //let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
+    //let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
+    let send_throttle = signals::THROTTLE_OUT_WATCH.sender();
+    let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
     let mut output_voltage = 0u16;
     let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
     
     // TODO: when settings change, reload the loop, so we dont need to mutex lock each itter....
     
     loop {
-        let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        let throttle_voltage = rec_throttle.changed().await; // millivolts
         let throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
             //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
-            pub_throttle.publish_immediate(throttle_voltage);
+            send_throttle.send(throttle_voltage);
             continue;
         }
 
@@ -49,11 +51,16 @@ pub async fn task() {
         output_voltage = smooth(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
 
         
+
+        //info!("th: {} in: {} out: {}", throttle_voltage,input_voltage, output_voltage);
+        
         // initial speed step
         if (throttle_voltage > SPEED_STEP || cruise_voltage > SPEED_STEP) && output_voltage < SPEED_STEP {
             // minimum speed step if throttle is above threshold
             output_voltage = SPEED_STEP;
-        } else if throttle_voltage < SPEED_STEP && output_voltage < SPEED_STEP && cruise_voltage == 0 { 
+        }
+
+        if throttle_voltage < SPEED_STEP && output_voltage < SPEED_STEP && cruise_voltage == 0 { 
             // no throttle till hit threshold
             // this is to overcome the issue with the increasing voltage on the throttle line from the controller
             output_voltage = throttle_settings.throttle_min;
@@ -68,7 +75,7 @@ pub async fn task() {
         // throttle to output value map - mapping to controller range
         //info!("{} | {} -> {} {} -> {} {}", throttle_voltage, output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
         let mapped_output = functions::map(output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
-        pub_throttle.publish_immediate(mapped_output); 
+        send_throttle.send(mapped_output); 
         //info!("throttle: {} | out: {} | map: {}", throttle_voltage, output_voltage, mapped_output);
     }
 }

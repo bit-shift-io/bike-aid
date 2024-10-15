@@ -91,7 +91,7 @@ impl DataService {
         }
 
         if handle == self.clock_hours.cccd_handle {
-            info!("clock notifications: {}", (data[0] & 0x01) != 0);
+            //info!("clock notifications: {}", (data[0] & 0x01) != 0);
         }
     }
 }
@@ -165,20 +165,22 @@ pub async fn update_temperature(connection: &Connection, server: &Server) {
 
 
 pub async fn update_clock_minutes(connection: &Connection, server: &Server) {
-    let mut sub = signals::CLOCK_MINUTES.subscriber().unwrap();
+    //let mut sub = signals::CLOCK_MINUTES.subscriber().unwrap();
+    let mut rec = signals::CLOCK_MINUTES_WATCH.receiver().unwrap();
     let handle = server.data.clock_minutes.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = rec.changed().await;
         let _ = server::notify_value(connection, handle, &[val]);
     }
 }
 
 
 pub async fn update_clock_hours(connection: &Connection, server: &Server) {
-    let mut sub = signals::CLOCK_HOURS.subscriber().unwrap();
+    //let mut sub = signals::CLOCK_HOURS.subscriber().unwrap();
+    let mut rec = signals::CLOCK_HOURS_WATCH.receiver().unwrap();
     let handle = server.data.clock_hours.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = rec.changed().await;
         let _ = server::notify_value(connection, handle, &[val]);
     }
 }

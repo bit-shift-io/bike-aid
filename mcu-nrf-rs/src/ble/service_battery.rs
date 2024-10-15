@@ -104,23 +104,23 @@ impl BatteryService {
         }
 
         if handle == self.level.cccd_handle {
-            info!("battery level notifications: {}", (data[0] & 0x01) != 0);
+            //info!("battery level notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.voltage.cccd_handle {
-            info!("battery voltage notifications: {}", (data[0] & 0x01) != 0);
+            //info!("battery voltage notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.power.cccd_handle {
-            info!("battery power notifications: {}", (data[0] & 0x01) != 0);
+            //info!("battery power notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.current.cccd_handle {
-            info!("battery current notifications: {}", (data[0] & 0x01) != 0);
+            //info!("battery current notifications: {}", (data[0] & 0x01) != 0);
         }
 
         if handle == self.capacity.cccd_handle {
-            info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
+            //info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
         }
     }
 }

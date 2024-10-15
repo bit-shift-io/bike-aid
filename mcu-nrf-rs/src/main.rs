@@ -43,12 +43,13 @@ cruise status
 Todo
 ----------
 auto off after x mins of park brake?
-try use a watch instead of both pubsub & mutex for cruise, power, alarm, settings(settings change, restart throttle??) etc..
+try use a watch instead of both pubsub & mutex for power, alarm, settings(settings change, restart throttle??) etc..
 
 alarm
 power meter
 cruise 1,2 restore speed if brake is less than 3 seconds?
 double tap cruise current speed. store initial voltage at the start of the tap detection
+custom voltage from the app could override the cruise? need an extra mutex for that
 command que for ble
 ble tracker
 odometer/speed

@@ -52,12 +52,13 @@ async fn park_brake_on() {
     // detect when to turn park brake on
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
     let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
-    let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
+    //let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
+    let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
     let mut rec_cruise_level = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
     let mut count = 0;
 
     loop {
-        let throttle_voltage = sub_throttle.next_message_pure().await; // millivolts
+        let throttle_voltage = rec_throttle.changed().await; // millivolts
 
         // TODO: chain cruise here to disable instead of in the loop
         //let cruise_on = { *signals::CRUISE_LEVEL.lock().await != 0 }; // old method

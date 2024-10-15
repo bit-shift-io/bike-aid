@@ -13,6 +13,10 @@ pub fn init() {
     BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     PARK_BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(true); false });
     CRUISE_LEVEL_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    CLOCK_HOURS_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    CLOCK_MINUTES_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    THROTTLE_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    THROTTLE_OUT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
 }
 
 
@@ -21,7 +25,12 @@ pub fn init() {
 // Return None if max receivers is reached
 pub static BRAKE_ON_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static PARK_BRAKE_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
-pub static CRUISE_LEVEL_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static CRUISE_LEVEL_WATCH: Watch<WatchMutex, u8, 2> = Watch::new();
+pub static CLOCK_HOURS_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static CLOCK_MINUTES_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static THROTTLE_IN_WATCH: Watch<WatchMutex, u16, 3> = Watch::new();
+pub static THROTTLE_OUT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
+
 
 
 
@@ -34,8 +43,8 @@ pub static SWITCH_POWER: PubSubChannel<ChannelMutex, bool, 1, 9, 2> = PubSubChan
 pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
-pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+//pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
+//pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 
 pub static INSTANT_SPEED: PubSubChannel<ChannelMutex, u32, 1, 2, 2> = PubSubChannel::new();
 pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
@@ -64,9 +73,8 @@ pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubS
 pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
 // throttle
-pub static THROTTLE_SETTINGS_CHANGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-pub static THROTTLE_IN: PubSubChannel<ChannelMutex, u16, 1, 3, 2> = PubSubChannel::new();
-pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
+//pub static THROTTLE_IN: PubSubChannel<ChannelMutex, u16, 1, 3, 2> = PubSubChannel::new();
+//pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 
 // ble uart
 const MAX_LENGTH: usize = 32;
@@ -83,14 +91,7 @@ pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubCha
 
 // == MUTEX'S ==
 
-
-// TODO: investigate supposed to use async mutex for async functions
-// https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/sharing.rs
-// https://docs.rs/scoped-mutex/latest/scoped_mutex/struct.BlockingMutex.html <-- comming soon no refcell required!
-
-// TODO: custom voltage from the app could override the cruise? need an extra mutex for that
 pub static CRUISE_VOLTAGE: Mutex<SignalMutex, u16> = Mutex::new(0u16);
-pub static CRUISE_LEVEL: Mutex<SignalMutex, u8> = Mutex::new(0u8);
 pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
         1600u16, // 1408 a little too slow, 1500 a little slow
         2000u16, // 1906 a little to slow
@@ -150,7 +151,7 @@ pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(
     passthrough: false, // disable smoothing and limiting
     increase_smooth_factor: 75, // rate of smoothing to acceleration
     decrease_smooth_factor: 150, // rate of smoothing to deceleration
-    throttle_min: 870, // mv no throttle
+    throttle_min: 900, // mv no throttle
     throttle_max: 3600, // mv full throttle
     deadband_min: 1200, // mv just before motor active
     deadband_max: 2000, // mv just after max speed, or supply voltage
