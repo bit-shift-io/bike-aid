@@ -12,18 +12,18 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
     // TODO: add request_power or power_state toggle. This task can then handle requests to decide if power is on or off depending on the state
-    let pub_button = signals::SWITCH_POWER.publisher().unwrap();
+    let send_power_on = signals::POWER_ON_WATCH.sender();
     let mut pin_state = Input::new(pin, Pull::Up); // high = off, low = on
 
     // note: delay due to switch debounce
     loop {
         pin_state.wait_for_high().await; // off
-        pub_button.publish_immediate(false);
+        send_power_on.send(false);
         //info!("{}: off", TASK_ID);
         Timer::after_millis(INTERVAL).await;
 
         pin_state.wait_for_low().await; // on
-        pub_button.publish_immediate(true);
+        send_power_on.send(true);
         //info!("{}: on", TASK_ID);
         Timer::after_millis(INTERVAL).await;
     }

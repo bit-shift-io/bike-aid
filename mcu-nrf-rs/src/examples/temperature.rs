@@ -20,12 +20,12 @@ pub async fn temperature (
     bind_interrupts!(struct Irqs {TEMP => temp::InterruptHandler;});
     interrupt::TEMP.set_priority(interrupt::Priority::P3);
     let mut t = Temp::new(temp, Irqs);
-    let pub_temperature = signals::TEMPERATURE.publisher().unwrap();
+    let send_temperature = signals::TEMPERATURE_WATCH.sender();
 
     loop {
         let value: u16 = t.read().await.to_num::<u16>();
         //info!("{}", value);
-        pub_temperature.publish_immediate(value as u8); // in degrees C, no decimals
+        send_temperature.send(value as u8); // in degrees C, no decimals
         Timer::after_secs(60).await;
     }
 }

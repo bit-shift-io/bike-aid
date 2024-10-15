@@ -83,7 +83,7 @@ impl SettingsService {
 
         if handle == self.power_switch.value_handle {
             let message = if data[0] == 183 { true } else { false };
-            signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(message);
+            signals::POWER_ON_WATCH.dyn_sender().send(message);
         }   
 
         // if handle == self.light_switch.value_handle {
@@ -107,10 +107,10 @@ pub async fn run(connection: &Connection, server: &Server) {
 
 
 pub async fn update_power(connection: &Connection, server: &Server) {
-    let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
     let handle = server.settings.power_switch.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = rec.changed().await;
         Timer::after_millis(300).await; // TODO: fix ble to be async? delay to avoid flooding
         let _ = server::notify_value(connection, handle, &[val as u8]);
     }

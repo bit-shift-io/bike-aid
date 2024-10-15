@@ -9,13 +9,14 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
+
+    let mut rec_power_on = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
     let pub_led = signals::LED_MODE.publisher().unwrap();
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 
     loop {
-        let val = sub_power.next_message_pure().await;
+        let val = rec_power_on.changed().await;
         
         match val {
             true => {

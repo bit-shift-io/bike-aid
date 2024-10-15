@@ -9,21 +9,21 @@ const TASK_ID: &str = "CLOCK";
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let mut sub_power = signals::SWITCH_POWER.subscriber().unwrap();
-    let mut power_state = false;
+    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut state = false;
 
     loop { 
-        if let Some(b) = sub_power.try_next_message_pure() {power_state = b}
-        match power_state {
+        if let Some(b) = rec.try_get() {state = b}
+        match state {
             true => {
-                let power_future = sub_power.next_message_pure();
+                let watch_future = rec.changed();
                 let task_future = run();
-                match select(power_future, task_future).await {
-                    Either::First(val) => { power_state = val; }
+                match select(watch_future, task_future).await {
+                    Either::First(val) => { state = val; }
                     Either::Second(_) => {} // other task will never end
                 }
             },
-            false => { power_state = sub_power.next_message_pure().await; }
+            false => { state = rec.changed().await; }
         }
     }
 }

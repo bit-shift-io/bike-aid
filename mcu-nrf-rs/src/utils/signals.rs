@@ -17,11 +17,13 @@ pub fn init() {
     CLOCK_MINUTES_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     THROTTLE_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
     THROTTLE_OUT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    TEMPERATURE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
 }
 
 
 
 // == WATCHES ===
+// Watches can not have history
 // Return None if max receivers is reached
 pub static BRAKE_ON_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static PARK_BRAKE_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
@@ -30,16 +32,17 @@ pub static CLOCK_HOURS_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static CLOCK_MINUTES_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static THROTTLE_IN_WATCH: Watch<WatchMutex, u16, 3> = Watch::new();
 pub static THROTTLE_OUT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-
+pub static TEMPERATURE_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static POWER_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
 
 
 
 // == CHANNELS ==
+// Channels can have history
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
 
 // External / reporting to user
 
-pub static SWITCH_POWER: PubSubChannel<ChannelMutex, bool, 1, 9, 2> = PubSubChannel::new();
 pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
@@ -47,8 +50,6 @@ pub static INSTANT_SPEED: PubSubChannel<ChannelMutex, u32, 1, 2, 2> = PubSubChan
 pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 pub static WHEEL_ROTATIONS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 pub static ODOMETER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-
-pub static TEMPERATURE: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 
 pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
@@ -83,6 +84,7 @@ pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubCha
 
 
 // == MUTEX'S ==
+// Mutex dont notify, only for use in loops
 
 pub static CRUISE_VOLTAGE: Mutex<SignalMutex, u16> = Mutex::new(0u16);
 pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([

@@ -20,21 +20,21 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     // power on/off
-    let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = rec.try_get() {state = b}
         match state {
             true => {
-                let sub_future = sub.next_message_pure();
+                let watch_future = rec.changed();
                 let task_future = park_brake(i2c_bus);
-                match select(sub_future, task_future).await {
+                match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { state = sub.next_message_pure().await; }
+            false => { state = rec.changed().await; }
         }
     }
 }

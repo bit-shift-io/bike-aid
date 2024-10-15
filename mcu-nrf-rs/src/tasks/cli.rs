@@ -91,9 +91,9 @@ pub async fn task() {
 
         if string.starts_with("power") {
             if string.ends_with("on") {
-                signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(true);
+                signals::POWER_ON_WATCH.dyn_sender().send(true);
             } else {
-                signals::SWITCH_POWER.dyn_immediate_publisher().publish_immediate(false);
+                signals::POWER_ON_WATCH.dyn_sender().send(false);
             }
 
             result = true;

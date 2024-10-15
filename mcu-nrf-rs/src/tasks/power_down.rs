@@ -11,21 +11,21 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     // power on/off
-    let mut sub = signals::SWITCH_POWER.subscriber().unwrap();
+    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = rec.try_get() {state = b}
         match state {
             true => {
-                let sub_future = sub.next_message_pure();
+                let watch_future = rec.changed();
                 let task_future = run();
-                match select(sub_future, task_future).await {
+                match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { state = sub.next_message_pure().await; }
+            false => { state = rec.changed().await; }
         }
     }
 }
@@ -33,7 +33,7 @@ pub async fn task() {
 
 pub async fn run() {
     let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
-    let pub_power = signals::SWITCH_POWER.publisher().unwrap();
+    let send_power_on = signals::POWER_ON_WATCH.sender();
     let mut state = true;
 
     loop {
@@ -44,7 +44,7 @@ pub async fn run() {
                 let sub_future = watch.changed();
                 let task_future = async { 
                     Timer::after_secs(INTERVAL).await;
-                    pub_power.publish_immediate(false);  // power off
+                    send_power_on.send(false);  // power off
                 };
                 match select(sub_future, task_future).await {
                     Either::First(val) => { state = val; }
