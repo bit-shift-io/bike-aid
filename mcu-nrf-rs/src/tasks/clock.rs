@@ -30,8 +30,6 @@ pub async fn task() {
 
 
 async fn run() {
-    //let pub_hours = signals::CLOCK_HOURS.publisher().unwrap();
-    //let pub_minutes = signals::CLOCK_MINUTES.publisher().unwrap();
     let send_hours = signals::CLOCK_HOURS_WATCH.sender();
     let send_minutes = signals::CLOCK_MINUTES_WATCH.sender();
     let start_time: u64 = Instant::now().as_secs();
@@ -42,8 +40,6 @@ async fn run() {
         let run_hours: u64 = all_minutes / 60;
         let run_minutes: u64 = all_minutes - (run_hours * 60);
 
-        //pub_minutes.publish_immediate(run_minutes.try_into().unwrap());
-        //pub_hours.publish_immediate(run_hours.try_into().unwrap());
         send_minutes.send(run_minutes.try_into().unwrap());
         send_hours.send_if_modified(|value| {
             let hours: u8 = run_hours.try_into().unwrap();

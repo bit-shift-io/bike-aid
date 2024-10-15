@@ -22,8 +22,6 @@ pub async fn task() {
             false => {
                 let watch_future = watch.changed();
                 let task_future = run();
-                //let task2_future = cruise_reset();
-                //let task_future = join(task1_future, task2_future);
                 match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => {} // other task will never end
@@ -40,7 +38,6 @@ pub async fn task() {
 
 
 async fn run() {
-    //let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
     let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
 

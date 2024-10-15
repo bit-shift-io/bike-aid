@@ -64,7 +64,6 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    //let pub_throttle = signals::THROTTLE_IN.publisher().unwrap();
     let send_throttle = signals::THROTTLE_IN_WATCH.sender();
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
@@ -82,9 +81,6 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
         let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
-
-        // clamp to positive values only
-        //let input = clamp_positive(input);
 
         // convert to voltage
         // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)

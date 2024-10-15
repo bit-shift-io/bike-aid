@@ -77,7 +77,6 @@ async fn run(
 ) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut rec_throttle = signals::THROTTLE_OUT_WATCH.receiver().unwrap();
-    //let mut sub_throttle = signals::THROTTLE_OUT.subscriber().unwrap();
     let mut dac = MCP4725::new(i2c, ADDRESS);
     let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
     let mut last_value = 0;

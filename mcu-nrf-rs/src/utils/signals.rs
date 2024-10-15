@@ -43,9 +43,6 @@ pub static SWITCH_POWER: PubSubChannel<ChannelMutex, bool, 1, 9, 2> = PubSubChan
 pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
-//pub static CLOCK_HOURS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-//pub static CLOCK_MINUTES: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-
 pub static INSTANT_SPEED: PubSubChannel<ChannelMutex, u32, 1, 2, 2> = PubSubChannel::new();
 pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
 pub static WHEEL_ROTATIONS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
@@ -71,10 +68,6 @@ pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 6> = Pub
 pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 3, 2> = PubSubChannel::new();
 pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-
-// throttle
-//pub static THROTTLE_IN: PubSubChannel<ChannelMutex, u16, 1, 3, 2> = PubSubChannel::new();
-//pub static THROTTLE_OUT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
 
 // ble uart
 const MAX_LENGTH: usize = 32;

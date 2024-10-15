@@ -10,8 +10,6 @@ const SPEED_STEP: u16 = 1500;
 pub async fn task() {
     info!("{}", TASK_ID);
     
-    //let pub_throttle = signals::THROTTLE_OUT.publisher().unwrap();
-    //let mut sub_throttle = signals::THROTTLE_IN.subscriber().unwrap();
     let send_throttle = signals::THROTTLE_OUT_WATCH.sender();
     let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
     let mut output_voltage = 0u16;
