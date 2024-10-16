@@ -75,7 +75,7 @@ impl DataService {
 
         let characteristic_builder = service_builder.add_characteristic(
             PARK_BRAKE_ON,
-            Attribute::new(&[0u8]),
+            Attribute::new(&[1u8]), // default true
             Metadata::new(Properties::new().read().notify()),
         )?;
         let park_brake_on_handle = characteristic_builder.build();
@@ -179,7 +179,6 @@ pub async fn update_clock_minutes(connection: &Connection, server: &Server) {
 
 
 pub async fn update_clock_hours(connection: &Connection, server: &Server) {
-    //let mut sub = signals::CLOCK_HOURS.receiver().unwrap();
     let mut rec = signals::CLOCK_HOURS_WATCH.receiver().unwrap();
     let handle = server.data.clock_hours.value_handle;
     loop {

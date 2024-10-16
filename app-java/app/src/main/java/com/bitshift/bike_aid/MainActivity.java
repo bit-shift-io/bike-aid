@@ -99,10 +99,10 @@ public class MainActivity extends AppCompatActivity {
                 GridLayout gridLayout = findViewById(R.id.cruise_level);
                 for (int i = 0; i < gridLayout.getChildCount(); i++) {
                     View view = gridLayout.getChildAt(i);
-                    if (i < level) {
-                        view.setVisibility(View.VISIBLE); // Show the view for levels 1 to level
+                    if (i < (5 - level)) {
+                        view.setVisibility(View.INVISIBLE); // Show the view for levels 1 to level
                     } else {
-                        view.setVisibility(View.INVISIBLE); // Hide the view for levels above the current level
+                        view.setVisibility(View.VISIBLE); // Hide the view for levels above the current level
                     }
                 }
 
