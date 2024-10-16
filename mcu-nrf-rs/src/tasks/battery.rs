@@ -29,10 +29,10 @@ pub async fn task() {
         let input_current = input[1]; // mA
         let input_voltage = input[0]; // mV
         
-        let percentage = calculate_percentage(input_voltage);
+        let percentage = calculate_percentage(input_voltage).await;
 
         // overflow, convert u32 then convert to larger units from ma
-        //let power = (input_voltage as u32 * input_current as u32) as u16; // milliwatts P=IV - watts
+        let power = calculate_power(input_voltage, input_current).await;
 
         // TODO: calculate power every few seconds
         // store 1 minutes worth of data, and calulate smooth averge per minute
@@ -51,19 +51,37 @@ pub async fn task() {
         //     time_count = 0;
         // }
 
-        //send_power.send(power);
-        send_current.send(input_current);
-        send_voltage.send(input_voltage);
-        send_percent.send(percentage);
+
+        send_percent.send_if_modified(|value| {
+            if *value != Some(percentage) {
+                *value = Some(percentage);
+                true
+            } else { false } // no change
+        });
+
+        send_power.send_if_modified(|value| {
+            if *value != Some(power) {
+                *value = Some(power);
+                true
+            } else { false } // no change
+        });
+
+        //send_current.send(input_current);
+        //send_voltage.send(input_voltage);
         //info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percentage);
     }
 }
 
 
-fn calculate_percentage(voltage: u16) -> u8 {
+async fn calculate_percentage(voltage: u16) -> u8 {
         // battery cant be less than min, unless its not plugged in
         let voltage = functions::max(voltage, BATTERY_MIN_VOLTAGE);
         // Calculate the percentage using larger integer type to avoid overflow
         let voltage_adjusted = (voltage - BATTERY_MIN_VOLTAGE) as u32;
         (voltage_adjusted * 100 / BATTERY_RANGE as u32) as u8 // percent
+}
+
+
+async fn calculate_power(voltage: u16, current: u16) -> u16 {
+    ((voltage as u32 * current as u32) / 1000) as u16 // milliwatts P=IV - watts
 }
