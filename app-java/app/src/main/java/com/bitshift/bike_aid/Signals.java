@@ -1,11 +1,11 @@
 package com.bitshift.bike_aid;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -38,70 +38,21 @@ public class Signals {
         void onSpeed(String result);
         void onClockMinutes(String result);
         void onClockHours(String result);
+        void onCruiseLevel(int result);
         void onPower(boolean result);
         void onAlarm(boolean result);
         void onBatteryLevel(String result);
+        void onBrake(boolean result);
+        void onParkBrake(boolean result);
+        void onBatteryPower(String result);
     }
 
 
     // ==== functions ====
     private Signals () {
         ble.setOnReadListener(this::onRead);
-    };
-
-
-    // ==== data -> gui ====
-    public void setPower(boolean v) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() { mOnEventListener.onPower(v); }
-        });
     }
 
-    public void setAlarm(boolean v) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() { mOnEventListener.onAlarm(v); }
-        });
-    }
-
-    public void setSpeed(int v) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() { mOnEventListener.onSpeed(String.format("%02d", v)); }
-        });
-    }
-
-
-    public void setBatteryLevel(int v) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() {
-                mOnEventListener.onBatteryLevel(String.valueOf(v));
-            }
-        });
-    }
-
-
-    public void setTemperature(int v) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() {
-                mOnEventListener.onTemperature(String.format("%02d", v));
-            }
-        });
-    }
-
-    public void setClockMinutes(int s) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() {
-                mOnEventListener.onClockMinutes(String.format("%02d", s));
-            }
-        });
-    }
-
-    public void setClockHours(int s) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() { // run on ui thread
-            public void run() {
-                mOnEventListener.onClockHours(String.format("%02d", s));
-            }
-        });
-    }
 
     // ==== gui -> data ====
     public void togglePower() {
@@ -134,13 +85,14 @@ public class Signals {
         UUID uart_write_characteristic = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
         byte[] b = s.getBytes(StandardCharsets.UTF_8);
         ble.write(uart_service, uart_write_characteristic, b);
-    };
+    }
 
 
     // ==== on ble read ====
+    @SuppressLint("DefaultLocale")
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
         String id = Functions.string16FromUUID(characteristic.getUuid());
-        String st = new String(value, StandardCharsets.UTF_8);
+        //String st = new String(value, StandardCharsets.UTF_8);
 
         // debug read
         //log.info("read " + id + " " + st);
@@ -151,75 +103,62 @@ public class Signals {
         // is never read, write only
 
         // tx - 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
-        if (id.equals("0003")) {
-            String s = new String(value, StandardCharsets.UTF_8);
-            log.info(s);
-        }
+        if (id.equals("0003"))
+            log.info(new String(value, StandardCharsets.UTF_8));
 
 
         // 1000 series is settings
 
         // power switch
-        if (id.equals("1001")) {
-            power_on = value[0] != 0;
-            setPower(power_on);
-        }
+        if (id.equals("1001"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onPower(value[0] != 0));
 
         // alarm switch
-        if (id.equals("1004")) {
-            alarm_on = value[0] != 0;
-            setAlarm(alarm_on);
-        }
+        if (id.equals("1004"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onAlarm(value[0] != 0));
 
 
 
         // 2000 series is data
 
         // speed
-        if (id.equals("2001")) {
-            setSpeed(value[0]);
-        }
+        if (id.equals("2001"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onSpeed(String.format("%02d", value[0])));
 
         // temperature
-        if (id.equals("2004")) {
-            setTemperature(value[0]);
-        }
+        if (id.equals("2004"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onTemperature(String.format("%02d", value[0])));
 
         // clock minutes
-        if (id.equals("2005")) {
-            setClockMinutes(value[0]);
-        }
+        if (id.equals("2005"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onClockMinutes(String.format("%02d", value[0])));
 
         // clock hours
-        if (id.equals("2006")) {
-            setClockHours(value[0]);
-        }
+        if (id.equals("2006"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onClockHours(String.format("%02d", value[0])));
 
         // brake
-        if (id.equals(2007)) {
-
-        }
+        if (id.equals("2007"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBrake(value[0] != 0));
 
         // park brake
-        if (id.equals(2008)) {
-
-        }
+        if (id.equals("2008"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onParkBrake(value[0] != 0));
 
         // cruise
-        if (id.equals(2009)) {
-
-        }
+        if (id.equals("2009"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onCruiseLevel(value[0]));
 
 
         // 0x180f series is battery
 
         // level - 0x2a19
-        if (id.equals("2a19")) {
-            setBatteryLevel(value[0]);
-        }
+        if (id.equals("2a19"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryLevel(String.valueOf(value[0])));
 
+        // power
+        if (id.equals("2B05"))
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryPower(String.valueOf(value[0])));
 
     }
-
-
 }

@@ -23,7 +23,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/battery_time"
+                android:id="@+id/battery_power"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical|center_horizontal"
@@ -35,7 +35,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/battery_time"
+                android:id="@+id/battery_power_unit"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical|center_horizontal"
@@ -73,7 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical|center_horizontal"
-                android:text="100"
+                android:text="0"
                 android:textIsSelectable="false"
                 android:textSize="24sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -122,18 +122,36 @@
             <TextView
                 android:id="@+id/brake"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
                 android:text="@string/brake"
-                android:textAlignment="viewStart"
+                android:gravity="center_vertical"
+                android:textAlignment="gravity"
                 android:textIsSelectable="false"
                 android:textSize="24sp" />
 
             <TextView
                 android:id="@+id/cruise"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
                 android:text="@string/cruise"
-                android:textAlignment="viewStart"
+                android:gravity="center_vertical"
+                android:textAlignment="gravity"
+                android:textIsSelectable="false"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/park_brake"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:text="@string/park"
+                android:gravity="center_vertical"
+                android:textAlignment="gravity"
                 android:textIsSelectable="false"
                 android:textSize="24sp" />
 
@@ -177,6 +195,7 @@
         </LinearLayout>
 
         <GridLayout
+            android:id="@+id/cruise_level"
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -188,7 +207,27 @@
             app:layout_constraintTop_toTopOf="parent" >
 
             <View
-                android:id="@+id/box5"
+                android:id="@+id/cruise_5"
+                android:layout_width="80dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/cruise_4"
+                android:layout_width="65dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/cruise_3"
                 android:layout_width="50dp"
                 android:layout_height="0dp"
                 android:layout_rowWeight="1"
@@ -198,8 +237,8 @@
                 android:background="@android:color/darker_gray" />
 
             <View
-                android:id="@+id/box4"
-                android:layout_width="40dp"
+                android:id="@+id/cruise_2"
+                android:layout_width="35dp"
                 android:layout_height="0dp"
                 android:layout_rowWeight="1"
                 android:layout_weight="1"
@@ -208,28 +247,8 @@
                 android:background="@android:color/darker_gray" />
 
             <View
-                android:id="@+id/box3"
-                android:layout_width="30dp"
-                android:layout_height="0dp"
-                android:layout_rowWeight="1"
-                android:layout_weight="1"
-                android:layout_margin="2dp"
-                android:layout_gravity="end"
-                android:background="@android:color/darker_gray" />
-
-            <View
-                android:id="@+id/box2"
+                android:id="@+id/cruise_1"
                 android:layout_width="20dp"
-                android:layout_height="0dp"
-                android:layout_rowWeight="1"
-                android:layout_weight="1"
-                android:layout_margin="2dp"
-                android:layout_gravity="end"
-                android:background="@android:color/darker_gray" />
-
-            <View
-                android:id="@+id/box1"
-                android:layout_width="10dp"
                 android:layout_height="0dp"
                 android:layout_rowWeight="1"
                 android:layout_weight="1"

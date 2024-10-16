@@ -1,5 +1,6 @@
 package com.bitshift.bike_aid;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -40,7 +41,6 @@ public class BLE {
 
     // ==== variables ====
     private static final BLE mInstance = new BLE();
-    private static final Signals signals = Signals.getInstance();
     private static final Logger log = Logger.getInstance();
     private BluetoothLeScanner mScanner;
     private BluetoothAdapter mAdapter;
@@ -359,7 +359,7 @@ public class BLE {
 
         @Override
         public void onDescriptorWrite (BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            String s = Functions.string16FromUUID(descriptor.getCharacteristic().getUuid());
+            //String s = Functions.string16FromUUID(descriptor.getCharacteristic().getUuid());
             //log.info("notify: " + s);
             processNextCharacteristic(gatt);
         }

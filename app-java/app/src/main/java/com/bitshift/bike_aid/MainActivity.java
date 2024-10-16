@@ -1,14 +1,12 @@
 package com.bitshift.bike_aid;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -89,16 +87,32 @@ public class MainActivity extends AppCompatActivity {
         // callaback for log updates
         ScrollView logScroll = findViewById(R.id.log_scroll);
         TextView logText = findViewById(R.id.log_text);
-        log.setOnEventListener(new Logger.OnEventListener() {
-            @Override
-            public void onUpdate(String result) {
-                logText.setText(result);
-                new Handler().postDelayed(() -> logScroll.fullScroll(View.FOCUS_DOWN), 10);
-            }
+        log.setOnEventListener(result -> {
+            logText.setText(result);
+            new Handler().postDelayed(() -> logScroll.fullScroll(View.FOCUS_DOWN), 10);
         });
 
         // callback for signals
         signals.setOnEventListener(new Signals.OnEventListener() {
+            public void onCruiseLevel(int level) {
+                // Loop through the views and set their visibility based on the level
+                GridLayout gridLayout = findViewById(R.id.cruise_level);
+                for (int i = 0; i < gridLayout.getChildCount(); i++) {
+                    View view = gridLayout.getChildAt(i);
+                    if (i < level) {
+                        view.setVisibility(View.VISIBLE); // Show the view for levels 1 to level
+                    } else {
+                        view.setVisibility(View.INVISIBLE); // Hide the view for levels above the current level
+                    }
+                }
+
+                TextView item = findViewById(R.id.cruise);
+                if (level > 0) {
+                    item.setVisibility(View.VISIBLE);
+                } else {
+                    item.setVisibility(View.INVISIBLE);
+                }
+            }
             @Override
             public void onTemperature(String result) {
                 TextView item = findViewById(R.id.temperature);
@@ -154,43 +168,51 @@ public class MainActivity extends AppCompatActivity {
                 TextView item = findViewById(R.id.battery_level);
                 item.setText(result);
             }
+
+            @Override
+            public void onBrake(boolean result) {
+                TextView item = findViewById(R.id.brake);
+                if (result)
+                    item.setVisibility(View.VISIBLE);
+                else
+                    item.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onParkBrake(boolean result) {
+                TextView item = findViewById(R.id.park_brake);
+                if (result)
+                    item.setVisibility(View.VISIBLE);
+                else
+                    item.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onBatteryPower(String result) {
+                TextView item = findViewById(R.id.battery_power);
+                item.setText(result);
+            }
         });
 
         // reset log button
         Button logReset = findViewById(R.id.log_reset);
-        logReset.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                log.reset();
-            }
-        });
+        logReset.setOnClickListener(v -> log.reset());
 
         // send uart button
         Button sendBtn = findViewById(R.id.send_button);
-        sendBtn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView tv = findViewById(R.id.send_text);
-                signals.setUART(tv.getText().toString());
-                tv.setText("");
-            }
+        sendBtn.setOnClickListener(v -> {
+            TextView tv = findViewById(R.id.send_text);
+            signals.setUART(tv.getText().toString());
+            tv.setText("");
         });
 
         // power button
         Button powerBtn = findViewById(R.id.power_button);
-        powerBtn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { signals.togglePower(); }
-        });
+        powerBtn.setOnClickListener(v -> signals.togglePower());
 
         // alarm button
         Button alarmBtn = findViewById(R.id.alarm_button);
-        alarmBtn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signals.toggleAlarm();
-            }
-        });
+        alarmBtn.setOnClickListener(v -> signals.toggleAlarm());
 
     }
 

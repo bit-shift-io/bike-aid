@@ -10,5 +10,5 @@
     <string name="brake">Brake</string>
     <string name="cruise">Cruise</string>
     <string name="p">P</string>
-    <string name="park_brake">Park Brake</string>
+    <string name="park">Park</string>
 </resources>
