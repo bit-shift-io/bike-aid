@@ -50,7 +50,7 @@ async fn run() {
 
 async fn park_brake_on() {
     // detect when to turn park brake on
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
     let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
     let mut rec_cruise_level = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
@@ -68,7 +68,7 @@ async fn park_brake_on() {
             count += 1;
 
             if count > MAX_COUNT {
-                pub_piezo.publish_immediate(signals::PiezoModeType::BeepLong);
+                send_piezo.send(signals::PiezoModeType::BeepLong);
                 watch_park_brake_on.send(true);
                 //info!("on: park brake on");
                 return;
@@ -85,8 +85,8 @@ async fn park_brake_off() {
     let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
     let _ = watch_brake_on.changed_and(|x| *x == true).await; // predicate version to wait for brake to be on
  
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_piezo.publish_immediate(signals::PiezoModeType::BeepLong);
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_piezo.send(signals::PiezoModeType::BeepLong);
 
     let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
     watch_park_brake_on.send(false);

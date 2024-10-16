@@ -11,18 +11,18 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
-    let mut sub_mode = signals::LED_MODE.subscriber().unwrap();
+    let mut rec_mode = signals::LED_MODE_WATCH.receiver().unwrap();
     let mut led_mode = LedMode::None;
 
     loop {
         // Try to poll read new mode
         // doing this way allows us to use the default mode, if no value is set
-        if let Some(b) = sub_mode.try_next_message_pure() {led_mode = b}
+        if let Some(b) = rec_mode.try_changed() {led_mode = b}
 
         match led_mode {
             LedMode::None => {
                 led.set_low();
-                led_mode = sub_mode.next_message_pure().await;
+                led_mode = rec_mode.changed().await;
             },
             LedMode::Once => {
                 single(&mut led).await;

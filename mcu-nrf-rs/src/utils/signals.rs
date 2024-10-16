@@ -18,8 +18,33 @@ pub fn init() {
     THROTTLE_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
     THROTTLE_OUT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
     TEMPERATURE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
-}
+    POWER_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    SWITCH_HORN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    SWITCH_LIGHT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    INSTANT_SPEED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u32); false });
+    SMOOTH_SPEED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    WHEEL_ROTATIONS_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    ODOMETER_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
 
+    BATTERY_CURRENT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    BATTERY_VOLTAGE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    BATTERY_POWER_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    BATTERY_LEVEL_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
+    BATTERY_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some([0u16, 0u16]); false });
+    
+    LED_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(LedModeType::None); false });
+    PIEZO_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(PiezoModeType::None); false });
+    
+    ALARM_ENABLED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    ALARM_ALERT_ACTIVE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    ALARM_MOTION_DETECTED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    
+    UART_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(String::new()); false });
+    UART_READ_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(String::new()); false });
+
+    STORE_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+    STORE_UPDATED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
+}
 
 
 // == WATCHES ===
@@ -34,6 +59,35 @@ pub static THROTTLE_IN_WATCH: Watch<WatchMutex, u16, 3> = Watch::new();
 pub static THROTTLE_OUT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
 pub static TEMPERATURE_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static POWER_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
+pub static SWITCH_HORN_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+pub static SWITCH_LIGHT_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+pub static INSTANT_SPEED_WATCH: Watch<WatchMutex, u32, 1> = Watch::new();
+pub static SMOOTH_SPEED_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static WHEEL_ROTATIONS_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static ODOMETER_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
+
+pub static BATTERY_CURRENT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
+pub static BATTERY_VOLTAGE_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
+pub static BATTERY_POWER_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
+pub static BATTERY_LEVEL_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
+pub static BATTERY_IN_WATCH: Watch<WatchMutex, [u16; 2], 1> = Watch::new();
+
+pub type LedModeType = crate::tasks::led::LedMode;
+pub static LED_MODE_WATCH: Watch<WatchMutex, LedModeType, 1> = Watch::new();
+
+pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
+pub static PIEZO_MODE_WATCH: Watch<WatchMutex, PiezoModeType, 1> = Watch::new();
+
+pub static ALARM_ENABLED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+pub static ALARM_ALERT_ACTIVE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+pub static ALARM_MOTION_DETECTED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+
+const MAX_LENGTH: usize = 32;
+pub static UART_WRITE_WATCH: Watch<WatchMutex, String<MAX_LENGTH>, 1> = Watch::new();
+pub static UART_READ_WATCH: Watch<WatchMutex, String<MAX_LENGTH>, 1> = Watch::new();
+
+pub static STORE_WRITE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
+pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
 
 
@@ -42,7 +96,7 @@ pub static POWER_ON_WATCH: Watch<WatchMutex, bool, 4> = Watch::new();
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
 
 // External / reporting to user
-
+/*
 pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
@@ -80,14 +134,14 @@ pub static UART_READ: PubSubChannel<ChannelMutex, String<MAX_LENGTH>, 1, 2, 2> =
 pub static STORE_WRITE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
 
-
+ */
 
 
 // == MUTEX'S ==
 // Mutex dont notify, only for use in loops
 
-pub static CRUISE_VOLTAGE: Mutex<SignalMutex, u16> = Mutex::new(0u16);
-pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
+pub static CRUISE_VOLTAGE_MUTEX: Mutex<SignalMutex, u16> = Mutex::new(0u16);
+pub static CRUISE_VOLTAGES_MUTEX: Mutex<SignalMutex, [u16;5]> = Mutex::new([ // TODO struct, not a mutex??
         1600u16, // 1408 a little too slow, 1500 a little slow
         2000u16, // 1906 a little to slow
         2300u16, // 2400 a little fast?
@@ -101,7 +155,7 @@ pub struct AlarmSettings {
     pub warning_interval: u8,
     pub sensitivity: u8,
 }
-pub static ALARM_ACTIVE: Mutex<SignalMutex, bool> = Mutex::new(false);
+pub static ALARM_ACTIVE_MUTEX: Mutex<SignalMutex, bool> = Mutex::new(false);
 
 
 /* 
@@ -142,7 +196,7 @@ pub struct ThrottleSettings {
 /*
 Controller supply voltage - 4.36v = 4360mv
 */
-pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
+pub static THROTTLE_SETTINGS_MUTEX: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
     increase_smooth_factor: 75, // rate of smoothing to acceleration
     decrease_smooth_factor: 150, // rate of smoothing to deceleration

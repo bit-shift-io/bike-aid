@@ -69,7 +69,7 @@ impl UARTService {
             // recived data from uart
             info!("rx: {:?}", functions::bytes_to_string(data));
             let string = functions::byte_array_to_heapless_string(data);
-            signals::UART_READ.dyn_immediate_publisher().publish_immediate(string);
+            signals::UART_READ_WATCH.dyn_sender().send(string);
         }
 
         if handle == self.tx.value_handle {
@@ -92,10 +92,10 @@ impl UARTService {
 
 pub async fn run(connection: &Connection, server: &Server) {
     // handle the rx stream
-    let mut sub_tx = signals::UART_WRITE.subscriber().unwrap();
+    let mut rec_tx = signals::UART_WRITE_WATCH.receiver().unwrap();
 
     loop {
-        let tx = sub_tx.next_message_pure().await;
+        let tx = rec_tx.changed().await;
         let val = tx.as_bytes();
 
         // try notify, if fails due to other device not allowing, then just set the data

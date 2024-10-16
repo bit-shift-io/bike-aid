@@ -14,10 +14,10 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    let pub_instant_speed = signals::INSTANT_SPEED.publisher().unwrap();
-    let pub_smooth_speed = signals::SMOOTH_SPEED.publisher().unwrap();
-    let pub_wheel_rotations = signals::WHEEL_ROTATIONS.publisher().unwrap();
-    let pub_odometer = signals::ODOMETER.publisher().unwrap();
+    let send_instant_speed = signals::INSTANT_SPEED_WATCH.sender();
+    let send_smooth_speed = signals::SMOOTH_SPEED_WATCH.sender();
+    let send_wheel_rotations = signals::WHEEL_ROTATIONS_WATCH.sender();
+    let send_odometer = signals::ODOMETER_WATCH.sender();
 
     let mut segment_count = 0;
     let mut rotation_count = 0_u16;
@@ -42,11 +42,11 @@ pub async fn task(
 
             // increment wheel rotations
             rotation_count += 1;
-            //pub_wheel_rotations.publish_immediate(rotation_count); //TODO: is this used?
+            //send_wheel_rotations.send(rotation_count); //TODO: is this used?
 
             // odometer
             let odometer = (WHEEL_CIRCUMFERENCE * f32::from(rotation_count) / 1_000_f32 / 1_00_f32) as u16;  // round mm -> m -> km.m
-            pub_odometer.publish_immediate(odometer); // TODO: fix
+            send_odometer.send(odometer); // TODO: fix
 
             info!("odometer : {}, {}", odometer, rotation_count);
 
@@ -63,13 +63,13 @@ pub async fn task(
             let delta_time_seconds = delta_time / 1_000_000_f32; // micro to seconds
             let distance = WHEEL_CIRCUMFERENCE / 1_000_f32; // mm to m
             let instant_speed: f32 = (distance / delta_time_seconds) * 3.6; // m/sec to km/hr
-            pub_instant_speed.publish_immediate(instant_speed as u32); // round
+            send_instant_speed.send(instant_speed as u32); // round
 
             // calculate smooth speed
             let delta_speed : f32 = instant_speed - smooth_speed; // calc difference btween speeds
             let speed_adjust = delta_speed * SPEED_SMOOTH_FACTOR; // todo: multiply by delta time, so faster speeds are adjusted faster?
             smooth_speed += speed_adjust;
-            pub_smooth_speed.publish_immediate(smooth_speed as u8); // round
+            send_smooth_speed.send(smooth_speed as u8); // round
 
             info!("{} : {} : {}, {}", TASK_ID, instant_speed, smooth_speed, delta_time_seconds);
         

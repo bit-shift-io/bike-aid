@@ -77,7 +77,7 @@ impl SettingsService {
 
         if handle == self.alarm_enabled.value_handle {
             let message = if data[0] == 205 { true } else { false };
-            signals::ALARM_ENABLED.dyn_immediate_publisher().publish_immediate(message);
+            signals::ALARM_ENABLED_WATCH.dyn_sender().send(message);
   
         }
 
@@ -118,10 +118,10 @@ pub async fn update_power(connection: &Connection, server: &Server) {
 
 
 pub async fn update_alarm(connection: &Connection, server: &Server) {
-    let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
+    let mut sub = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
     let handle = server.settings.alarm_enabled.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = sub.changed().await;
         Timer::after_millis(100).await; // TODO: fix ble to be async? delay to avoid flooding
         let _ = server::notify_value(connection, handle, &[val as u8]);
     }

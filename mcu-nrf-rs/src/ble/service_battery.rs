@@ -139,20 +139,20 @@ pub async fn run(connection: &Connection, server: &Server) {
 
 
 pub async fn update_level(connection: &Connection, server: &Server) {
-    let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    let mut sub = signals::BATTERY_LEVEL_WATCH.receiver().unwrap();
     let handle = server.battery.level.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = sub.changed().await;
         let _ = server::notify_value(connection, handle, &[val]);
     }
 }
 
 
 pub async fn update_power(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
     // let handle = server.battery.level.value_handle;
     // loop {
-    //     let val = sub.next_message_pure().await;
+    //     let val = sub.changed().await;
     //     //let val = functions::bitshift_split_u16(val);
     //     let _ = server::notify_value(connection, handle, &[val]);
     // }
@@ -160,10 +160,10 @@ pub async fn update_power(connection: &Connection, server: &Server) {
 
 
 pub async fn update_voltage(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
     // let handle = server.battery.level.value_handle;
     // loop {
-    //     let val = sub.next_message_pure().await;
+    //     let val = sub.changed().await;
     //     //let val = functions::bitshift_split_u16(val);
     //     let _ = server::notify_value(connection, handle, &[val]);
     // }
@@ -171,10 +171,10 @@ pub async fn update_voltage(connection: &Connection, server: &Server) {
 
 
 pub async fn update_current(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.subscriber().unwrap();
+    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
     // let handle = server.battery.level.value_handle;
     // loop {
-    //     let val = sub.next_message_pure().await;
+    //     let val = sub.changed().await;
     //     //let val = functions::bitshift_split_u16(val);
     //     let _ = server::notify_value(connection, handle, &[val]);
     // }

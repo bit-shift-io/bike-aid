@@ -23,7 +23,7 @@ pub async fn task(
     spawner: Spawner
 ) {
     info!("{}", TASK_ID);
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
 
     // configure bluetooth
     let config = nrf_softdevice::Config {
@@ -101,11 +101,11 @@ pub async fn task(
         let _ = match select(server_future, gatt_future).await {
             Either::Left((_, _)) => {
                 info!("{}: server run encountered an error and stopped!", TASK_ID);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
+                send_piezo.send(signals::PiezoModeType::Notify);
             }
             Either::Right((e, _)) => {
                 info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
+                send_piezo.send(signals::PiezoModeType::Notify);
 
             }
         };

@@ -131,10 +131,10 @@ pub async fn run(connection: &Connection, server: &Server) {
 
 
 pub async fn update_odometer(connection: &Connection, server: &Server) {
-    let mut sub = signals::ODOMETER.subscriber().unwrap();
+    let mut sub = signals::ODOMETER_WATCH.receiver().unwrap();
     let handle = server.data.odometer.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = sub.changed().await;
         //let val = functions::bitshift_split_u16(val);
 
         let bytes: [u8; 2] = val.to_le_bytes(); // Convert to little-endian byte array
@@ -148,10 +148,10 @@ pub async fn update_odometer(connection: &Connection, server: &Server) {
 
 
 pub async fn update_speed(connection: &Connection, server: &Server) {
-    let mut sub = signals::SMOOTH_SPEED.subscriber().unwrap();
+    let mut sub = signals::SMOOTH_SPEED_WATCH.receiver().unwrap();
     let handle = server.data.speed.value_handle;
     loop {
-        let val = sub.next_message_pure().await;
+        let val = sub.changed().await;
         //let val = functions::bitshift_split_u16(val);
         let _ = server::notify_value(connection, handle, &[val]);
     }
@@ -179,7 +179,7 @@ pub async fn update_clock_minutes(connection: &Connection, server: &Server) {
 
 
 pub async fn update_clock_hours(connection: &Connection, server: &Server) {
-    //let mut sub = signals::CLOCK_HOURS.subscriber().unwrap();
+    //let mut sub = signals::CLOCK_HOURS.receiver().unwrap();
     let mut rec = signals::CLOCK_HOURS_WATCH.receiver().unwrap();
     let handle = server.data.clock_hours.value_handle;
     loop {

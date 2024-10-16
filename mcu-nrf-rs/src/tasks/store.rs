@@ -25,10 +25,10 @@ pub async fn task(
     // shoudnt need this?
     //unwrap!(flash.erase(address, address + size));
 
-    let mut sub_write = signals::STORE_WRITE.subscriber().unwrap();
+    let mut rec_write = signals::STORE_WRITE_WATCH.receiver().unwrap();
 
     loop {
-        if sub_write.next_message_pure().await {
+        if rec_write.changed().await {
             write_store(&mut flash).await;
         }
     }
@@ -44,7 +44,7 @@ async fn write_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     write_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
@@ -63,11 +63,11 @@ async fn read_store<E: defmt::Format>(
 ) {
     info!("{}: read store", TASK_ID);
 
-    let pub_updated = signals::STORE_UPDATED.publisher().unwrap();
+    let send_updated = signals::STORE_UPDATED_WATCH.sender();
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = signals::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     read_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
     read_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
@@ -80,7 +80,7 @@ async fn read_store<E: defmt::Format>(
     // == settings end ==
 
     // notify
-    pub_updated.publish_immediate(true);
+    send_updated.send(true);
 }
 
 

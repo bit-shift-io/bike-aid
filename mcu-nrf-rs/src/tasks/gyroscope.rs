@@ -22,21 +22,21 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
+    let mut sub = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = sub.try_changed() {state = b}
         match state {
             true => {
-                let sub_future = sub.next_message_pure();
+                let rec_future = sub.changed();
                 let task_future = run(i2c_bus);
-                match select(sub_future, task_future).await {
+                match select(rec_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { state = sub.next_message_pure().await; }
+            false => { state = sub.changed().await; }
         }
     }
 }
@@ -61,7 +61,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     //let _ = mpu.set_accel_hpf(ACCEL_HPF::_RESET); // default ACCEL_HPF::_RESET
     //mpu.setup_motion_detection().unwrap();
 
-    let pub_motion = signals::ALARM_MOTION_DETECTED.publisher().unwrap();
+    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
     let mut last_gyro = mpu.get_gyro().unwrap();
     let mut last_acc_angles = mpu.get_acc_angles().unwrap();
 
@@ -102,7 +102,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         //info!("acc: {} | gyro: {} | r/p: {}", Debug2Format(&acc), Debug2Format(&gyro), Debug2Format(&acc_angles));
 
         if motion_detected {
-            pub_motion.publish_immediate(true);
+            send_motion.send(true);
         }
 
         last_gyro = gyro;

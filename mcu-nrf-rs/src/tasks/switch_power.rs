@@ -12,8 +12,8 @@ pub async fn task(
 
     let mut rec_power_on = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
-    let pub_led = signals::LED_MODE.publisher().unwrap();
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    let send_led = signals::LED_MODE_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
 
     loop {
         let val = rec_power_on.changed().await;
@@ -21,13 +21,13 @@ pub async fn task(
         match val {
             true => {
                 pin_state.set_high();
-                pub_led.publish_immediate(signals::LedModeType::None);
-                pub_piezo.publish_immediate(signals::PiezoModeType::PowerOn);
+                send_led.send(signals::LedModeType::None);
+                send_piezo.send(signals::PiezoModeType::PowerOn);
             }
             false => {
                 pin_state.set_low();
-                pub_led.publish_immediate(signals::LedModeType::SingleSlow);
-                pub_piezo.publish_immediate(signals::PiezoModeType::PowerOff);
+                send_led.send(signals::LedModeType::SingleSlow);
+                send_piezo.send(signals::PiezoModeType::PowerOff);
             }
         }
     }

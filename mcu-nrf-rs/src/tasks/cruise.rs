@@ -39,7 +39,7 @@ pub async fn task() {
 
 async fn run() {
     let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
 
     loop {
         let mut throttle_voltage = rec_throttle.changed().await; // millivolts
@@ -88,7 +88,7 @@ async fn run() {
         if count < MAX_COUNT {
             //info!("tap detected");
             increment_cruise().await;
-            pub_piezo.publish_immediate(signals::PiezoModeType::BeepShort);
+            send_piezo.send(signals::PiezoModeType::BeepShort);
         }
     }
 }
@@ -110,9 +110,9 @@ async fn increment_cruise() {
 
 
 async fn assign_voltage(level: u8) {
-    let cruise_voltages = *signals::CRUISE_VOLTAGES.lock().await;
-    if level == 0 { *signals::CRUISE_VOLTAGE.lock().await = 0; }
-    else { *signals::CRUISE_VOLTAGE.lock().await = cruise_voltages[(level -1) as usize]; } 
+    let cruise_voltages = *signals::CRUISE_VOLTAGES_MUTEX.lock().await;
+    if level == 0 { *signals::CRUISE_VOLTAGE_MUTEX.lock().await = 0; }
+    else { *signals::CRUISE_VOLTAGE_MUTEX.lock().await = cruise_voltages[(level -1) as usize]; } 
 }
 
 

@@ -17,18 +17,18 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
-    let mut sub_mode = signals::PIEZO_MODE.subscriber().unwrap();
+    let mut rec_mode = signals::PIEZO_MODE_WATCH.receiver().unwrap();
     let mut piezo_mode = PiezoMode::None;
 
     loop {
         // Try to poll read new mode
         // doing this way allows us to use the default mode, if no value is set
-        if let Some(b) = sub_mode.try_next_message_pure() {piezo_mode = b}
+        if let Some(b) = rec_mode.try_changed() {piezo_mode = b}
 
         match piezo_mode {
             PiezoMode::None => {
                 pwm.disable();
-                piezo_mode = sub_mode.next_message_pure().await;
+                piezo_mode = rec_mode.changed().await;
             },
             PiezoMode::Boot => {
                 boot(&mut pwm).await;

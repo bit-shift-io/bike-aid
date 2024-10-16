@@ -12,12 +12,12 @@ const BATTERY_RANGE: u16 = BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE; // mv
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let pub_current = signals::BATTERY_CURRENT.publisher().unwrap();
-    let pub_voltage = signals::BATTERY_VOLTAGE.publisher().unwrap();
-    let pub_power = signals::BATTERY_POWER.publisher().unwrap();
-    let pub_percent = signals::BATTERY_LEVEL.publisher().unwrap();
+    let send_current = signals::BATTERY_CURRENT_WATCH.sender();
+    let send_voltage = signals::BATTERY_VOLTAGE_WATCH.sender();
+    let send_power = signals::BATTERY_POWER_WATCH.sender();
+    let send_percent = signals::BATTERY_LEVEL_WATCH.sender();
 
-    let mut sub_data = signals::BATTERY_IN.subscriber().unwrap();
+    let mut rec_data = signals::BATTERY_IN_WATCH.receiver().unwrap();
 
     let voltage_data: [f64; 60] = [0.0; 60];
     let current_data: [f64; 60] = [0.0; 60];
@@ -25,7 +25,7 @@ pub async fn task() {
     let mut time_count = 0;
 
     loop {
-        let input = sub_data.next_message_pure().await; // millivolts, updated 1 second
+        let input = rec_data.changed().await; // millivolts, updated 1 second
         let input_current = input[1]; // mA
         let input_voltage = input[0]; // mV
         
@@ -51,10 +51,10 @@ pub async fn task() {
         //     time_count = 0;
         // }
 
-        //pub_power.publish_immediate(power);
-        pub_current.publish_immediate(input_current);
-        pub_voltage.publish_immediate(input_voltage);
-        pub_percent.publish_immediate(percentage);
+        //send_power.send(power);
+        send_current.send(input_current);
+        send_voltage.send(input_voltage);
+        send_percent.send(percentage);
         //info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percentage);
     }
 }

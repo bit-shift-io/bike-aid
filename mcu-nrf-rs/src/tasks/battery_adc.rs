@@ -58,7 +58,7 @@ pub async fn task(
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let pub_data = signals::BATTERY_IN.publisher().unwrap();
+    let send_data = signals::BATTERY_IN_WATCH.sender();
     let address = SlaveAddr::Alternative(true, false); // new_sda(); //// sda 0x4A
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
 
@@ -80,9 +80,9 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         // debug uart
         //let str: String<32> = String::try_from(current).unwrap();
-        //signals::UART_WRITE.dyn_immediate_publisher().publish_immediate(str);
+        //signals::UART_WRITE_WATCH.dyn_sender().send(str);
 
-        pub_data.publish_immediate([voltage, current]);
+        send_data.send([voltage, current]);
         Timer::after_secs(INTERVAL).await;
     }
 }

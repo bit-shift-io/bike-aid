@@ -9,11 +9,11 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    let mut sub_button = signals::SWITCH_LIGHT.subscriber().unwrap();
+    let mut rec_button = signals::SWITCH_LIGHT_WATCH.receiver().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
 
     loop {
-        let val = sub_button.next_message_pure().await;
+        let val = rec_button.changed().await;
         info!("{}: {}", TASK_ID, val);
         match val {
             true => {

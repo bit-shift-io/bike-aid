@@ -41,12 +41,12 @@ pub async fn run() {
         
         match state {
             true => {
-                let sub_future = watch.changed();
+                let rec_future = watch.changed();
                 let task_future = async { 
                     Timer::after_secs(INTERVAL).await;
                     send_power_on.send(false);  // power off
                 };
-                match select(sub_future, task_future).await {
+                match select(rec_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => {}
                 }

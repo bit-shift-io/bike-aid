@@ -181,10 +181,10 @@ async fn main(spawner: Spawner) {
     // boot ok feedback
     // single blink led
     // boot tune
-    let pub_led = signals::LED_MODE.publisher().unwrap();
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_led.publish_immediate(signals::LedModeType::SingleSlow);
-    pub_piezo.publish_immediate(signals::PiezoModeType::Boot);
+    let send_led = signals::LED_MODE_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_led.send(signals::LedModeType::SingleSlow);
+    send_piezo.send(signals::PiezoModeType::Boot);
 
 
 
@@ -205,13 +205,13 @@ async fn main(spawner: Spawner) {
 
     // turn device on for testing
     //Timer::after_millis(100).await;
-    //let pub_power = signals::SWITCH_POWER.publisher().unwrap();
-    //pub_power.publish(true).await;
+    //let send_power = signals::SWITCH_POWER.sender();
+    //send_power.publish(true).await;
     
     // 
-    // let mut sub_minutes = signals::CLOCK_MINUTES.subscriber().unwrap();
+    // let mut rec_minutes = signals::CLOCK_MINUTES.receiver().unwrap();
     // loop {
-    //     let val = sub_minutes.next_message_pure().await;
+    //     let val = rec_minutes.changed().await;
     //     info!("Main - Time: {}", val);
     // }
 }

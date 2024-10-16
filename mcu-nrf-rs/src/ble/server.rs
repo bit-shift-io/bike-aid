@@ -96,8 +96,8 @@ impl gatt_server::Server for Server {
 
 pub async fn run(connection: &Connection, server: &Server) {
     info!("BLUETOOTH: device connected");
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_piezo.publish_immediate(signals::PiezoModeType::Notify);
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_piezo.send(signals::PiezoModeType::Notify);
     // TODO: add services here
     // do we need to mutpin? pin_mut!(...);
     join::join4(

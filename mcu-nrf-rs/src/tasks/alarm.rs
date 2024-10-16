@@ -14,41 +14,41 @@ static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let mut sub = signals::ALARM_ENABLED.subscriber().unwrap();
+    let mut rec = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
     let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_next_message_pure() {state = b}
+        if let Some(b) = rec.try_changed() {state = b}
         match state {
             true => {
-                let sub_future = sub.next_message_pure();
+                let watch_future = rec.changed();
                 let task1_future = run();
                 let task2_future = warning_cooldown();
                 let task_future = join(task1_future, task2_future);
-                match select(sub_future, task_future).await {
+                match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
             false => {
                 stop().await; // user turned alarm off
-                state = sub.next_message_pure().await; 
+                state = rec.changed().await; 
             }
         }
     }
 }
 
 async fn run() {
-    let pub_alarm = signals::ALARM_ALERT_ACTIVE.publisher().unwrap();
-    let mut sub_motion = signals::ALARM_MOTION_DETECTED.subscriber().unwrap();
-    let pub_motion = signals::ALARM_MOTION_DETECTED.publisher().unwrap();
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
+    let send_alarm = signals::ALARM_ALERT_ACTIVE_WATCH.sender();
+    let mut rec_motion = signals::ALARM_MOTION_DETECTED_WATCH.receiver().unwrap();
+    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
 
     // TODO: want to time limit the warnings to every xx seconds
 
     loop {
         // motion detected
-        if sub_motion.next_message_pure().await {
+        if rec_motion.changed().await {
             info!("{}: motion detected", TASK_ID);
             let mut warn_count = WARNING_COUNT.lock().await;
             *warn_count += 1;
@@ -56,15 +56,15 @@ async fn run() {
             if *warn_count > WARNINGS {
                 // alarm
                 info!("ALARM!");
-                pub_alarm.publish_immediate(true);
-                pub_piezo.publish_immediate(signals::PiezoModeType::Alarm);
+                send_alarm.send(true);
+                send_piezo.send(signals::PiezoModeType::Alarm);
             } else {
                 // warning
-                pub_piezo.publish_immediate(signals::PiezoModeType::Warning);
+                send_piezo.send(signals::PiezoModeType::Warning);
             }
 
             // reset motion detected
-            pub_motion.clear();
+            send_motion.clear();
         };
     }
 }
@@ -72,12 +72,12 @@ async fn run() {
 
 
 async fn stop() {
-    let pub_alarm = signals::ALARM_ALERT_ACTIVE.publisher().unwrap();
-    let pub_motion = signals::ALARM_MOTION_DETECTED.publisher().unwrap();
-    let pub_piezo = signals::PIEZO_MODE.publisher().unwrap();
-    pub_alarm.publish_immediate(false);
-    pub_piezo.publish_immediate(signals::PiezoModeType::None);
-    pub_motion.publish_immediate(false);
+    let send_alarm = signals::ALARM_ALERT_ACTIVE_WATCH.sender();
+    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_alarm.send(false);
+    send_piezo.send(signals::PiezoModeType::None);
+    send_motion.send(false);
 }
 
 

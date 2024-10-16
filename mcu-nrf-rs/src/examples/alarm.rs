@@ -22,7 +22,7 @@ pub async fn alarm (
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    //let pub_alarm = signals::ALARM.publisher().unwrap();
+    //let send_alarm = signals::ALARM.sender();
     
     // spawn sub tasks
     spawner.must_spawn(warning_cooldown());
@@ -35,7 +35,7 @@ pub async fn alarm (
 
             if *warn_count > WARNINGS {
                 info!("ALARM!");
-                //pub_alarm.publish_immediate(true);
+                //send_alarm.send(true);
             } 
 
             // reset motion detected
