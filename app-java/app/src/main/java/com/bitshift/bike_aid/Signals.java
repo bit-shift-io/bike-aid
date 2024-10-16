@@ -195,6 +195,21 @@ public class Signals {
             setClockHours(value[0]);
         }
 
+        // brake
+        if (id.equals(2007)) {
+
+        }
+
+        // park brake
+        if (id.equals(2008)) {
+
+        }
+
+        // cruise
+        if (id.equals(2009)) {
+
+        }
+
 
         // 0x180f series is battery
 

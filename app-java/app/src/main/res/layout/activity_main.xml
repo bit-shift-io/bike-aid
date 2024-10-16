@@ -14,17 +14,39 @@
         android:layout_width="match_parent"
         android:layout_height="40dp">
 
-        <TextView
-            android:id="@+id/battery_time"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
-            android:text="00 mins"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/battery_time"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="0000"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/battery_time"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text=" w"
+                android:textIsSelectable="false"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -87,17 +109,35 @@
         android:layout_height="128dp"
         android:layout_below="@+id/divider1">
 
-        <TextView
-            android:id="@+id/null1"
+
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text=""
-            android:textAlignment="viewStart"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
+            android:gravity=""
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" >
+
+            <TextView
+                android:id="@+id/brake"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/brake"
+                android:textAlignment="viewStart"
+                android:textIsSelectable="false"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/cruise"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cruise"
+                android:textAlignment="viewStart"
+                android:textIsSelectable="false"
+                android:textSize="24sp" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -136,17 +176,68 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/null2"
+        <GridLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text=""
-            android:textAlignment="textEnd"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
+            android:layout_gravity="right"
+            android:rowCount="6"
+            android:columnCount="1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" >
+
+            <View
+                android:id="@+id/box5"
+                android:layout_width="50dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/box4"
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/box3"
+                android:layout_width="30dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/box2"
+                android:layout_width="20dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+            <View
+                android:id="@+id/box1"
+                android:layout_width="10dp"
+                android:layout_height="0dp"
+                android:layout_rowWeight="1"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_gravity="end"
+                android:background="@android:color/darker_gray" />
+
+        </GridLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -232,41 +323,51 @@
                 app:layout_constraintTop_toTopOf="parent" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/clock_minutes"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
-            android:text="00"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" >
 
-        <TextView
-            android:id="@+id/clock_divider"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|center_horizontal"
-            android:text=":"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/clock_minutes"
-            app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/clock_minutes"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="00"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/clock_hours"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|center_horizontal"
-            android:text="00"
-            android:textIsSelectable="false"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/clock_divider"
-            app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/clock_divider"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text=":"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/clock_minutes"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/clock_hours"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="00"
+                android:textIsSelectable="false"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/clock_divider"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

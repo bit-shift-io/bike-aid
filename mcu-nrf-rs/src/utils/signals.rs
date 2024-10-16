@@ -94,54 +94,16 @@ pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 // == CHANNELS ==
 // Channels can have history
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
-
-// External / reporting to user
 /*
-pub static SWITCH_HORN: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-pub static SWITCH_LIGHT: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-
-pub static INSTANT_SPEED: PubSubChannel<ChannelMutex, u32, 1, 2, 2> = PubSubChannel::new();
-pub static SMOOTH_SPEED: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static WHEEL_ROTATIONS: PubSubChannel<ChannelMutex, u8, 1, 2, 2> = PubSubChannel::new();
-pub static ODOMETER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-
-pub static BATTERY_CURRENT: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_VOLTAGE: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_POWER: PubSubChannel<ChannelMutex, u16, 1, 2, 2> = PubSubChannel::new();
-pub static BATTERY_LEVEL: PubSubChannel<ChannelMutex, u8, 1, 1, 1> = PubSubChannel::new();
-
-pub static BATTERY_IN: PubSubChannel<ChannelMutex, [u16;2], 1, 2, 2> = PubSubChannel::new();
-
-pub type LedModeType = crate::tasks::led::LedMode;
-pub static LED_MODE: PubSubChannel<ChannelMutex, LedModeType, 1, 2, 2> = PubSubChannel::new();
-
-pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
-pub static PIEZO_MODE: PubSubChannel<ChannelMutex, PiezoModeType, 1, 1, 6> = PubSubChannel::new();
-
-
-// alarm
-pub static ALARM_ENABLED: PubSubChannel<ChannelMutex, bool, 1, 3, 2> = PubSubChannel::new();
-pub static ALARM_ALERT_ACTIVE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-pub static ALARM_MOTION_DETECTED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-
-// ble uart
-const MAX_LENGTH: usize = 32;
-//pub static TEST: PubSubChannel<ChannelMutex, &[u8], 1, 2, 2> = PubSubChannel::new();
-pub static UART_WRITE: PubSubChannel<ChannelMutex, String<MAX_LENGTH>, 1, 2, 2> = PubSubChannel::new();
-pub static UART_READ: PubSubChannel<ChannelMutex, String<MAX_LENGTH>, 1, 2, 2> = PubSubChannel::new();
-
-// settings changed, write to flash
-pub static STORE_WRITE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-pub static STORE_UPDATED: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
-
- */
+pub static EXAMPLE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();
+*/
 
 
 // == MUTEX'S ==
 // Mutex dont notify, only for use in loops
 
 pub static CRUISE_VOLTAGE_MUTEX: Mutex<SignalMutex, u16> = Mutex::new(0u16);
-pub static CRUISE_VOLTAGES_MUTEX: Mutex<SignalMutex, [u16;5]> = Mutex::new([ // TODO struct, not a mutex??
+pub static CRUISE_VOLTAGES_MUTEX: Mutex<SignalMutex, [u16;5]> = Mutex::new([
         1600u16, // 1408 a little too slow, 1500 a little slow
         2000u16, // 1906 a little to slow
         2300u16, // 2400 a little fast?
