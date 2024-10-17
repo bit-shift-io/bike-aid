@@ -83,14 +83,14 @@ pub async fn task(
         };
         
         // with or without bonding
-        let conn: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
+        let connection: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
 
         // Create two futures:
         //  - My server which allows services to listens for signals and processes them 
         //  - A GATT server listening for events from the connected client.
-        let server_future = server::run(&conn, &server);
+        let server_future = server::run(&connection, &server);
         //let gatt_future = gatt_server::run(&conn, &server, |_| {});
-        let gatt_future = gatt_server::run(&conn, &server, |e| {info!("{}: event : {:?}", TASK_ID, e)});
+        let gatt_future = gatt_server::run(&connection, &server, |e| {info!("{}: event : {:?}", TASK_ID, e)});
 
         pin_mut!(server_future, gatt_future);
 

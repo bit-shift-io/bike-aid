@@ -3,6 +3,7 @@ use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawM
 use heapless::{pool::boxed::Box, String};
 use nrf_softdevice::ble::Connection;
 use embassy_sync::priority_channel::{PriorityChannel, Max};
+use crate::ble::command_queue::{self, submit};
 
 // configure types
 type SignalMutex = ThreadModeRawMutex;
@@ -91,17 +92,19 @@ pub static STORE_WRITE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
 
+// == BLE COMMAND QUEUE ==
+pub type BleHandles = crate::ble::command_queue::QueueHandles;
+pub type BleCommand = crate::ble::command_queue::BleCommandQueue;
+pub fn send_ble(priority: u8, handle: BleHandles, data: &[u8]) {
+    submit(priority, handle, data);    
+}
+pub static BLE_QUEUE_CHANNEL: PriorityChannel::<ChannelMutex, BleCommand, Max, 1> = PriorityChannel::new();
+
 
 // == CHANNELS ==
 // Channels can have history
 // <Mutex Type, Data Type, Max Channels(History), Max Subscribers, Max Publishers>
-#[derive(Clone, Copy, Ord, PartialOrd, PartialEq, Eq)]
-pub struct BleCommandQueue<'a> {
-    pub priority: u8,
-    pub handle: u16,
-    pub message: &'a [u8],
-}
-pub static BLE_QUEUE_CHANNEL: PriorityChannel::<ChannelMutex, BleCommandQueue, Max, 3> = PriorityChannel::new();
+
 
 /*
 pub static EXAMPLE: PubSubChannel<ChannelMutex, bool, 1, 2, 2> = PubSubChannel::new();

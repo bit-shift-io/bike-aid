@@ -11,19 +11,19 @@ use crate::utils::signals;
 
 // TODO: proper uids?
 const SERVICE_ID: Uuid = Uuid::new_16(0x1000);
-const POWER_SWITCH: Uuid = Uuid::new_16(0x1001);
+const POWER_ON: Uuid = Uuid::new_16(0x1001);
 //const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
 //const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
-const ALARM_ENABLED: Uuid = Uuid::new_16(0x1004);
+const ALARM_ON: Uuid = Uuid::new_16(0x1004);
 //const THROTTLE_SMOOTHING: Uuid = Uuid::new_16(0x1005);
 
 
 // TODO: all user modified settings here
 pub struct SettingsService {
-    power_switch: CharacteristicHandles,
+    pub power_on: CharacteristicHandles,
     //light_switch: CharacteristicHandles,
     //horn_switch: CharacteristicHandles,
-    alarm_enabled: CharacteristicHandles,
+    pub alarm_on: CharacteristicHandles,
     //throttle_smoothing: CharacteristicHandles,
 }
 
@@ -32,11 +32,12 @@ impl SettingsService {
         let mut service_builder = ServiceBuilder::new(sd, SERVICE_ID)?;
 
         let characteristic_builder = service_builder.add_characteristic(
-            POWER_SWITCH,
+            POWER_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().write().notify()),
         )?;
-        let power_switch_handle = characteristic_builder.build();
+        let mut power_on_handle = characteristic_builder.build();
+        power_on_handle.value_handle = signals::BleHandles::PowerOn as u16;
 
         // let characteristic_builder = service_builder.add_characteristic(
         //     LIGHT_SWITCH,
@@ -53,19 +54,20 @@ impl SettingsService {
         // let horn_switch_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            ALARM_ENABLED,
+            ALARM_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().write().notify()),
         )?;
-        let alarm_enabled_handle = characteristic_builder.build();
+        let mut alarm_on_handle = characteristic_builder.build();
+        alarm_on_handle.value_handle = signals::BleHandles::AlarmOn as u16;
 
         let _service_handle = service_builder.build();
         
         Ok(SettingsService {
-            power_switch: power_switch_handle,
+            power_on: power_on_handle,
             //light_switch: light_switch_handle,
             //horn_switch: horn_switch_handle,
-            alarm_enabled: alarm_enabled_handle,
+            alarm_on: alarm_on_handle,
             //throttle_smoothing: throttle_smoothing_handle,
         })
     }
@@ -75,13 +77,13 @@ impl SettingsService {
             return;
         }
 
-        if handle == self.alarm_enabled.value_handle {
+        if handle == self.alarm_on.value_handle {
             let message = if data[0] == 205 { true } else { false };
             signals::ALARM_ENABLED_WATCH.dyn_sender().send(message);
   
         }
 
-        if handle == self.power_switch.value_handle {
+        if handle == self.power_on.value_handle {
             let message = if data[0] == 183 { true } else { false };
             signals::POWER_ON_WATCH.dyn_sender().send(message);
         }   
@@ -108,7 +110,7 @@ pub async fn run(connection: &Connection, server: &Server) {
 
 pub async fn update_power(connection: &Connection, server: &Server) {
     let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
-    let handle = server.settings.power_switch.value_handle;
+    let handle = server.settings.power_on.value_handle;
     loop {
         let val = rec.changed().await;
         Timer::after_millis(300).await; // TODO: fix ble to be async? delay to avoid flooding
@@ -119,7 +121,7 @@ pub async fn update_power(connection: &Connection, server: &Server) {
 
 pub async fn update_alarm(connection: &Connection, server: &Server) {
     let mut sub = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
-    let handle = server.settings.alarm_enabled.value_handle;
+    let handle = server.settings.alarm_on.value_handle;
     loop {
         let val = sub.changed().await;
         Timer::after_millis(100).await; // TODO: fix ble to be async? delay to avoid flooding

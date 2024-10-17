@@ -21,11 +21,13 @@ pub async fn task(
         match val {
             true => {
                 pin_state.set_high();
+                signals::send_ble(0, signals::BleHandles::PowerOn, &[true as u8]);
                 send_led.send(signals::LedModeType::None);
                 send_piezo.send(signals::PiezoModeType::PowerOn);
             }
             false => {
                 pin_state.set_low();
+                signals::send_ble(0, signals::BleHandles::PowerOn, &[false as u8]);
                 send_led.send(signals::LedModeType::SingleSlow);
                 send_piezo.send(signals::PiezoModeType::PowerOff);
             }

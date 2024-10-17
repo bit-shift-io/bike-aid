@@ -17,11 +17,11 @@ const BATTERY_CAPACITY: Uuid = Uuid::new_16(0x2B06);
 
 // battery service
 pub struct BatteryService {
-    level: CharacteristicHandles,
-    voltage: CharacteristicHandles,
-    power: CharacteristicHandles,
-    current: CharacteristicHandles,
-    capacity: CharacteristicHandles,
+    pub level: CharacteristicHandles,
+    //pub voltage: CharacteristicHandles,
+    pub power: CharacteristicHandles,
+    //pub current: CharacteristicHandles,
+    //pub capacity: CharacteristicHandles,
 }
 
 impl BatteryService {
@@ -38,50 +38,52 @@ impl BatteryService {
                 name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
                 description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
             }))?;
-        let level_handle = characteristic_builder.build();
+        let mut level_handle = characteristic_builder.build();
+        level_handle.value_handle = signals::BleHandles::BatteryLevel as u16;
 
-        let characteristic_builder = service_builder.add_characteristic(
-            BATTERY_VOLTAGE,
-            Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().notify()).presentation(Presentation {
-                format: raw::BLE_GATT_CPF_FORMAT_UINT8 as u8, // unsigned uint 8
-                exponent: 0,  /* Value * 10 ^ 0 */
-                unit: 0x27AD, /* Percentage */
-                name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
-                description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
-            }))?;
-        let voltage_handle = characteristic_builder.build();
+        // let characteristic_builder = service_builder.add_characteristic(
+        //     BATTERY_VOLTAGE,
+        //     Attribute::new(&[0u8]),
+        //     Metadata::new(Properties::new().read().notify()).presentation(Presentation {
+        //         format: raw::BLE_GATT_CPF_FORMAT_UINT8 as u8, // unsigned uint 8
+        //         exponent: 0,  /* Value * 10 ^ 0 */
+        //         unit: 0x27AD, /* Percentage */
+        //         name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
+        //         description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
+        //     }))?;
+        // let voltage_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             BATTERY_POWER,
-            Attribute::new(&[0u8]),
+            Attribute::new(&[0u8, 2]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let power_handle = characteristic_builder.build();
+        let mut power_handle = characteristic_builder.build();
+        power_handle.value_handle = signals::BleHandles::BatteryPower as u16;
 
-        let characteristic_builder = service_builder.add_characteristic(
-            BATTERY_CURRENT,
-            Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().notify()),
-        )?;
-        let current_handle = characteristic_builder.build();
+        // let characteristic_builder = service_builder.add_characteristic(
+        //     BATTERY_CURRENT,
+        //     Attribute::new(&[0u8]),
+        //     Metadata::new(Properties::new().read().notify()),
+        // )?;
+        // let current_handle = characteristic_builder.build();
 
-        let characteristic_builder = service_builder.add_characteristic(
-            BATTERY_CAPACITY,
-            Attribute::new(&[0u8]),
-            Metadata::new(Properties::new().read().notify()),
-        )?;
-        let capacity_handle = characteristic_builder.build();
+        // let characteristic_builder = service_builder.add_characteristic(
+        //     BATTERY_CAPACITY,
+        //     Attribute::new(&[0u8]),
+        //     Metadata::new(Properties::new().read().notify()),
+        // )?;
+        // let capacity_handle = characteristic_builder.build();
 
 
         let _service_handle = service_builder.build();
 
         Ok(BatteryService {
             level: level_handle,
-            voltage: voltage_handle,
+            //voltage: voltage_handle,
             power: power_handle,
-            current: current_handle,
-            capacity: capacity_handle,
+            //current: current_handle,
+            //capacity: capacity_handle,
         })
     }
 /*
@@ -103,25 +105,25 @@ impl BatteryService {
             return;
         }
 
-        if handle == self.level.cccd_handle {
-            //info!("battery level notifications: {}", (data[0] & 0x01) != 0);
-        }
+        // if handle == self.level.cccd_handle {
+        //     //info!("battery level notifications: {}", (data[0] & 0x01) != 0);
+        // }
 
-        if handle == self.voltage.cccd_handle {
-            //info!("battery voltage notifications: {}", (data[0] & 0x01) != 0);
-        }
+        // if handle == self.voltage.cccd_handle {
+        //     //info!("battery voltage notifications: {}", (data[0] & 0x01) != 0);
+        // }
 
-        if handle == self.power.cccd_handle {
-            //info!("battery power notifications: {}", (data[0] & 0x01) != 0);
-        }
+        // if handle == self.power.cccd_handle {
+        //     //info!("battery power notifications: {}", (data[0] & 0x01) != 0);
+        // }
 
-        if handle == self.current.cccd_handle {
-            //info!("battery current notifications: {}", (data[0] & 0x01) != 0);
-        }
+        // if handle == self.current.cccd_handle {
+        //     //info!("battery current notifications: {}", (data[0] & 0x01) != 0);
+        // }
 
-        if handle == self.capacity.cccd_handle {
-            //info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
-        }
+        // if handle == self.capacity.cccd_handle {
+        //     //info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
+        // }
     }
 }
 

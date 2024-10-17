@@ -119,7 +119,7 @@ async fn stop(
     }
 }
 
-
+#[allow(unused)]
 async fn calibrate(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {

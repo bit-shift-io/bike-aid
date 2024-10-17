@@ -21,8 +21,8 @@ const TX: [u8; 16] = [0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3
 const MAX_LENGTH: u16 = 32; // max characters in a string
 
 pub struct UARTService {
-    rx: CharacteristicHandles,
-    tx: CharacteristicHandles,
+    pub rx: CharacteristicHandles,
+    pub tx: CharacteristicHandles,
 }
 
 impl UARTService {
@@ -34,14 +34,16 @@ impl UARTService {
             Attribute::new(&[]).variable_len(MAX_LENGTH),
             Metadata::new(Properties::new().write()), // .notify()
         )?;
-        let rx_handle = rx.build();
+        let mut rx_handle = rx.build();
+        //rx_handle.value_handle = signals::BleHandles::UartRx as u16;
 
         let tx = service_builder.add_characteristic(
             Uuid::new_128(&TX),
             Attribute::new(&[]).variable_len(MAX_LENGTH), 
             Metadata::new(Properties::new().notify().read()),
         )?;
-        let tx_handle = tx.build();
+        let mut tx_handle = tx.build();
+        tx_handle.value_handle = signals::BleHandles::UART as u16;
 
         let _service_handle = service_builder.build();
         

@@ -19,6 +19,8 @@ pub struct Server {
     pub _device_informaton: DeviceInformationService,
 }
 
+
+
 impl Server {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
         let settings = SettingsService::new(sd)?;
@@ -98,14 +100,46 @@ pub async fn run(connection: &Connection, server: &Server) {
     info!("BLUETOOTH: device connected");
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     send_piezo.send(signals::PiezoModeType::Notify);
+
+    // ble command queue
+    // this replaces having multiple input async functions with joins
+    let rec = signals::BLE_QUEUE_CHANNEL.receiver();
+    
+    loop {
+        // TODO: wait for return value from on_notify_tx_complete before sending next command
+        // this will prevent flooding the ble signal resulting in failed sends
+        let command = rec.receive().await;
+        let data_slice: &[u8] = &command.data[..command.data_len];
+        let handle = command.handle as u16;
+        // match command.handle {
+        //     signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
+        //     signals::BleHandles::BatteryPower => handle = server.battery.power.value_handle,
+        //     signals::BleHandles::Speed => handle = server.data.speed.value_handle,
+        //     signals::BleHandles::Odometer => handle = server.data.odometer.value_handle,
+        //     signals::BleHandles::Temperature => handle = server.data.temperature.value_handle,
+        //     signals::BleHandles::ClockMinutes => handle = server.data.clock_minutes.value_handle,
+        //     signals::BleHandles::ClockHours => handle = server.data.clock_hours.value_handle,
+        //     signals::BleHandles::BrakeOn => handle = server.data.brake_on.value_handle,
+        //     signals::BleHandles::ParkBrakeOn => handle = server.data.park_brake_on.value_handle,
+        //     signals::BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
+        //     signals::BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
+        //     signals::BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
+        //     signals::BleHandles::UART => handle = server.uart.tx.value_handle,
+        // }
+
+        info!("Queue: {}: {:?}", handle, data_slice);
+        let _ = notify_value(connection, handle, data_slice);
+    }
+
+    //old
     // TODO: add services here
     // do we need to mutpin? pin_mut!(...);
-    join::join4(
-        service_data::run(connection, server), 
-        service_settings::run(connection, server),
-        service_uart::run(connection, server),
-        service_battery::run(connection, server)
-        ).await;
+    // join::join4(
+    //     service_data::run(connection, server), 
+    //     service_settings::run(connection, server),
+    //     service_uart::run(connection, server),
+    //     service_battery::run(connection, server)
+    //     ).await;
 }
 
 

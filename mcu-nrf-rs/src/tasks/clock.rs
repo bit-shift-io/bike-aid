@@ -30,9 +30,10 @@ pub async fn task() {
 
 
 async fn run() {
-    let send_hours = signals::CLOCK_HOURS_WATCH.sender();
-    let send_minutes = signals::CLOCK_MINUTES_WATCH.sender();
+    //let send_hours = signals::CLOCK_HOURS_WATCH.sender();
+    //let send_minutes = signals::CLOCK_MINUTES_WATCH.sender();
     let start_time: u64 = Instant::now().as_secs();
+    let mut last_hours: u64 = 0;
 
     loop {
         let current_time: u64 = Instant::now().as_secs();
@@ -40,14 +41,27 @@ async fn run() {
         let run_hours: u64 = all_minutes / 60;
         let run_minutes: u64 = all_minutes - (run_hours * 60);
 
-        send_minutes.send(run_minutes.try_into().unwrap());
-        send_hours.send_if_modified(|value| {
+        // minutes always change
+        let minutes: u8 = run_minutes.try_into().unwrap();
+        signals::send_ble(5, signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice());
+
+        //send_minutes.send(run_minutes.try_into().unwrap());
+
+
+        // hours if changed
+        if last_hours != run_hours {
+            last_hours = run_hours;
             let hours: u8 = run_hours.try_into().unwrap();
-            if *value != Some(hours) {
-                *value = Some(hours);
-                true
-            } else { false } // no change
-        });
+            signals::send_ble(5, signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice());
+        }
+
+        // send_hours.send_if_modified(|value| {
+        //     let hours: u8 = run_hours.try_into().unwrap();
+        //     if *value != Some(hours) {
+        //         *value = Some(hours);
+        //         true
+        //     } else { false } // no change
+        // });
         
         Timer::after_secs(60).await;
     }

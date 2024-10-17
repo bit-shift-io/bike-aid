@@ -51,16 +51,23 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         }, // unable to communicate with device
     }
 
-    let send_temperature = signals::TEMPERATURE_WATCH.sender();
+    //let send_temperature = signals::TEMPERATURE_WATCH.sender();
+    let mut last_temperature: u8 = 0;
 
     loop {
         let temp = mpu.get_temp().unwrap() as u8;
-        send_temperature.send_if_modified(|value| {
-            if *value != Some(temp) {
-                *value = Some(temp);
-                true
-            } else { false } // no change
-        });
+
+        if last_temperature != temp {
+            last_temperature = temp;
+            signals::send_ble(5, signals::BleHandles::Temperature, temp.to_le_bytes().as_slice());
+        }
+        
+        // send_temperature.send_if_modified(|value| {
+        //     if *value != Some(temp) {
+        //         *value = Some(temp);
+        //         true
+        //     } else { false } // no change
+        // });
         Timer::after_secs(INTERVAL).await;
     }
 }

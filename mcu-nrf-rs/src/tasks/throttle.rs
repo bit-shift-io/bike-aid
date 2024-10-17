@@ -109,6 +109,7 @@ async fn smooth(
 }
 
 
+#[allow(unused)]
 fn throttle_curve(
     input_value: u16,
     min_input: u16,

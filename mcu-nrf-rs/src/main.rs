@@ -78,9 +78,8 @@ use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt_rtt as _;
-//use panic_probe as _; // this should reset device on panic!
+//use panic_probe as _; // this doesnt yet reset on panic, so implemented my own
 use core::panic::PanicInfo;
-
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
@@ -171,7 +170,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(cli::task());
 
-    spawner.must_spawn(led::task(p.P0_31.degrade())); // 0.31, 0.15
+    spawner.must_spawn(led::task(p.P0_31.degrade()));
 
     spawner.must_spawn(clock::task());
 
@@ -185,7 +184,6 @@ async fn main(spawner: Spawner) {
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     send_led.send(signals::LedModeType::SingleSlow);
     send_piezo.send(signals::PiezoModeType::Boot);
-
 
 
     // == DEBUG ==
@@ -207,13 +205,6 @@ async fn main(spawner: Spawner) {
     //Timer::after_millis(100).await;
     //let send_power = signals::SWITCH_POWER.sender();
     //send_power.publish(true).await;
-    
-    // 
-    // let mut rec_minutes = signals::CLOCK_MINUTES.receiver().unwrap();
-    // loop {
-    //     let val = rec_minutes.changed().await;
-    //     info!("Main - Time: {}", val);
-    // }
 }
 
 
