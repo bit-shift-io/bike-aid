@@ -1,5 +1,3 @@
-use super::server::{self, *};
-use crate::utils::signals;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
@@ -36,64 +34,56 @@ impl DataService {
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify())
         )?;
-        let mut speed_handle = characteristic_builder.build();
-        speed_handle.value_handle = signals::BleHandles::Speed as u16;
+        let speed_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             ODOMETER,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut odometer_handle = characteristic_builder.build();
-        odometer_handle.value_handle = signals::BleHandles::Odometer as u16;
+        let odometer_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             TEMPERATURE,
             Attribute::new(&[0u8; 2]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut temperature_handle = characteristic_builder.build();
-        temperature_handle.value_handle = signals::BleHandles::Temperature as u16;
+        let temperature_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_MINUTES,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut clock_minutes_handle = characteristic_builder.build();
-        clock_minutes_handle.value_handle = signals::BleHandles::ClockMinutes as u16;
+        let clock_minutes_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_HOURS,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut clock_hours_handle = characteristic_builder.build();
-        clock_hours_handle.value_handle = signals::BleHandles::ClockHours as u16;
+        let clock_hours_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             BRAKE_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut brake_on_handle = characteristic_builder.build();
-        brake_on_handle.value_handle = signals::BleHandles::BrakeOn as u16;
+        let brake_on_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             PARK_BRAKE_ON,
             Attribute::new(&[1u8]), // default true
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut park_brake_on_handle = characteristic_builder.build();
-        park_brake_on_handle.value_handle = signals::BleHandles::ParkBrakeOn as u16;
+        let park_brake_on_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CRUISE_LEVEL,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut cruise_level_handle = characteristic_builder.build();
-        cruise_level_handle.value_handle = signals::BleHandles::CruiseLevel as u16;
+        let cruise_level_handle = characteristic_builder.build();
 
         let _service_handle = service_builder.build();
         
@@ -118,109 +108,5 @@ impl DataService {
         if handle == self.clock_hours.cccd_handle {
             //info!("clock notifications: {}", (data[0] & 0x01) != 0);
         }
-    }
-}
-
-
-pub async fn run(connection: &Connection, server: &Server) {
-    // TODO: add services here
-    // do we need to mutpin?
-    futures::join!(
-        update_odometer(connection, server),
-        update_speed(connection, server), 
-        update_temperature(connection, server), 
-        update_clock_minutes(connection, server), 
-        update_clock_hours(connection, server),
-        update_brake_on(connection, server),
-        update_park_brake_on(connection, server),
-        update_cruise_level(connection, server),
-    );
-}
-
-
-pub async fn update_odometer(connection: &Connection, server: &Server) {
-    let mut sub = signals::ODOMETER_WATCH.receiver().unwrap();
-    let handle = server.data.odometer.value_handle;
-    loop {
-        let val = sub.changed().await;
-        //let val = functions::bitshift_split_u16(val);
-
-        let bytes: [u8; 2] = val.to_le_bytes(); // Convert to little-endian byte array
-        // If you want a slice
-        //let val: &[u8] = &bytes;
-
-        // TODO: crash here, panic
-        //let _ = server::notify_value(connection, handle, &bytes);
-    }
-}
-
-
-pub async fn update_speed(connection: &Connection, server: &Server) {
-    let mut sub = signals::SMOOTH_SPEED_WATCH.receiver().unwrap();
-    let handle = server.data.speed.value_handle;
-    loop {
-        let val = sub.changed().await;
-        //let val = functions::bitshift_split_u16(val);
-        let _ = server::notify_value(connection, handle, &[val]);
-    }
-}
-
-
-pub async fn update_temperature(connection: &Connection, server: &Server) {
-    let mut rec = signals::TEMPERATURE_WATCH.receiver().unwrap();
-    let handle = server.data.temperature.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val]);
-    }
-}
-
-
-pub async fn update_clock_minutes(connection: &Connection, server: &Server) {
-    let mut rec = signals::CLOCK_MINUTES_WATCH.receiver().unwrap();
-    let handle = server.data.clock_minutes.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val]);
-    }
-}
-
-
-pub async fn update_clock_hours(connection: &Connection, server: &Server) {
-    let mut rec = signals::CLOCK_HOURS_WATCH.receiver().unwrap();
-    let handle = server.data.clock_hours.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val]);
-    }
-}
-
-
-pub async fn update_brake_on(connection: &Connection, server: &Server) {
-    let mut rec = signals::BRAKE_ON_WATCH.receiver().unwrap();
-    let handle = server.data.brake_on.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val as u8]);
-    }
-}
-
-
-pub async fn update_park_brake_on(connection: &Connection, server: &Server) {
-    let mut rec = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
-    let handle = server.data.park_brake_on.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val as u8]);
-    }
-}
-
-
-pub async fn update_cruise_level(connection: &Connection, server: &Server) {
-    let mut rec = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
-    let handle = server.data.cruise_level.value_handle;
-    loop {
-        let val = rec.changed().await;
-        let _ = server::notify_value(connection, handle, &[val]);
     }
 }

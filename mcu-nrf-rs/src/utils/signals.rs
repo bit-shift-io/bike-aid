@@ -95,8 +95,8 @@ pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 // == BLE COMMAND QUEUE ==
 pub type BleHandles = crate::ble::command_queue::QueueHandles;
 pub type BleCommand = crate::ble::command_queue::BleCommandQueue;
-pub fn send_ble(priority: u8, handle: BleHandles, data: &[u8]) {
-    submit(priority, handle, data);    
+pub fn send_ble(handle: BleHandles, data: &[u8]) {
+    submit(handle, data);    
 }
 pub static BLE_QUEUE_CHANNEL: PriorityChannel::<ChannelMutex, BleCommand, Max, 1> = PriorityChannel::new();
 

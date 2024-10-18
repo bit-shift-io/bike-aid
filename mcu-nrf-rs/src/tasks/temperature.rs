@@ -15,7 +15,6 @@ const INTERVAL: u64 = 20; // seconds
 #[embassy_executor::task]
 pub async fn task(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
-    //mut i2c: I2cDevice<'static,NoopRawMutex, Twim<'static,TWISPI0>>
 ) {
     info!("{}", TASK_ID);
 
@@ -51,7 +50,6 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         }, // unable to communicate with device
     }
 
-    //let send_temperature = signals::TEMPERATURE_WATCH.sender();
     let mut last_temperature: u8 = 0;
 
     loop {
@@ -59,15 +57,9 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         if last_temperature != temp {
             last_temperature = temp;
-            signals::send_ble(5, signals::BleHandles::Temperature, temp.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice());
         }
         
-        // send_temperature.send_if_modified(|value| {
-        //     if *value != Some(temp) {
-        //         *value = Some(temp);
-        //         true
-        //     } else { false } // no change
-        // });
         Timer::after_secs(INTERVAL).await;
     }
 }

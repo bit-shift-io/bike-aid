@@ -1,11 +1,9 @@
 use defmt::*;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
-use nrf_softdevice::ble::gatt_server::{self, CharacteristicHandles, RegisterError};
+use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
-
-use super::server::{self, Server};
 use crate::utils::functions;
 use crate::utils::signals;
 
@@ -34,16 +32,14 @@ impl UARTService {
             Attribute::new(&[]).variable_len(MAX_LENGTH),
             Metadata::new(Properties::new().write()), // .notify()
         )?;
-        let mut rx_handle = rx.build();
-        //rx_handle.value_handle = signals::BleHandles::UartRx as u16;
+        let rx_handle = rx.build();
 
         let tx = service_builder.add_characteristic(
             Uuid::new_128(&TX),
             Attribute::new(&[]).variable_len(MAX_LENGTH), 
             Metadata::new(Properties::new().notify().read()),
         )?;
-        let mut tx_handle = tx.build();
-        tx_handle.value_handle = signals::BleHandles::UART as u16;
+        let tx_handle = tx.build();
 
         let _service_handle = service_builder.build();
         
@@ -79,32 +75,4 @@ impl UARTService {
             info!("tx: {:?}", functions::bytes_to_string(data));
         }
     }
-
-    // bypassed gatt_server
-    pub fn tx_set(&self, val: &[u8]) -> Result<(), gatt_server::SetValueError> {
-        server::set_value(self.tx.value_handle, &val)
-    }
-    
-    // bypassed gatt_server
-    pub fn tx_notify(&self, conn: &Connection, val: &[u8]) -> Result<(), gatt_server::NotifyValueError> {
-        server::notify_value(conn, self.tx.value_handle, &val)
-    }
 }
-
-
-pub async fn run(connection: &Connection, server: &Server) {
-    // handle the rx stream
-    let mut rec_tx = signals::UART_WRITE_WATCH.receiver().unwrap();
-
-    loop {
-        let tx = rec_tx.changed().await;
-        let val = tx.as_bytes();
-
-        // try notify, if fails due to other device not allowing, then just set the data
-        match server.uart.tx_notify(connection, &val) {
-            Ok(_) => (),
-            Err(_) => unwrap!(server.uart.tx_set(&val)),
-        };
-    }
-}
-

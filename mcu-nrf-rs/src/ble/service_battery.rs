@@ -1,19 +1,15 @@
-use super::server::{self, *};
-use crate::utils::signals;
-use defmt::{*};
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Presentation, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::{raw, Softdevice};
-use embassy_futures::join;
 
 const BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);
 const BATTERY_LEVEL: Uuid = Uuid::new_16(0x2a19);
-const BATTERY_VOLTAGE: Uuid = Uuid::new_16(0x2B18);
-const BATTERY_POWER: Uuid = Uuid::new_16(0x2B05);
-const BATTERY_CURRENT: Uuid = Uuid::new_16(0x2AEE);
-const BATTERY_CAPACITY: Uuid = Uuid::new_16(0x2B06);
+//const BATTERY_VOLTAGE: Uuid = Uuid::new_16(0x2B18);
+const BATTERY_POWER: Uuid = Uuid::new_16(0x2b05);
+//const BATTERY_CURRENT: Uuid = Uuid::new_16(0x2AEE);
+//const BATTERY_CAPACITY: Uuid = Uuid::new_16(0x2B06);
 
 // battery service
 pub struct BatteryService {
@@ -38,8 +34,7 @@ impl BatteryService {
                 name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
                 description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
             }))?;
-        let mut level_handle = characteristic_builder.build();
-        level_handle.value_handle = signals::BleHandles::BatteryLevel as u16;
+        let level_handle = characteristic_builder.build();
 
         // let characteristic_builder = service_builder.add_characteristic(
         //     BATTERY_VOLTAGE,
@@ -58,8 +53,7 @@ impl BatteryService {
             Attribute::new(&[0u8, 2]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let mut power_handle = characteristic_builder.build();
-        power_handle.value_handle = signals::BleHandles::BatteryPower as u16;
+        let power_handle = characteristic_builder.build();
 
         // let characteristic_builder = service_builder.add_characteristic(
         //     BATTERY_CURRENT,
@@ -86,21 +80,9 @@ impl BatteryService {
             //capacity: capacity_handle,
         })
     }
-/*
-    pub fn battery_level_get(&self, sd: &Softdevice) -> Result<u8, gatt_server::GetValueError> {
-        let buf = &mut [0u8];
-        gatt_server::get_value(sd, self.level.value_handle, buf)?;
-        Ok(buf[0])
-    }
 
-    pub fn battery_level_set(&self, sd: &Softdevice, val: u8) -> Result<(), gatt_server::SetValueError> {
-        gatt_server::set_value(sd, self.level.value_handle, &[val])
-    }
-    pub fn battery_level_notify(&self, conn: &Connection, val: u8) -> Result<(), gatt_server::NotifyValueError> {
-        gatt_server::notify_value(conn, self.level.value_handle, &[val])
-    }
- */
-    pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
+
+    pub fn on_write(&self, _connection: &Connection, _handle: u16, data: &[u8]) {
         if data.is_empty() {
             return;
         }
@@ -125,59 +107,4 @@ impl BatteryService {
         //     //info!("battery capacity notifications: {}", (data[0] & 0x01) != 0);
         // }
     }
-}
-
-
-pub async fn run(connection: &Connection, server: &Server) {
-    // TODO: add services here
-    // do we need to mutpin?
-    join::join4(
-        update_level(connection, server), 
-        update_power(connection, server), 
-        update_voltage(connection, server), 
-        update_current(connection, server),
-        ).await;
-}
-
-
-pub async fn update_level(connection: &Connection, server: &Server) {
-    let mut sub = signals::BATTERY_LEVEL_WATCH.receiver().unwrap();
-    let handle = server.battery.level.value_handle;
-    loop {
-        let val = sub.changed().await;
-        let _ = server::notify_value(connection, handle, &[val]);
-    }
-}
-
-
-pub async fn update_power(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
-    // let handle = server.battery.level.value_handle;
-    // loop {
-    //     let val = sub.changed().await;
-    //     //let val = functions::bitshift_split_u16(val);
-    //     let _ = server::notify_value(connection, handle, &[val]);
-    // }
-}
-
-
-pub async fn update_voltage(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
-    // let handle = server.battery.level.value_handle;
-    // loop {
-    //     let val = sub.changed().await;
-    //     //let val = functions::bitshift_split_u16(val);
-    //     let _ = server::notify_value(connection, handle, &[val]);
-    // }
-}
-
-
-pub async fn update_current(connection: &Connection, server: &Server) {
-    // let mut sub = signals::BATTERY_LEVEL.receiver().unwrap();
-    // let handle = server.battery.level.value_handle;
-    // loop {
-    //     let val = sub.changed().await;
-    //     //let val = functions::bitshift_split_u16(val);
-    //     let _ = server::notify_value(connection, handle, &[val]);
-    // }
 }

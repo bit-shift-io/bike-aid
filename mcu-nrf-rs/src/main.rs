@@ -35,14 +35,15 @@ brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off po
 
 App Todo
 ----------
-park brake status
-brake status
-cruise status
 
 
 Todo
 ----------
+command que for ble -> fix the delay issue!
+ble should load initial values, maybe we need to both set & notify??
+
 auto off after x mins of park brake?
+ble fixed address, possible speed increase with caching
 try use a watch instead of both pubsub & mutex for power, alarm, settings(settings change, restart throttle??) etc..
 
 alarm
@@ -50,7 +51,7 @@ power meter
 cruise 1,2 restore speed if brake is less than 3 seconds?
 double tap cruise current speed. store initial voltage at the start of the tap detection
 custom voltage from the app could override the cruise? need an extra mutex for that
-command que for ble
+
 ble tracker
 odometer/speed
 
@@ -70,7 +71,8 @@ use crate::utils::signals;
 // external imports
 use core::cell::RefCell;
 use cortex_m::asm::nop;
-use defmt::info;
+use defmt::{info, warn};
+use embassy_nrf::gpio::{Input, Pull};
 use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_nrf::peripherals::{self};
@@ -104,10 +106,23 @@ async fn main(spawner: Spawner) {
         c
     };
 
-    let p = embassy_nrf::init(config);
+    let mut p = embassy_nrf::init(config);
 
     // add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
+
+    // init default signals
+    signals::init();
+
+
+    // == INIT DEVICES ==
+
+    // check if i2c is setup
+    let i2c_hardware_configured = {
+        let sda_state = Input::new(&mut p.P0_08, Pull::None).is_high();
+        let scl_state = Input::new(&mut p.P0_06, Pull::None).is_high();
+        sda_state && scl_state
+    };
 
     // shared i2c/twi bus
     let i2c_bus = {
@@ -119,21 +134,16 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-    // init default signals
-    signals::init();
-
-    // == INIT DEVICES ==
-    // Causes issues if there is no pullups for the i2c bus
-
-    spawner.must_spawn(throttle_adc::task(i2c_bus));
-
-    spawner.must_spawn(throttle_dac::task(i2c_bus));
-
-    spawner.must_spawn(gyroscope::task(i2c_bus));
-
-    spawner.must_spawn(temperature::task(i2c_bus));
-
-    spawner.must_spawn(battery_adc::task(i2c_bus));
+    if i2c_hardware_configured {
+        spawner.must_spawn(throttle_adc::task(i2c_bus));
+        spawner.must_spawn(throttle_dac::task(i2c_bus));
+        spawner.must_spawn(gyroscope::task(i2c_bus));
+        spawner.must_spawn(temperature::task(i2c_bus));
+        spawner.must_spawn(battery_adc::task(i2c_bus));
+    } else {
+        warn!("I2C: hardware disabled!");
+    }
+    
 
     // == INIT TASKS ==
 
@@ -157,7 +167,7 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(battery::task());
 
-    // disable when debug
+    // disable when debug to mute
     spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
 
     spawner.must_spawn(alarm::task());
@@ -176,10 +186,6 @@ async fn main(spawner: Spawner) {
 
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
-
-    // boot ok feedback
-    // single blink led
-    // boot tune
     let send_led = signals::LED_MODE_WATCH.sender();
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     send_led.send(signals::LedModeType::SingleSlow);
@@ -202,9 +208,9 @@ async fn main(spawner: Spawner) {
     // spawner.must_spawn(i2c_scan::task(i2c_bus));
 
     // turn device on for testing
-    //Timer::after_millis(100).await;
-    //let send_power = signals::SWITCH_POWER.sender();
-    //send_power.publish(true).await;
+    Timer::after_millis(100).await;
+    let send_power = signals::POWER_ON_WATCH.sender();
+    send_power.send(true);
 }
 
 

@@ -92,10 +92,11 @@ public class Signals {
     @SuppressLint("DefaultLocale")
     public void onRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
         String id = Functions.string16FromUUID(characteristic.getUuid());
-        //String st = new String(value, StandardCharsets.UTF_8);
+
 
         // debug read
-        //log.info("read " + id + " " + st);
+        //String st = new String(value, StandardCharsets.UTF_8);
+        //log.info("read " + id + " " + st + " " + value.length);
 
         // uart
 
@@ -157,8 +158,10 @@ public class Signals {
             new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryLevel(String.valueOf(value[0])));
 
         // power
-        if (id.equals("2B05"))
-            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryPower(String.valueOf(value[0])));
+        if (id.equals("2b05")) {
+            int v = (value[0] & 0xFF) | ((value[1] & 0xFF) << 8); // 16 bit value
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryPower(String.valueOf(v)));
+        }
 
     }
 }

@@ -1,11 +1,10 @@
 use crate::utils::signals;
-use super::service_data::{self, DataService};
+use super::service_data::DataService;
 use super::service_device::DeviceInformationService;
-use super::service_battery::{self, BatteryService};
-use super::service_settings::{self, SettingsService};
-use super::service_uart::{self, UARTService};
-use defmt::{info, unwrap};
-use embassy_futures::join;
+use super::service_battery::BatteryService;
+use super::service_settings::SettingsService;
+use super::service_uart::UARTService;
+use defmt::info;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -18,7 +17,6 @@ pub struct Server {
     pub uart: UARTService,
     pub _device_informaton: DeviceInformationService,
 }
-
 
 
 impl Server {
@@ -38,6 +36,7 @@ impl Server {
         })
     }
 }
+
 
 impl gatt_server::Server for Server {
     type Event = ();
@@ -82,6 +81,7 @@ impl gatt_server::Server for Server {
     }
     
     fn on_timeout(&self, conn: &Connection) -> Option<Self::Event> {
+        info!("on_timeout");
         let _ = conn;
         None
     }
@@ -101,63 +101,60 @@ pub async fn run(connection: &Connection, server: &Server) {
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     send_piezo.send(signals::PiezoModeType::Notify);
 
-    // ble command queue
-    // this replaces having multiple input async functions with joins
+    // TODO: wait for return value from on_notify_tx_complete before sending next command
+    // this will prevent flooding the ble signal resulting in failed sends
     let rec = signals::BLE_QUEUE_CHANNEL.receiver();
     
     loop {
-        // TODO: wait for return value from on_notify_tx_complete before sending next command
-        // this will prevent flooding the ble signal resulting in failed sends
         let command = rec.receive().await;
         let data_slice: &[u8] = &command.data[..command.data_len];
-        let handle = command.handle as u16;
-        // match command.handle {
-        //     signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
-        //     signals::BleHandles::BatteryPower => handle = server.battery.power.value_handle,
-        //     signals::BleHandles::Speed => handle = server.data.speed.value_handle,
-        //     signals::BleHandles::Odometer => handle = server.data.odometer.value_handle,
-        //     signals::BleHandles::Temperature => handle = server.data.temperature.value_handle,
-        //     signals::BleHandles::ClockMinutes => handle = server.data.clock_minutes.value_handle,
-        //     signals::BleHandles::ClockHours => handle = server.data.clock_hours.value_handle,
-        //     signals::BleHandles::BrakeOn => handle = server.data.brake_on.value_handle,
-        //     signals::BleHandles::ParkBrakeOn => handle = server.data.park_brake_on.value_handle,
-        //     signals::BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
-        //     signals::BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
-        //     signals::BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
-        //     signals::BleHandles::UART => handle = server.uart.tx.value_handle,
-        // }
+        let handle;
+        match command.handle {
+            signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
+            signals::BleHandles::BatteryPower => handle = server.battery.power.value_handle,
+            signals::BleHandles::Speed => handle = server.data.speed.value_handle,
+            signals::BleHandles::Odometer => handle = server.data.odometer.value_handle,
+            signals::BleHandles::Temperature => handle = server.data.temperature.value_handle,
+            signals::BleHandles::ClockMinutes => handle = server.data.clock_minutes.value_handle,
+            signals::BleHandles::ClockHours => handle = server.data.clock_hours.value_handle,
+            signals::BleHandles::BrakeOn => handle = server.data.brake_on.value_handle,
+            signals::BleHandles::ParkBrakeOn => handle = server.data.park_brake_on.value_handle,
+            signals::BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
+            signals::BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
+            signals::BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
+            signals::BleHandles::UART => handle = server.uart.tx.value_handle,
+        }
 
-        info!("Queue: {}: {:?}", handle, data_slice);
+        info!("handle: {} -> {} | data: {:?}", command.handle as u16, handle, data_slice);
         let _ = notify_value(connection, handle, data_slice);
     }
-
-    //old
-    // TODO: add services here
-    // do we need to mutpin? pin_mut!(...);
-    // join::join4(
-    //     service_data::run(connection, server), 
-    //     service_settings::run(connection, server),
-    //     service_uart::run(connection, server),
-    //     service_battery::run(connection, server)
-    //     ).await;
 }
 
 
-// shortcut to gatt_server::notify_value
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
-    //gatt_server::notify_value(conn, handle, val) // old direct call
     // try notify, if fails, set
+    
     let result = gatt_server::notify_value(conn, handle, val);
     match result { // notify
         Ok(_) => (),
-        Err(_) => unwrap!(set_value(handle, val)), // else set
+        Err(_) => {
+            info!("notify fail, try set value");
+            let result = set_value(handle, val);
+            match result { // set result
+                Ok(_) => (),
+                Err(_) => {
+                    info!("set fail");
+                    ()
+                },
+            }
+        },
     };
     result // return notify result
 }
 
 
-// bypass gatt_server::set_value due to it using unused sd reference
 pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
+    // bypass gatt_server::set_value due to it using unused sd reference
     let mut value = raw::ble_gatts_value_t {
         p_value: val.as_ptr() as _,
         len: val.len() as _,
@@ -165,6 +162,5 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
     };
     let ret = unsafe { raw::sd_ble_gatts_value_set(raw::BLE_CONN_HANDLE_INVALID as u16, handle, &mut value) };
     RawError::convert(ret)?;
-
     Ok(())
 }

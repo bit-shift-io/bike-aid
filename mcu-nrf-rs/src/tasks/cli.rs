@@ -9,8 +9,7 @@ const TASK_ID: &str = "CLI";
 pub async fn task() {
     info!("{}", TASK_ID);
     let mut rec_read = signals::UART_READ_WATCH.receiver().unwrap();
-    //let send_write = signals::UART_WRITE_WATCH.sender();
-
+ 
     loop {
         let string = rec_read.changed().await;
         let mut result = false;
@@ -131,50 +130,42 @@ pub async fn task() {
             Timer::after_millis(300).await; 
 
             let str: String<32> = String::try_from("1. passthrough 0/1").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
             
             Timer::after_millis(300).await; 
 
             let str: String<32> = String::try_from("2. increase_smooth_factor int").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await; 
 
             let str: String<32> = String::try_from("3. decrease_smooth_factor int").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await;
 
             let str: String<32> = String::try_from("4. no_throttle int - mv").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await;
 
             let str: String<32> = String::try_from("5. full_throttle int - mv").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await;
 
             let str: String<32> = String::try_from("6. deadband_min int - mv").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await;
 
             let str: String<32> = String::try_from("7. deadband_max int - mv").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             Timer::after_millis(300).await;
 
             let str: String<32> = String::try_from("8. speed_limit int - kmhr").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, str.as_bytes());
-            //send_write.send(str);
+            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
 
             result = true;
         }
@@ -185,12 +176,10 @@ pub async fn task() {
         // publish
         if result {
             let ok: String<32> = String::try_from("ok").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, ok.as_bytes());
-            //send_write.send(ok);
+            signals::send_ble(signals::BleHandles::UART, ok.as_bytes());
         } else {
             let error: String<32> = String::try_from("error").unwrap();
-            signals::send_ble(0, signals::BleHandles::UART, error.as_bytes());
-            //send_write.send(error);
+            signals::send_ble(signals::BleHandles::UART, error.as_bytes());
         }
     }
 }

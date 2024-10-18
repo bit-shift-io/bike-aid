@@ -78,10 +78,6 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         let voltage = calculate_voltage(value_a1);
         let current = calculate_current(value_a0);
 
-        // debug uart
-        //let str: String<32> = String::try_from(current).unwrap();
-        //signals::UART_WRITE_WATCH.dyn_sender().send(str);
-
         send_data.send([voltage, current]);
         Timer::after_secs(INTERVAL).await;
     }

@@ -1,4 +1,5 @@
 use core::cmp::Ordering;
+
 use crate::utils::signals;
 
 const BUFFER_SIZE: usize = 32;
@@ -11,25 +12,26 @@ pub struct BleCommandQueue {
 }
 
 
+// order important! this is used for priority
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub enum QueueHandles {
-    BatteryLevel,
-    BatteryPower,
-    Speed,
-    Odometer,
-    Temperature,
-    ClockMinutes,
-    ClockHours,
-    BrakeOn,
-    ParkBrakeOn,
-    CruiseLevel,
     PowerOn,
     AlarmOn,
     UART,
+    BrakeOn,
+    ParkBrakeOn,
+    CruiseLevel,
+    ClockMinutes,
+    ClockHours,
+    BatteryPower,
+    BatteryLevel,
+    Speed,
+    Odometer,
+    Temperature,
 }
 
 
-pub async fn submit(priority: u8, handle: QueueHandles, data: &[u8]) {
+pub fn submit(handle: QueueHandles, data: &[u8]) {
     let ble_queue = signals::BLE_QUEUE_CHANNEL.sender();
 
     let data_len = data.len();
@@ -40,12 +42,14 @@ pub async fn submit(priority: u8, handle: QueueHandles, data: &[u8]) {
     let mut buffer = [0u8; BUFFER_SIZE];
     buffer[..data_len].copy_from_slice(data);
 
-    ble_queue.send(BleCommandQueue {
+    let priority = handle as u8;
+
+    let _ = ble_queue.try_send(BleCommandQueue {
         priority,
         handle,
         data: buffer,
         data_len,
-    }).await;
+    });
 }
 
 

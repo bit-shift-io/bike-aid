@@ -12,11 +12,6 @@ const BATTERY_RANGE: u16 = BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE; // mv
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    // let send_current = signals::BATTERY_CURRENT_WATCH.sender();
-    // let send_voltage = signals::BATTERY_VOLTAGE_WATCH.sender();
-    // let send_power = signals::BATTERY_POWER_WATCH.sender();
-    // let send_percent = signals::BATTERY_LEVEL_WATCH.sender();
-
     let mut rec_data = signals::BATTERY_IN_WATCH.receiver().unwrap();
 
     let voltage_data: [f64; 60] = [0.0; 60];
@@ -56,31 +51,15 @@ pub async fn task() {
 
         if last_percent != percent {
             last_percent = percent;
-            signals::send_ble(4, signals::BleHandles::BatteryLevel, percent.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::BatteryLevel, percent.to_le_bytes().as_slice());
         }
-
-        // send_percent.send_if_modified(|value| {
-        //     if *value != Some(percent) {
-        //         *value = Some(percent);
-        //         true
-        //     } else { false } // no change
-        // });
 
         if last_power != power {
             last_power = power;
-            signals::send_ble(3, signals::BleHandles::BatteryPower, power.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::BatteryPower, power.to_le_bytes().as_slice());
         }
 
-        // send_power.send_if_modified(|value| {
-        //     if *value != Some(power) {
-        //         *value = Some(power);
-        //         true
-        //     } else { false } // no change
-        // });
-
-        //send_current.send(input_current);
-        //send_voltage.send(input_voltage);
-        //info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percentage);
+        info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percent);
     }
 }
 
