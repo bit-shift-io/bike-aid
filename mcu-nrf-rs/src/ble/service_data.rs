@@ -1,7 +1,7 @@
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
-use nrf_softdevice::ble::{Connection, Uuid};
+use nrf_softdevice::ble::Uuid;
 use nrf_softdevice::Softdevice;
 
 const SERVICE_ID: Uuid = Uuid::new_16(0x2000);
@@ -97,16 +97,5 @@ impl DataService {
             park_brake_on: park_brake_on_handle,
             cruise_level: cruise_level_handle,
         })
-    }
-
-
-    pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
-        if data.is_empty() {
-            return;
-        }
-
-        if handle == self.clock_hours.cccd_handle {
-            //info!("clock notifications: {}", (data[0] & 0x01) != 0);
-        }
     }
 }

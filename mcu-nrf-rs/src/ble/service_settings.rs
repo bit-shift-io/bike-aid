@@ -11,16 +11,15 @@ const POWER_ON: Uuid = Uuid::new_16(0x1001);
 //const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
 //const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
 const ALARM_ON: Uuid = Uuid::new_16(0x1004);
-//const THROTTLE_SMOOTHING: Uuid = Uuid::new_16(0x1005);
 
 
-// TODO: all user modified settings here
 pub struct SettingsService {
     pub power_on: CharacteristicHandles,
     //light_switch: CharacteristicHandles,
     //horn_switch: CharacteristicHandles,
     pub alarm_on: CharacteristicHandles,
 }
+
 
 impl SettingsService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
@@ -65,14 +64,9 @@ impl SettingsService {
     }
 
     pub fn on_write(&self, _conn: &Connection, handle: u16, data: &[u8]) {
-        if data.is_empty() {
-            return;
-        }
-
         if handle == self.alarm_on.value_handle {
             let message = if data[0] == 205 { true } else { false };
             signals::ALARM_ENABLED_WATCH.dyn_sender().send(message);
-  
         }
 
         if handle == self.power_on.value_handle {
@@ -87,6 +81,5 @@ impl SettingsService {
         // if handle == self.horn_switch.value_handle {
         //     info!("horn switch: {:?}", data);
         // }   
-
     }
 }

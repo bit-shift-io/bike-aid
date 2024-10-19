@@ -82,11 +82,7 @@ impl BatteryService {
     }
 
 
-    pub fn on_write(&self, _connection: &Connection, _handle: u16, data: &[u8]) {
-        if data.is_empty() {
-            return;
-        }
-
+    pub fn on_write(&self, _connection: &Connection, _handle: u16, _data: &[u8]) {
         // if handle == self.level.cccd_handle {
         //     //info!("battery level notifications: {}", (data[0] & 0x01) != 0);
         // }

@@ -1,5 +1,4 @@
 use crate::ble::server::{self, Server};
-use crate::utils::signals;
 use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
@@ -23,8 +22,7 @@ pub async fn task(
     spawner: Spawner
 ) {
     info!("{}", TASK_ID);
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
-
+    
     // configure bluetooth
     let config = nrf_softdevice::Config {
         clock: Some(raw::nrf_clock_lf_cfg_t {
@@ -56,58 +54,46 @@ pub async fn task(
         ..Default::default()
     };
 
-    let sd = Softdevice::enable(&config);
-    let server: Server = unwrap!(Server::new(sd));
-    unwrap!(spawner.spawn(softdevice_task(sd)));
-
-    info!("{}: address {:X}", TASK_ID, ble::get_address(sd).bytes);
-
+    // start softdevice with fixed address
+    let softdevice = Softdevice::enable(&config);
+    let address = ble::Address::new(ble::AddressType::Public, [0x45, 0x42, 0x60, 0xFB, 0xEB, 0xD7]);
+    ble::set_address(softdevice, &address);
+    let server: Server = unwrap!(Server::new(softdevice));
+    unwrap!(spawner.spawn(softdevice_task(softdevice)));
+   
+    // advertise and scan data
+    static SCAN_DATA: [u8; 0] = [];
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
-        .services_128(
-            ServiceList::Incomplete, 
-            &[[
-                0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E
-            ]]
-        )
+        .services_128(ServiceList::Incomplete, &[[0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E]]) // UART Service
         .short_name("BScooter")
         .build();
 
-    static SCAN_DATA: [u8; 0] = [];
-
+    // start the show
     loop {
         let config = peripheral::Config::default();
-        let adv = peripheral::ConnectableAdvertisement::ScannableUndirected {
-            adv_data: &ADV_DATA,
-            scan_data: &SCAN_DATA,
-        };
-        
-        // with or without bonding
-        let connection: Connection = unwrap!(peripheral::advertise_connectable(sd, adv, &config).await);
+        let advertisement = peripheral::ConnectableAdvertisement::ScannableUndirected { adv_data: &ADV_DATA, scan_data: &SCAN_DATA,};
+        let connection: Connection = unwrap!(peripheral::advertise_connectable(softdevice, advertisement, &config).await);
 
-        // Create two futures:
-        //  - My server which allows services to listens for signals and processes them 
-        //  - A GATT server listening for events from the connected client.
+        // Create two futures
         let server_future = server::run(&connection, &server);
-        //let gatt_future = gatt_server::run(&conn, &server, |_| {});
-        let gatt_future = gatt_server::run(&connection, &server, |e| {info!("{}: event : {:?}", TASK_ID, e)});
-
+        let gatt_future = gatt_server::run(&connection, &server, |_| {}); // no events rigistered
         pin_mut!(server_future, gatt_future);
 
         // We are using "select" to wait for either one of the futures to complete.
         // There are some advantages to this approach:
         //  - we only gather data when a client is connected, therefore saving some power.
-        //  - when the GATT server finishes operating, our ADC future is also automatically aborted.
+        //  - when the GATT server finishes operating, our run function does also
         let _ = match select(server_future, gatt_future).await {
             Either::Left((_, _)) => {
-                info!("{}: server run encountered an error and stopped!", TASK_ID);
-                send_piezo.send(signals::PiezoModeType::Notify);
+                //info!("{}: server run encountered an error and stopped!", TASK_ID);
             }
-            Either::Right((e, _)) => {
-                info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
-                send_piezo.send(signals::PiezoModeType::Notify);
-
+            Either::Right((_, _)) => { // (e, _)
+                //info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
             }
         };
+
+        // disconnect message
+        server::disconnected(&connection, &server).await;
     }
 }

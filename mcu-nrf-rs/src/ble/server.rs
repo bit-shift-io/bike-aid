@@ -1,20 +1,36 @@
-use crate::utils::signals;
+use crate::utils::{globals, signals};
+use super::command::{BleCommand, BleHandles};
 use super::service_data::DataService;
 use super::service_device::DeviceInformationService;
 use super::service_battery::BatteryService;
 use super::service_settings::SettingsService;
-use super::service_uart::UARTService;
+use super::service_uart::UartService;
 use defmt::info;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::signal::Signal;
+use embassy_sync::watch::Watch;
+use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
 use nrf_softdevice::raw;
+use embassy_sync::priority_channel::{PriorityChannel, Min};
+use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
+
+// Min is smaller numbers as priority
+// N is number of messages available
+pub static QUEUE_CHANNEL: PriorityChannel::<CriticalSectionRawMutex, BleCommand, Min, 16> = PriorityChannel::new(); 
+pub static NOTIFY_COMPLETE: Mutex<ThreadModeRawMutex, bool> = Mutex::new(false);
+pub static NOTIFY_COMPLETE_WATCH: Watch<CriticalSectionRawMutex, bool, 1> = Watch::new();
+pub static NOTIFY_COMPLETE_SIGNAL: Signal<CriticalSectionRawMutex, bool> = Signal::new();
+
+const TASK_ID: &str = "BLUETOOTH";
 
 pub struct Server {
     pub settings: SettingsService,
     pub battery: BatteryService,
     pub data: DataService,
-    pub uart: UARTService,
+    pub uart: UartService,
     pub _device_informaton: DeviceInformationService,
 }
 
@@ -24,7 +40,7 @@ impl Server {
         let settings = SettingsService::new(sd)?;
         let battery = BatteryService::new(sd)?;
         let data = DataService::new(sd)?;
-        let uart = UARTService::new(sd)?;
+        let uart = UartService::new(sd)?;
         let device_informaton = DeviceInformationService::new(sd)?;
 
         Ok(Self {
@@ -42,9 +58,9 @@ impl gatt_server::Server for Server {
     type Event = ();
 
     fn on_write(&self, connection: &Connection, handle: u16, _op: WriteOp, _offset: usize, data: &[u8]) -> Option<Self::Event> {
+        info!("on_write");
         self.battery.on_write(connection, handle, data);
         self.settings.on_write(connection, handle, data);
-        self.data.on_write(connection, handle, data);
         self.uart.on_write(connection, handle, data);
         None
     }
@@ -54,21 +70,24 @@ impl gatt_server::Server for Server {
         panic!("on_deferred_read needs to be implemented for this gatt server");
     }
     
-    fn on_deferred_write(
-        &self,
-        handle: u16,
-        op: WriteOp,
-        offset: usize,
-        data: &[u8],
-        reply: nrf_softdevice::ble::DeferredWriteReply,
-    ) -> Option<Self::Event> {
+    fn on_deferred_write(&self, handle: u16, op: WriteOp, offset: usize, data: &[u8], reply: nrf_softdevice::ble::DeferredWriteReply) -> Option<Self::Event> {
         let _ = (handle, op, offset, data, reply);
         panic!("on_deferred_write needs to be implemented for this gatt server");
     }
     
     /// Callback to indicate that one or more characteristic notifications have been transmitted.
     fn on_notify_tx_complete(&self, conn: &Connection, count: u8) -> Option<Self::Event> {
-        //info!("on_notify_tx_complete: {}", count);
+        //let send_notify_complete = NOTIFY_COMPLETE_WATCH.sender();
+        //send_notify_complete.send(true);
+
+        info!("on_notify_tx_complete");
+        NOTIFY_COMPLETE_SIGNAL.signal(true);
+
+        // // if this causes issues, use a watch?
+        //let notify_complete = NOTIFY_COMPLETE.lock(); // block the current thread until the mutex is locked
+        //*notify_complete = true; // Signal that notification is complete
+
+        
         let _ = (conn, count);
         None
     }
@@ -92,21 +111,52 @@ impl gatt_server::Server for Server {
         let _ = (conn, handle);
         None
     }
+}
 
+
+pub async fn connected(_connection: &Connection, _server: &Server) {
+    info!("{}: device connected", TASK_ID);
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_piezo.send(signals::PiezoModeType::Notify);
+}
+
+
+pub async fn disconnected(_connection: &Connection, _server: &Server) {
+    info!("{}: device disconnected", TASK_ID);
+    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    send_piezo.send(signals::PiezoModeType::Notify);
 }
 
 
 pub async fn run(connection: &Connection, server: &Server) {
-    info!("BLUETOOTH: device connected");
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
-    send_piezo.send(signals::PiezoModeType::Notify);
+    connected(connection, server).await;
 
-    // TODO: wait for return value from on_notify_tx_complete before sending next command
-    // this will prevent flooding the ble signal resulting in failed sends
-    let rec = signals::BLE_QUEUE_CHANNEL.receiver();
+    // command queue
+    // TODO: inspect the queue, see why when we begin we have 8 items. Are we reciving some dud data?
+    let rec_queue = QUEUE_CHANNEL.receiver();
+    //rec_queue.clear(); // clear the channel
+    //let mut rec_notify_complete = NOTIFY_COMPLETE_WATCH.receiver().unwrap();
+    //let send_notify_complete = NOTIFY_COMPLETE_WATCH.sender();
+    //send_notify_complete.send(true); // clear initial value
+
+    NOTIFY_COMPLETE_SIGNAL.signal(true);
     
     loop {
-        let command = rec.receive().await;
+        info!("queue: {}", rec_queue.len());
+
+        // wait for command
+        let command = rec_queue.receive().await;
+/*
+        info!("wait lock ....");
+        // this is my command queue. We need to wait until the previous notification is complete
+        // this is not working correctly
+        let signal = NOTIFY_COMPLETE_SIGNAL.wait().await;
+        info!("send value | signal {}", signal);
+    
+        // this is now an issue with the android app
+        // so for now we leave this here
+        Timer::after_millis(150).await;
+*/
         let data_slice: &[u8] = &command.data[..command.data_len];
         let handle;
         match command.handle {
@@ -122,10 +172,10 @@ pub async fn run(connection: &Connection, server: &Server) {
             signals::BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
             signals::BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
             signals::BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
-            signals::BleHandles::UART => handle = server.uart.tx.value_handle,
+            signals::BleHandles::Uart => handle = server.uart.tx.value_handle,
         }
 
-        info!("handle: {} -> {} | data: {:?}", command.handle as u16, handle, data_slice);
+        info!("{} {} = {:?}", command.handle, handle, data_slice);
         let _ = notify_value(connection, handle, data_slice);
     }
 }
@@ -138,12 +188,12 @@ pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), No
     match result { // notify
         Ok(_) => (),
         Err(_) => {
-            info!("notify fail, try set value");
+            //info!("notify fail, try set value");
             let result = set_value(handle, val);
             match result { // set result
                 Ok(_) => (),
                 Err(_) => {
-                    info!("set fail");
+                    //info!("set fail");
                     ()
                 },
             }
@@ -163,4 +213,26 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
     let ret = unsafe { raw::sd_ble_gatts_value_set(raw::BLE_CONN_HANDLE_INVALID as u16, handle, &mut value) };
     RawError::convert(ret)?;
     Ok(())
+}
+
+
+pub fn send_queue(handle: BleHandles, data: &[u8]) {
+    let ble_queue = QUEUE_CHANNEL.sender();
+
+    let data_len = data.len();
+    if data_len > globals::BLE_BUFFER_LENGTH {
+        panic!("Data length exceeds buffer size");
+    }
+
+    let mut buffer = [0u8; globals::BLE_BUFFER_LENGTH];
+    buffer[..data_len].copy_from_slice(data);
+
+    let priority = handle as u8;
+
+    let _ = ble_queue.try_send(BleCommand {
+        priority,
+        handle,
+        data: buffer,
+        data_len,
+    });
 }

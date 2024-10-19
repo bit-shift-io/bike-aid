@@ -1,9 +1,8 @@
-#![allow(unused)]
-use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, pubsub::PubSubChannel, watch::Watch};
-use heapless::{pool::boxed::Box, String};
-use nrf_softdevice::ble::Connection;
-use embassy_sync::priority_channel::{PriorityChannel, Max};
-use crate::ble::command_queue::{self, submit};
+//#![allow(unused)]
+use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, watch::Watch};
+use heapless::String;
+use crate::ble::server;
+use super::globals;
 
 // configure types
 type SignalMutex = ThreadModeRawMutex;
@@ -15,11 +14,8 @@ pub fn init() {
     BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     PARK_BRAKE_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(true); false });
     CRUISE_LEVEL_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
-    CLOCK_HOURS_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
-    CLOCK_MINUTES_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     THROTTLE_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
     THROTTLE_OUT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
-    TEMPERATURE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     POWER_ON_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     SWITCH_HORN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     SWITCH_LIGHT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
@@ -27,11 +23,6 @@ pub fn init() {
     SMOOTH_SPEED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     WHEEL_ROTATIONS_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     ODOMETER_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
-
-    BATTERY_CURRENT_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
-    BATTERY_VOLTAGE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
-    BATTERY_POWER_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
-    BATTERY_LEVEL_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     BATTERY_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some([0u16, 0u16]); false });
     
     LED_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(LedModeType::None); false });
@@ -55,11 +46,8 @@ pub fn init() {
 pub static BRAKE_ON_WATCH: Watch<WatchMutex, bool, 9> = Watch::new();
 pub static PARK_BRAKE_ON_WATCH: Watch<WatchMutex, bool, 5> = Watch::new();
 pub static CRUISE_LEVEL_WATCH: Watch<WatchMutex, u8, 3> = Watch::new();
-pub static CLOCK_HOURS_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
-pub static CLOCK_MINUTES_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static THROTTLE_IN_WATCH: Watch<WatchMutex, u16, 3> = Watch::new();
 pub static THROTTLE_OUT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-pub static TEMPERATURE_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static POWER_ON_WATCH: Watch<WatchMutex, bool, 9> = Watch::new();
 pub static SWITCH_HORN_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static SWITCH_LIGHT_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
@@ -67,11 +55,6 @@ pub static INSTANT_SPEED_WATCH: Watch<WatchMutex, u32, 1> = Watch::new();
 pub static SMOOTH_SPEED_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static WHEEL_ROTATIONS_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static ODOMETER_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-
-pub static BATTERY_CURRENT_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-pub static BATTERY_VOLTAGE_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-pub static BATTERY_POWER_WATCH: Watch<WatchMutex, u16, 1> = Watch::new();
-pub static BATTERY_LEVEL_WATCH: Watch<WatchMutex, u8, 1> = Watch::new();
 pub static BATTERY_IN_WATCH: Watch<WatchMutex, [u16; 2], 1> = Watch::new();
 
 pub type LedModeType = crate::tasks::led::LedMode;
@@ -84,21 +67,18 @@ pub static ALARM_ENABLED_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static ALARM_ALERT_ACTIVE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static ALARM_MOTION_DETECTED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
-const MAX_LENGTH: usize = 32;
-pub static UART_WRITE_WATCH: Watch<WatchMutex, String<MAX_LENGTH>, 1> = Watch::new();
-pub static UART_READ_WATCH: Watch<WatchMutex, String<MAX_LENGTH>, 1> = Watch::new();
+pub static UART_WRITE_WATCH: Watch<WatchMutex, String<{ globals::BLE_BUFFER_LENGTH }>, 1> = Watch::new();
+pub static UART_READ_WATCH: Watch<WatchMutex, String<{ globals::BLE_BUFFER_LENGTH }>, 1> = Watch::new();
 
 pub static STORE_WRITE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
 
 // == BLE COMMAND QUEUE ==
-pub type BleHandles = crate::ble::command_queue::QueueHandles;
-pub type BleCommand = crate::ble::command_queue::BleCommandQueue;
+pub type BleHandles = crate::ble::command::BleHandles;
 pub fn send_ble(handle: BleHandles, data: &[u8]) {
-    submit(handle, data);    
+    server::send_queue(handle, data);    
 }
-pub static BLE_QUEUE_CHANNEL: PriorityChannel::<ChannelMutex, BleCommand, Max, 1> = PriorityChannel::new();
 
 
 // == CHANNELS ==

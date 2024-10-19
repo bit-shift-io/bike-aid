@@ -13,7 +13,7 @@ pub async fn temperature (
     temp: TEMP
 ) {
     info!("{}", TASK_ID);
-    
+    /*
     // NOTE: This crashes when using the softdevice!
     // this is an example only for use without the softdevice
     
@@ -28,4 +28,5 @@ pub async fn temperature (
         send_temperature.send(value as u8); // in degrees C, no decimals
         Timer::after_secs(60).await;
     }
+     */
 }

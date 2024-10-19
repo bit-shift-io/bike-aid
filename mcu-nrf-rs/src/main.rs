@@ -134,7 +134,7 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-    if i2c_hardware_configured {
+    if false {
         spawner.must_spawn(throttle_adc::task(i2c_bus));
         spawner.must_spawn(throttle_dac::task(i2c_bus));
         spawner.must_spawn(gyroscope::task(i2c_bus));
@@ -208,9 +208,9 @@ async fn main(spawner: Spawner) {
     // spawner.must_spawn(i2c_scan::task(i2c_bus));
 
     // turn device on for testing
-    Timer::after_millis(100).await;
-    let send_power = signals::POWER_ON_WATCH.sender();
-    send_power.send(true);
+    //Timer::after_millis(100).await;
+    //let send_power = signals::POWER_ON_WATCH.sender();
+    //send_power.send(true);
 }
 
 

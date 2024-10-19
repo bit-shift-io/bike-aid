@@ -1,6 +1,5 @@
 use crate::{piezo::PiezoMode, utils::signals};
 use defmt::*;
-use embassy_time::Timer;
 use heapless::String;
 
 const TASK_ID: &str = "CLI";
@@ -126,60 +125,40 @@ pub async fn task() {
 
 
         if string.starts_with("help") {
-            // TODO: fix ble to be async? delay to avoid flooding
-            Timer::after_millis(300).await; 
-
             let str: String<32> = String::try_from("1. passthrough 0/1").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-            
-            Timer::after_millis(300).await; 
-
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+    
             let str: String<32> = String::try_from("2. increase_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await; 
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("3. decrease_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await;
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("4. no_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await;
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("5. full_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await;
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("6. deadband_min int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await;
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("7. deadband_max int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
-
-            Timer::after_millis(300).await;
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             let str: String<32> = String::try_from("8. speed_limit int - kmhr").unwrap();
-            signals::send_ble(signals::BleHandles::UART, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
 
             result = true;
         }
         
-        // TODO: fix ble to be async? delay to avoid flooding
-        Timer::after_millis(300).await; 
-
         // publish
         if result {
             let ok: String<32> = String::try_from("ok").unwrap();
-            signals::send_ble(signals::BleHandles::UART, ok.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, ok.as_bytes());
         } else {
             let error: String<32> = String::try_from("error").unwrap();
-            signals::send_ble(signals::BleHandles::UART, error.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, error.as_bytes());
         }
     }
 }
