@@ -44,3 +44,9 @@ dependencies {
     implementation 'androidx.test.ext:junit:1.2.1'
     implementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

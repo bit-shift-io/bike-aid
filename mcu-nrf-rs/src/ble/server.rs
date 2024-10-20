@@ -20,9 +20,7 @@ use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
 // Min is smaller numbers as priority
 // N is number of messages available
 pub static QUEUE_CHANNEL: PriorityChannel::<CriticalSectionRawMutex, BleCommand, Min, 16> = PriorityChannel::new(); 
-pub static NOTIFY_COMPLETE: Mutex<ThreadModeRawMutex, bool> = Mutex::new(false);
-pub static NOTIFY_COMPLETE_WATCH: Watch<CriticalSectionRawMutex, bool, 1> = Watch::new();
-pub static NOTIFY_COMPLETE_SIGNAL: Signal<CriticalSectionRawMutex, bool> = Signal::new();
+//pub static NOTIFY_COMPLETE_SIGNAL: Signal<CriticalSectionRawMutex, bool> = Signal::new();
 
 const TASK_ID: &str = "BLUETOOTH";
 
@@ -225,7 +223,7 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
 pub async fn send_queue(handle: BleHandles, data: &[u8]) {
     Timer::after_ticks(1).await; // allow at least 1 tick between queing items
 
-    let ble_queue = QUEUE_CHANNEL.sender();
+    let send_ble_queue = QUEUE_CHANNEL.sender();
 
     let data_len = data.len();
     if data_len > globals::BLE_BUFFER_LENGTH {
@@ -237,10 +235,16 @@ pub async fn send_queue(handle: BleHandles, data: &[u8]) {
 
     let time = Instant::now();
 
-    // TODO, check add bool for singleInstance only. Then delete any old references
-    // most things will be a single item in the queue except uart
+    // Check if the handle should be a single instance
+    // if handle.is_single_instance() {
+    //     info!("delete old item {}", handle);
+    //     // Lock the channel and modify the queue
+    //     QUEUE_CHANNEL.try_receive()
+    //     //let mut queue = ble_queue..lock().await; // Adjust as per your concurrency model
+    //     //queue.retain(|command| command.handle != handle);
+    // }
 
-    let _ = ble_queue.try_send(BleCommand {
+    let _ = send_ble_queue.try_send(BleCommand {
         time,
         handle,
         data: buffer,

@@ -30,6 +30,16 @@ pub enum BleHandles {
 }
 
 
+impl BleHandles {
+    pub fn is_single_instance(&self) -> bool {
+        match self {
+            BleHandles::Uart => false, // Example: Uart can have multiple instances
+            _ => true, // All other handles are single instance by default
+        }
+    }
+}
+
+
 impl Eq for BleCommand {}
 
 

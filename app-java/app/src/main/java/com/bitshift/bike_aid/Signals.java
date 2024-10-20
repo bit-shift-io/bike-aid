@@ -80,6 +80,7 @@ public class Signals {
     }
 
     public void setUART(String s) {
+        log.info("");
         log.info("> " + s);
         UUID uart_service = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
         UUID uart_write_characteristic = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");

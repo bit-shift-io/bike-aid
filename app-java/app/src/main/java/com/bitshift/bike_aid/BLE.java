@@ -279,12 +279,21 @@ public class BLE {
 
     // gatt callback
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        public void onMtuChanged (BluetoothGatt gatt, int mtu, int status) {
+            /*
+            // debug short messages
+            if (status == BluetoothGatt.GATT_SUCCESS)
+                log.info("mtu: " + String.valueOf(mtu));
+            else
+                log.info("mtu change fail");
+             */
+        }
 
         public void onCharacteristicWrite (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_FAILURE)
                 log.info("write fail!");
-            else
-                log.info("write success");
+            //else
+             //   log.info("write success");
         }
 
         @Override
@@ -301,6 +310,7 @@ public class BLE {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     // We successfully connected, proceed with service discovery
                     log.info("connected: " + mDevice.getName());
+                    gatt.requestMtu(512); // fix for messages not receiving full length
                     gatt.discoverServices();
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     // We successfully disconnected on our own request
@@ -320,12 +330,6 @@ public class BLE {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
-            // limit on size of data, so for uart tx request a manual read instead
-            if (characteristic.getUuid().toString().equalsIgnoreCase("6E400003-B5A3-F393-E0A9-E50E24DCCA9E")) {
-                gatt.readCharacteristic(characteristic);
-                return;
-            }
-
             // Copy the byte array so we have a threadsafe copy
             final byte[] value_copy = new byte[value.length];
             System.arraycopy(value, 0, value_copy, 0, value.length );
@@ -457,8 +461,8 @@ public class BLE {
                 mNotifyCharacteristicsComplete = true;
             }
 
-            log.info("complete service discovery");
-            log.info("ready!");
+            //log.info("complete service discovery");
+            log.info("done, ready!");
         }
 
     };
