@@ -159,6 +159,7 @@ public class Signals {
 
         // power
         if (id.equals("2b05")) {
+            if (value.length != 2) return;
             int v = (value[0] & 0xFF) | ((value[1] & 0xFF) << 8); // 16 bit value
             new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onBatteryPower(String.valueOf(v)));
         }

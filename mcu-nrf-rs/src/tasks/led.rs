@@ -5,14 +5,19 @@ use crate::utils::signals;
 
 const TASK_ID: &str = "LED";
 
-#[embassy_executor::task]
+#[embassy_executor::task(pool_size = 2)]
 pub async fn task(
-    pin: AnyPin
+    pin: AnyPin,
+    id: u8,
 ) {
     info!("{}", TASK_ID);
+
     let mut led = Output::new(pin, Level::Low, OutputDrive::Standard);
-    let mut rec_mode = signals::LED_MODE_WATCH.receiver().unwrap();
     let mut led_mode = LedMode::None;
+    let mut rec_mode;
+
+    if id == 0 { rec_mode = signals::LED_MODE_WATCH.receiver().unwrap(); }
+    else { rec_mode = signals::LED_DEBUG_MODE_WATCH.receiver().unwrap(); }
 
     loop {
         // Try to poll read new mode
@@ -26,6 +31,11 @@ pub async fn task(
             },
             LedMode::Once => {
                 single(&mut led).await;
+                led_mode = LedMode::None;
+            }
+            LedMode::Instant => {
+                led.set_high();
+                Timer::after_millis(5).await;
                 led_mode = LedMode::None;
             }
             LedMode::Double => double(&mut led).await, // loop
@@ -45,6 +55,7 @@ pub enum LedMode {
     Single,
     Double,
     Once,
+    Instant,
     SingleSlow,
     DoubleSlow,
 }

@@ -104,7 +104,7 @@ async fn increment_cruise() {
 
     let send_cruise_level = signals::CRUISE_LEVEL_WATCH.sender();
     send_cruise_level.send(current_level);
-    signals::send_ble(signals::BleHandles::CruiseLevel, current_level.to_le_bytes().as_slice());
+    signals::send_ble(signals::BleHandles::CruiseLevel, current_level.to_le_bytes().as_slice()).await;
 
     assign_voltage(current_level).await;
 }
@@ -124,6 +124,6 @@ async fn reset_cruise() {
             true
         } else { false } // no change
     });
-    signals::send_ble(signals::BleHandles::CruiseLevel, &[0u8]);
+    signals::send_ble(signals::BleHandles::CruiseLevel, &[0u8]).await;
     assign_voltage(0).await;
 }

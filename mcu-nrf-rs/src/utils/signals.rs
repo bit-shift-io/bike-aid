@@ -26,6 +26,7 @@ pub fn init() {
     BATTERY_IN_WATCH.dyn_sender().send_if_modified(|value| { *value = Some([0u16, 0u16]); false });
     
     LED_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(LedModeType::None); false });
+    LED_DEBUG_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(LedModeType::None); false });
     PIEZO_MODE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(PiezoModeType::None); false });
     
     ALARM_ENABLED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
@@ -59,6 +60,7 @@ pub static BATTERY_IN_WATCH: Watch<WatchMutex, [u16; 2], 1> = Watch::new();
 
 pub type LedModeType = crate::tasks::led::LedMode;
 pub static LED_MODE_WATCH: Watch<WatchMutex, LedModeType, 1> = Watch::new();
+pub static LED_DEBUG_MODE_WATCH: Watch<WatchMutex, LedModeType, 1> = Watch::new();
 
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
 pub static PIEZO_MODE_WATCH: Watch<WatchMutex, PiezoModeType, 1> = Watch::new();
@@ -76,8 +78,8 @@ pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
 // == BLE COMMAND QUEUE ==
 pub type BleHandles = crate::ble::command::BleHandles;
-pub fn send_ble(handle: BleHandles, data: &[u8]) {
-    server::send_queue(handle, data);    
+pub async fn send_ble(handle: BleHandles, data: &[u8]) {
+    server::send_queue(handle, data).await;    
 }
 
 

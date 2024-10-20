@@ -9,7 +9,7 @@ use defmt::info;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::signal::Signal;
 use embassy_sync::watch::Watch;
-use embassy_time::Timer;
+use embassy_time::{Instant, Timer};
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -134,6 +134,7 @@ pub async fn run(connection: &Connection, server: &Server) {
     // command queue
     // TODO: inspect the queue, see why when we begin we have 8 items. Are we reciving some dud data?
     let rec_queue = QUEUE_CHANNEL.receiver();
+    let send_led = signals::LED_DEBUG_MODE_WATCH.sender();
     //rec_queue.clear(); // clear the channel
     //let mut rec_notify_complete = NOTIFY_COMPLETE_WATCH.receiver().unwrap();
     //let send_notify_complete = NOTIFY_COMPLETE_WATCH.sender();
@@ -142,11 +143,8 @@ pub async fn run(connection: &Connection, server: &Server) {
     NOTIFY_COMPLETE_SIGNAL.signal(true);
     
     loop {
-        info!("queue: {}", rec_queue.len());
-
-        // wait for command
-        let command = rec_queue.receive().await;
-/*
+        // i dont think this is needed!
+        /*
         info!("wait lock ....");
         // this is my command queue. We need to wait until the previous notification is complete
         // this is not working correctly
@@ -157,7 +155,13 @@ pub async fn run(connection: &Connection, server: &Server) {
         // so for now we leave this here
         Timer::after_millis(150).await;
 */
-        let data_slice: &[u8] = &command.data[..command.data_len];
+
+        //info!("queue: {}", rec_queue.len());
+
+        // wait for command
+        let command = rec_queue.receive().await;
+
+        let value: &[u8] = &command.data[..command.data_len];
         let handle;
         match command.handle {
             signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
@@ -175,31 +179,33 @@ pub async fn run(connection: &Connection, server: &Server) {
             signals::BleHandles::Uart => handle = server.uart.tx.value_handle,
         }
 
-        info!("{} {} = {:?}", command.handle, handle, data_slice);
-        let _ = notify_value(connection, handle, data_slice);
+        info!("{}", command);
+        send_led.send(signals::LedModeType::Instant);
+
+        let result = notify_value(connection, handle, value);
+        match result { // notify
+            Ok(_) => {
+                info!("notify_value ok");
+            },
+            Err(_) => {
+                info!("notify_value error, try set_value");
+                let set_result = set_value(handle, value);
+                match set_result {
+                    Ok(_) => {
+                        info!("set_value ok");
+                    },
+                    Err(_) => {
+                        info!("set_value error");
+                    }
+                }
+            }
+        }
     }
 }
 
 
 pub fn notify_value(conn: &Connection, handle: u16, val: &[u8]) -> Result<(), NotifyValueError> {
-    // try notify, if fails, set
-    
-    let result = gatt_server::notify_value(conn, handle, val);
-    match result { // notify
-        Ok(_) => (),
-        Err(_) => {
-            //info!("notify fail, try set value");
-            let result = set_value(handle, val);
-            match result { // set result
-                Ok(_) => (),
-                Err(_) => {
-                    //info!("set fail");
-                    ()
-                },
-            }
-        },
-    };
-    result // return notify result
+    gatt_server::notify_value(conn, handle, val)
 }
 
 
@@ -216,7 +222,9 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
 }
 
 
-pub fn send_queue(handle: BleHandles, data: &[u8]) {
+pub async fn send_queue(handle: BleHandles, data: &[u8]) {
+    Timer::after_ticks(1).await; // allow at least 1 tick between queing items
+
     let ble_queue = QUEUE_CHANNEL.sender();
 
     let data_len = data.len();
@@ -227,10 +235,13 @@ pub fn send_queue(handle: BleHandles, data: &[u8]) {
     let mut buffer = [0u8; globals::BLE_BUFFER_LENGTH];
     buffer[..data_len].copy_from_slice(data);
 
-    let priority = handle as u8;
+    let time = Instant::now();
+
+    // TODO, check add bool for singleInstance only. Then delete any old references
+    // most things will be a single item in the queue except uart
 
     let _ = ble_queue.try_send(BleCommand {
-        priority,
+        time,
         handle,
         data: buffer,
         data_len,

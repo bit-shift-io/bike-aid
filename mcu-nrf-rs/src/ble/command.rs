@@ -1,8 +1,10 @@
 use core::{cmp::Ordering, fmt};
+use embassy_time::Instant;
 use crate::utils::globals;
 
+#[derive(defmt::Format)]
 pub struct BleCommand {
-    pub priority: u8,
+    pub time: Instant,
     pub handle: BleHandles,
     pub data: [u8; globals::BLE_BUFFER_LENGTH],
     pub data_len: usize,
@@ -33,14 +35,18 @@ impl Eq for BleCommand {}
 
 impl PartialEq for BleCommand {
     fn eq(&self, other: &Self) -> bool {
-        self.priority == other.priority
+        self.handle == other.handle && self.time == other.time
     }
 }
 
 
 impl Ord for BleCommand {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.priority.cmp(&other.priority)
+        // First compare by handle, then by time
+        match self.handle.cmp(&other.handle) {
+            Ordering::Equal => self.time.cmp(&other.time),
+            other => other,
+        }
     }
 }
 
@@ -79,7 +85,7 @@ impl fmt::Debug for BleHandles {
 impl fmt::Debug for BleCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BleCommand")
-            .field("priority", &self.priority)
+            .field("time", &self.time)
             .field("handle", &self.handle) // This will now use the custom Debug implementation
             .field("data_len", &self.data_len)
             .finish()

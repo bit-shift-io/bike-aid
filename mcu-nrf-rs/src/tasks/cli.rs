@@ -126,28 +126,28 @@ pub async fn task() {
 
         if string.starts_with("help") {
             let str: String<32> = String::try_from("1. passthrough 0/1").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
     
             let str: String<32> = String::try_from("2. increase_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("3. decrease_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("4. no_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("5. full_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("6. deadband_min int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("7. deadband_max int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             let str: String<32> = String::try_from("8. speed_limit int - kmhr").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             result = true;
         }
@@ -155,10 +155,10 @@ pub async fn task() {
         // publish
         if result {
             let ok: String<32> = String::try_from("ok").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, ok.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, ok.as_bytes()).await;
         } else {
             let error: String<32> = String::try_from("error").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, error.as_bytes());
+            signals::send_ble(signals::BleHandles::Uart, error.as_bytes()).await;
         }
     }
 }

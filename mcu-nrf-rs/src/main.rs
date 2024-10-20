@@ -134,7 +134,7 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-    if false {
+    if false { // i2c_hardware_configured 
         spawner.must_spawn(throttle_adc::task(i2c_bus));
         spawner.must_spawn(throttle_dac::task(i2c_bus));
         spawner.must_spawn(gyroscope::task(i2c_bus));
@@ -180,7 +180,8 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(cli::task());
 
-    spawner.must_spawn(led::task(p.P0_31.degrade()));
+    spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
+    spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
 
     spawner.must_spawn(clock::task());
 

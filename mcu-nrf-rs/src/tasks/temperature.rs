@@ -57,7 +57,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
 
         if last_temperature != temp {
             last_temperature = temp;
-            signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice()).await;
         }
         
         Timer::after_secs(INTERVAL).await;

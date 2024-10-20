@@ -41,13 +41,13 @@ async fn run() {
 
         // minutes always change
         let minutes: u8 = run_minutes.try_into().unwrap();
-        signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice());
+        signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice()).await;
 
         // hours if changed
         if last_hours != run_hours {
             last_hours = run_hours;
             let hours: u8 = run_hours.try_into().unwrap();
-            signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice()).await;
         }
 
         Timer::after_secs(60).await;

@@ -16,12 +16,12 @@ pub async fn task(
     loop {
         pin_state.wait_for_high().await; // brake off
         watch_brake_on.send(false);
-        signals::send_ble(signals::BleHandles::BrakeOn, &(false as u8).to_le_bytes());
+        signals::send_ble(signals::BleHandles::BrakeOn, &(false as u8).to_le_bytes()).await;
         //info!("{}: brake off", TASK_ID);
 
         pin_state.wait_for_low().await; // brake on
         watch_brake_on.send(true);
-        signals::send_ble(signals::BleHandles::BrakeOn, &(true as u8).to_le_bytes());
+        signals::send_ble(signals::BleHandles::BrakeOn, &(true as u8).to_le_bytes()).await;
         //info!("{}: brake on", TASK_ID);
     }
 }
