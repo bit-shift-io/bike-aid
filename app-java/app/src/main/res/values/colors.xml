@@ -2,4 +2,5 @@
 <resources>
     <color name="buttonOn">#5a595b</color>
     <color name="buttonOff">#424242</color>
+    <color name="text">#c1c1c1</color>
 </resources>

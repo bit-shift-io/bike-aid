@@ -41,10 +41,10 @@ current time
 
 Todo
 ----------
-fix auto off after x mins of park brake?
-try use a watch instead of both pubsub & mutex for power, alarm, settings(settings change, restart throttle??) etc..
+autopower down not changing bt state. not allowing bike to work
+fix auto off after x mins of park brake, continues when power off
+try use a watch  for settings(settings change, restart throttle??) etc..
 alarm
-custom voltage from the app could override the cruise? need an extra mutex for that
 ble tracker
 odometer/speed
 

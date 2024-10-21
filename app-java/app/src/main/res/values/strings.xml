@@ -6,9 +6,11 @@
     <string name="button_power">Power\nOFF</string>
     <string name="button_alarm">Alarm\nOFF</string>
     <string name="button_lights">Lights\nOFF</string>
-    <string name="button_horn">Horn\nOFF</string>
+    <string name="button_horn">Horn</string>
     <string name="brake">Brake</string>
     <string name="cruise">Cruise</string>
     <string name="p">P</string>
     <string name="park">Park</string>
+    <string name="cruise_up">Cruise\nUp</string>
+    <string name="cruise_down">Cruise\nDown</string>
 </resources>
