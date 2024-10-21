@@ -59,7 +59,7 @@ pub async fn task() {
             signals::send_ble(signals::BleHandles::BatteryPower, power.to_le_bytes().as_slice()).await;
         }
 
-        info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percent);
+        //info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percent);
     }
 }
 
@@ -74,5 +74,5 @@ async fn calculate_percent(voltage: u16) -> u8 {
 
 
 async fn calculate_power(voltage: u16, current: u16) -> u16 {
-    ((voltage as u32 * current as u32) / 1000) as u16 // milliwatts P=IV - watts
+    ((voltage as u32 * current as u32) / 1_000_000) as u16 // milliwatts P=IV - watts
 }

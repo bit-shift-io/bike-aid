@@ -6,21 +6,17 @@ use super::service_battery::BatteryService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::info;
-use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
-use embassy_sync::signal::Signal;
-use embassy_sync::watch::Watch;
 use embassy_time::{Instant, Timer};
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
 use nrf_softdevice::raw;
 use embassy_sync::priority_channel::{PriorityChannel, Min};
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
 // Min is smaller numbers as priority
 // N is number of messages available
 pub static QUEUE_CHANNEL: PriorityChannel::<CriticalSectionRawMutex, BleCommand, Min, 16> = PriorityChannel::new(); 
-//pub static NOTIFY_COMPLETE_SIGNAL: Signal<CriticalSectionRawMutex, bool> = Signal::new();
 
 const TASK_ID: &str = "BLUETOOTH";
 
@@ -56,7 +52,7 @@ impl gatt_server::Server for Server {
     type Event = ();
 
     fn on_write(&self, connection: &Connection, handle: u16, _op: WriteOp, _offset: usize, data: &[u8]) -> Option<Self::Event> {
-        info!("on_write");
+        //info!("on_write");
         self.battery.on_write(connection, handle, data);
         self.settings.on_write(connection, handle, data);
         self.uart.on_write(connection, handle, data);
@@ -75,17 +71,7 @@ impl gatt_server::Server for Server {
     
     /// Callback to indicate that one or more characteristic notifications have been transmitted.
     fn on_notify_tx_complete(&self, conn: &Connection, count: u8) -> Option<Self::Event> {
-        //let send_notify_complete = NOTIFY_COMPLETE_WATCH.sender();
-        //send_notify_complete.send(true);
-
-        info!("on_notify_tx_complete");
-        NOTIFY_COMPLETE_SIGNAL.signal(true);
-
-        // // if this causes issues, use a watch?
-        //let notify_complete = NOTIFY_COMPLETE.lock(); // block the current thread until the mutex is locked
-        //*notify_complete = true; // Signal that notification is complete
-
-        
+        // TODO: unlock here if needed
         let _ = (conn, count);
         None
     }
@@ -130,30 +116,11 @@ pub async fn run(connection: &Connection, server: &Server) {
     connected(connection, server).await;
 
     // command queue
-    // TODO: inspect the queue, see why when we begin we have 8 items. Are we reciving some dud data?
     let rec_queue = QUEUE_CHANNEL.receiver();
     let send_led = signals::LED_DEBUG_MODE_WATCH.sender();
-    //rec_queue.clear(); // clear the channel
-    //let mut rec_notify_complete = NOTIFY_COMPLETE_WATCH.receiver().unwrap();
-    //let send_notify_complete = NOTIFY_COMPLETE_WATCH.sender();
-    //send_notify_complete.send(true); // clear initial value
-
-    NOTIFY_COMPLETE_SIGNAL.signal(true);
-    
+  
     loop {
-        // i dont think this is needed!
-        /*
-        info!("wait lock ....");
-        // this is my command queue. We need to wait until the previous notification is complete
-        // this is not working correctly
-        let signal = NOTIFY_COMPLETE_SIGNAL.wait().await;
-        info!("send value | signal {}", signal);
-    
-        // this is now an issue with the android app
-        // so for now we leave this here
-        Timer::after_millis(150).await;
-*/
-
+        // TODO: lock here if needed, but we don't need it
         //info!("queue: {}", rec_queue.len());
 
         // wait for command
@@ -177,26 +144,21 @@ pub async fn run(connection: &Connection, server: &Server) {
             signals::BleHandles::Uart => handle = server.uart.tx.value_handle,
         }
 
-        info!("{}", command);
+        //info!("{}", command);
         send_led.send(signals::LedModeType::Instant);
 
-        let result = notify_value(connection, handle, value);
-        match result { // notify
-            Ok(_) => {
-                info!("notify_value ok");
-            },
-            Err(_) => {
-                info!("notify_value error, try set_value");
-                let set_result = set_value(handle, value);
-                match set_result {
-                    Ok(_) => {
-                        info!("set_value ok");
-                    },
-                    Err(_) => {
-                        info!("set_value error");
-                    }
-                }
-            }
+        // first we set the value
+        let set_result = set_value(handle, value);
+        match set_result {
+            Ok(_) => {},
+            Err(_) => { info!("{}: set error {}", TASK_ID, command.handle); }
+        }
+
+        // then we notify
+        let notify_result = notify_value(connection, handle, value);
+        match notify_result {
+            Ok(_) => {},
+            Err(_) => { info!("{}: notify error {}", TASK_ID, command.handle); } // notify not yet enabled usually
         }
     }
 }
@@ -234,15 +196,6 @@ pub async fn send_queue(handle: BleHandles, data: &[u8]) {
     buffer[..data_len].copy_from_slice(data);
 
     let time = Instant::now();
-
-    // Check if the handle should be a single instance
-    // if handle.is_single_instance() {
-    //     info!("delete old item {}", handle);
-    //     // Lock the channel and modify the queue
-    //     QUEUE_CHANNEL.try_receive()
-    //     //let mut queue = ble_queue..lock().await; // Adjust as per your concurrency model
-    //     //queue.retain(|command| command.handle != handle);
-    // }
 
     let _ = send_ble_queue.try_send(BleCommand {
         time,

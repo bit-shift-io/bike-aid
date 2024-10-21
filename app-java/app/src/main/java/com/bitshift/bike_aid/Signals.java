@@ -112,12 +112,16 @@ public class Signals {
         // 1000 series is settings
 
         // power switch
-        if (id.equals("1001"))
-            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onPower(value[0] != 0));
+        if (id.equals("1001")) {
+            power_on = value[0] != 0;
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onPower(power_on));
+        }
 
         // alarm switch
-        if (id.equals("1004"))
-            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onAlarm(value[0] != 0));
+        if (id.equals("1004")) {
+            alarm_on = value[0] != 0;
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onAlarm(alarm_on));
+        }
 
 
 

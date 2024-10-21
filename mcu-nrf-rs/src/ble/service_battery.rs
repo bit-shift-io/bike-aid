@@ -50,7 +50,7 @@ impl BatteryService {
 
         let characteristic_builder = service_builder.add_characteristic(
             BATTERY_POWER,
-            Attribute::new(&[0u8, 2]),
+            Attribute::new(&[0u8, 0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let power_handle = characteristic_builder.build();

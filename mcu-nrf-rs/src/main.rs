@@ -35,23 +35,16 @@ brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off po
 
 App Todo
 ----------
-
+buttons at top
+left and right padding on screen
+current time
 
 Todo
 ----------
-command que for ble -> fix the delay issue!
-ble should load initial values, maybe we need to both set & notify??
-
-auto off after x mins of park brake?
-ble fixed address, possible speed increase with caching
+fix auto off after x mins of park brake?
 try use a watch instead of both pubsub & mutex for power, alarm, settings(settings change, restart throttle??) etc..
-
 alarm
-power meter
-cruise 1,2 restore speed if brake is less than 3 seconds?
-double tap cruise current speed. store initial voltage at the start of the tap detection
 custom voltage from the app could override the cruise? need an extra mutex for that
-
 ble tracker
 odometer/speed
 
@@ -134,7 +127,7 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-    if false { // i2c_hardware_configured 
+    if i2c_hardware_configured { // i2c_hardware_configured 
         spawner.must_spawn(throttle_adc::task(i2c_bus));
         spawner.must_spawn(throttle_dac::task(i2c_bus));
         spawner.must_spawn(gyroscope::task(i2c_bus));

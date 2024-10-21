@@ -2,6 +2,7 @@ use core::{cmp::Ordering, fmt};
 use embassy_time::Instant;
 use crate::utils::globals;
 
+
 #[derive(defmt::Format)]
 pub struct BleCommand {
     pub time: Instant,

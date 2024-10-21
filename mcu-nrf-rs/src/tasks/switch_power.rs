@@ -14,6 +14,7 @@ pub async fn task(
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
     let send_led = signals::LED_MODE_WATCH.sender();
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    //let last_state = false;
 
     loop {
         let val = rec_power_on.changed().await;
@@ -32,5 +33,12 @@ pub async fn task(
                 send_piezo.send(signals::PiezoModeType::PowerOff);
             }
         }
+
+        //last_state = val;
     }
 }
+
+
+// pub async fn state_changed() {
+
+// }
