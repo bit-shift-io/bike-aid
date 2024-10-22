@@ -4,7 +4,7 @@ use embassy_time::Timer;
 use embassy_futures::select::{select, Either};
 
 const TASK_ID: &str = "POWER DOWN";
-const INTERVAL: u64 = 20 * 60; // seconds - 20 mins
+const INTERVAL: u64 = 10 * 60; // seconds - 10 mins
 
 #[embassy_executor::task]
 pub async fn task() {

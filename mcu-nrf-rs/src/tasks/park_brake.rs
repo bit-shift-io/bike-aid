@@ -13,6 +13,7 @@ pub async fn task() {
 
     let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut state = false;
+    let mut init = false;
 
     loop { 
         if let Some(b) = rec.try_get() {state = b}
@@ -20,19 +21,43 @@ pub async fn task() {
         match state {
             true => {
                 let watch_future = rec.changed();
+                let task_future = cruise();
+                match select(watch_future, task_future).await {
+                    Either::First(val) => { state = val; }
+                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
+                }
+            },
+            false => { 
+                if init { stop().await; }
+                else { init = true; }
+                state = rec.changed().await; 
+            }
+        }
+    }
+}
+
+
+pub async fn cruise() {
+    let mut rec = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
+    let mut state = 0;
+
+    loop { 
+        if let Some(b) = rec.try_get() {state = b}
+        
+        match state {
+            0 => {
+                let watch_future = rec.changed();
                 let task_future = run();
                 match select(watch_future, task_future).await {
                     Either::First(val) => { state = val; }
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { state = rec.changed().await; }
+            _ => { state = rec.changed().await; }
         }
     }
 }
 
-
-// TODO: chain cruise next...
 
 async fn run() {
     let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
@@ -40,6 +65,8 @@ async fn run() {
 
     loop {
         if let Some(b) = watch.try_get() {state = b}
+        //info!("{}: {}", TASK_ID, state);
+
         match state {
             true => { park_brake_off().await; },
             false => { park_brake_on().await; }
@@ -53,15 +80,10 @@ async fn park_brake_on() {
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
     let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
-    let mut rec_cruise_level = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
     let mut count = 0;
 
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
-
-        // TODO: chain cruise here to disable instead of in the loop
-        let cruise_on = rec_cruise_level.try_get().unwrap() != 0;
-        if cruise_on { continue; };
 
         // detect park brake on
         if throttle_voltage < NO_THROTTLE_THRESHOLD {
@@ -94,4 +116,12 @@ async fn park_brake_off() {
     signals::send_ble(signals::BleHandles::ParkBrakeOn, &(false as u8).to_le_bytes()).await;
 
     //info!("off: turned parkbrake off");
+}
+
+
+async fn stop() {
+    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
+    watch_park_brake_on.send(true);
+    signals::send_ble(signals::BleHandles::ParkBrakeOn, &(true as u8).to_le_bytes()).await;
+    //info!("{}: stop - turn on park brake", TASK_ID);
 }

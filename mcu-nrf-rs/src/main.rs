@@ -35,14 +35,10 @@ brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off po
 
 App Todo
 ----------
-buttons at top
-left and right padding on screen
-current time
+
 
 Todo
 ----------
-autopower down not changing bt state. not allowing bike to work
-fix auto off after x mins of park brake, continues when power off
 try use a watch  for settings(settings change, restart throttle??) etc..
 alarm
 ble tracker

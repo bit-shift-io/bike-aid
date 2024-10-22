@@ -16,6 +16,7 @@ pub async fn task() {
 
     let mut rec = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
     let mut state = false;
+    let mut init = false;
 
     loop { 
         if let Some(b) = rec.try_changed() {state = b}
@@ -32,8 +33,10 @@ pub async fn task() {
                 }
             },
             false => {
-                signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]).await;
-                stop().await; // user turned alarm off
+                if init {
+                    signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]).await;
+                    stop().await; // user turned alarm off
+                } else { init = true; }
                 state = rec.changed().await; 
             }
         }
