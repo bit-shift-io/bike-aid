@@ -34,7 +34,7 @@ impl BatteryService {
                 name_space: raw::BLE_GATT_CPF_NAMESPACE_BTSIG as u8, // assigned by Bluetooth SIG
                 description: raw::BLE_GATT_CPF_NAMESPACE_DESCRIPTION_UNKNOWN as u16, // unknown
             }))?;
-        let level_handle = characteristic_builder.build();
+        let level = characteristic_builder.build();
 
         // let characteristic_builder = service_builder.add_characteristic(
         //     BATTERY_VOLTAGE,
@@ -53,7 +53,7 @@ impl BatteryService {
             Attribute::new(&[0u8, 0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let power_handle = characteristic_builder.build();
+        let power = characteristic_builder.build();
 
         // let characteristic_builder = service_builder.add_characteristic(
         //     BATTERY_CURRENT,
@@ -73,9 +73,9 @@ impl BatteryService {
         let _service_handle = service_builder.build();
 
         Ok(BatteryService {
-            level: level_handle,
+            level,
             //voltage: voltage_handle,
-            power: power_handle,
+            power,
             //current: current_handle,
             //capacity: capacity_handle,
         })

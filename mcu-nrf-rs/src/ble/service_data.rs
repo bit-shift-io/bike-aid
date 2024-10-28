@@ -34,68 +34,68 @@ impl DataService {
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify())
         )?;
-        let speed_handle = characteristic_builder.build();
+        let speed = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             ODOMETER,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let odometer_handle = characteristic_builder.build();
+        let odometer = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             TEMPERATURE,
             Attribute::new(&[0u8; 2]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let temperature_handle = characteristic_builder.build();
+        let temperature = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_MINUTES,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let clock_minutes_handle = characteristic_builder.build();
+        let clock_minutes = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CLOCK_HOURS,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let clock_hours_handle = characteristic_builder.build();
+        let clock_hours = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             BRAKE_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let brake_on_handle = characteristic_builder.build();
+        let brake_on = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             PARK_BRAKE_ON,
             Attribute::new(&[1u8]), // default true
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let park_brake_on_handle = characteristic_builder.build();
+        let park_brake_on = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
             CRUISE_LEVEL,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
-        let cruise_level_handle = characteristic_builder.build();
+        let cruise_level = characteristic_builder.build();
 
         let _service_handle = service_builder.build();
         
         Ok(DataService {
-            speed: speed_handle,
-            odometer: odometer_handle,
-            temperature: temperature_handle,
-            clock_minutes: clock_minutes_handle,
-            clock_hours: clock_hours_handle,
-            brake_on: brake_on_handle,
-            park_brake_on: park_brake_on_handle,
-            cruise_level: cruise_level_handle,
+            speed,
+            odometer,
+            temperature,
+            clock_minutes,
+            clock_hours,
+            brake_on,
+            park_brake_on,
+            cruise_level,
         })
     }
 }

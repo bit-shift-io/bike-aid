@@ -25,25 +25,25 @@ impl UartService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
         let mut service_builder = ServiceBuilder::new(sd, Uuid::new_128(&UART_SERIVCE))?;
 
-        let rx = service_builder.add_characteristic(
+        let cb = service_builder.add_characteristic(
             Uuid::new_128(&RX),
             Attribute::new(&[]).variable_len(globals::BLE_BUFFER_LENGTH as u16),
             Metadata::new(Properties::new().write()), // .notify()
         )?;
-        let rx_handle = rx.build();
+        let rx = cb.build();
 
-        let tx = service_builder.add_characteristic(
+        let cb = service_builder.add_characteristic(
             Uuid::new_128(&TX),
             Attribute::new(&[]).variable_len(globals::BLE_BUFFER_LENGTH as u16), 
             Metadata::new(Properties::new().notify().read()),
         )?;
-        let tx_handle = tx.build();
+        let tx = cb.build();
 
         let _service_handle = service_builder.build();
         
         Ok(UartService {
-            rx: rx_handle, // value_handle
-            tx: tx_handle,
+            rx, // value_handle
+            tx,
         })
     }
 

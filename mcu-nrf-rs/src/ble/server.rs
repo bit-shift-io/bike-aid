@@ -3,6 +3,7 @@ use super::command::{BleCommand, BleHandles};
 use super::service_data::DataService;
 use super::service_device::DeviceInformationService;
 use super::service_battery::BatteryService;
+use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::info;
@@ -25,6 +26,7 @@ pub struct Server {
     pub battery: BatteryService,
     pub data: DataService,
     pub uart: UartService,
+    pub _fast_pair: FastPairService,
     pub _device_informaton: DeviceInformationService,
 }
 
@@ -35,6 +37,7 @@ impl Server {
         let battery = BatteryService::new(sd)?;
         let data = DataService::new(sd)?;
         let uart = UartService::new(sd)?;
+        let fast_pair = FastPairService::new(sd)?;
         let device_informaton = DeviceInformationService::new(sd)?;
 
         Ok(Self {
@@ -42,6 +45,7 @@ impl Server {
             battery,   
             data,
             uart,
+            _fast_pair: fast_pair,
             _device_informaton: device_informaton,
         })
     }

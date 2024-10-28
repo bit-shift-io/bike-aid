@@ -2,7 +2,7 @@ use crate::ble::server::{self, Server};
 use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList};
+use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use futures::future::{select, Either};
@@ -62,17 +62,22 @@ pub async fn task(
     unwrap!(spawner.spawn(softdevice_task(softdevice)));
    
     // advertise and scan data
-    static SCAN_DATA: [u8; 0] = [];
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
-        .services_128(ServiceList::Incomplete, &[[0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E]]) // UART Service
+        //.services_16(ServiceList::Incomplete, &[ServiceUuid16::from_u16(0xFE2C)]) // fast pair
+        //.services_128(ServiceList::Incomplete, &[[0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E]]) // UART Service
         .short_name("BScooter")
+        .build();
+
+    static SCAN_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
+        .services_16(ServiceList::Incomplete, &[ServiceUuid16::from_u16(0xFE2C)]) // fast pair
+        .services_128(ServiceList::Incomplete, &[[0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E]]) // UART Service
         .build();
 
     // start the show
     loop {
         let config = peripheral::Config::default();
-        let advertisement = peripheral::ConnectableAdvertisement::ScannableUndirected { adv_data: &ADV_DATA, scan_data: &SCAN_DATA,};
+        let advertisement = peripheral::ConnectableAdvertisement::ScannableUndirected { adv_data: &ADV_DATA, scan_data: &SCAN_DATA };
         let connection: Connection = unwrap!(peripheral::advertise_connectable(softdevice, advertisement, &config).await);
 
         // Create two futures
