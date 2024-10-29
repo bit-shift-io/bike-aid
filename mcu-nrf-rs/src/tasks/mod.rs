@@ -9,6 +9,7 @@ pub mod cruise;
 pub mod gyroscope;
 pub mod led;
 pub mod manual_override;
+pub mod panic;
 pub mod park_brake;
 pub mod piezo;
 pub mod power_down;

@@ -70,6 +70,7 @@ use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt_rtt as _;
 //use panic_probe as _; // this doesnt yet reset on panic, so implemented my own
+use panic_persist as _;
 use core::panic::PanicInfo;
 
 // Static i2c/twi mutex for shared-bus functionality
@@ -174,6 +175,8 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(clock::task());
 
+    spawner.must_spawn(panic::task());
+
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
     let send_led = signals::LED_MODE_WATCH.sender();
@@ -207,8 +210,8 @@ async fn main(spawner: Spawner) {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     cortex_m::interrupt::disable();
-    defmt::error!("Panicked: {}", defmt::Display2Format(info));
-    //panic_persist::report_panic_info(info);
+    defmt::error!("{}", defmt::Display2Format(info));
+    panic_persist::report_panic_info(info);
     for _ in 0..2_000_000 { // delay before reset
         nop()
     }

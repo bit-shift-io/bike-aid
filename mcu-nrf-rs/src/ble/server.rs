@@ -26,7 +26,7 @@ pub struct Server {
     pub battery: BatteryService,
     pub data: DataService,
     pub uart: UartService,
-    pub _fast_pair: FastPairService,
+    pub fast_pair: FastPairService,
     pub _device_informaton: DeviceInformationService,
 }
 
@@ -45,7 +45,7 @@ impl Server {
             battery,   
             data,
             uart,
-            _fast_pair: fast_pair,
+            fast_pair,
             _device_informaton: device_informaton,
         })
     }
@@ -60,6 +60,7 @@ impl gatt_server::Server for Server {
         self.battery.on_write(connection, handle, data);
         self.settings.on_write(connection, handle, data);
         self.uart.on_write(connection, handle, data);
+        self.fast_pair.on_write(connection, handle, data);
         None
     }
     

@@ -68,13 +68,14 @@ embassy-embedded-hal = { version = "0.2.0" }
 # log
 defmt = "0.3.8"
 defmt-rtt = "0.4.1"
+panic-persist = { version = "0.3.0", features = ["custom-panic-handler", "utf8"] }
+#panic-probe = { version = "0.3.1", features = ["print-defmt"] }
 
 # arm
 cortex-m = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt = "0.7.3"
 
 # misc
-#panic-probe = { version = "0.3.1", features = ["print-defmt"] }
 embedded-hal = "1.0.0"
 static_cell = "2.0.0"
 format_no_std = "1.2.0"
@@ -85,7 +86,6 @@ num-traits = { version = "0.2.19", default-features = false, features = ["libm"]
 # nrf softdevice bluetooth
 nrf-softdevice-s140 = { version = "0.1.2", optional = true }
 nrf-softdevice = { version = "0.1.0", features = ["nrf52840", "s140", "defmt", "ble-peripheral", "ble-central", "critical-section-impl"] }
-#nrf-softdevice-macro = "0.1.0"
 futures = { version = "0.3.30", default-features = false, features = ["async-await"]}
 heapless = "0.8.0"
 
@@ -98,6 +98,7 @@ nb = "1.1.0"
 mcp4725 = "0.4.2"
 ads1x1x = "0.2.2"
 mpu6050 = "0.1.6"
+
 
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:

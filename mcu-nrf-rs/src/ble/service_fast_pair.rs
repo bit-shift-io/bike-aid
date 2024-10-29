@@ -121,5 +121,16 @@ impl FastPairService {
 
 
     pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
+        if handle == self.beacon_actions.cccd_handle {
+            info!("beacon_actions on_write");
+        }
+
+        if handle == self.beacon_actions.sccd_handle {
+            info!("beacon_actions on_write");
+        }
+
+        if handle == self.beacon_actions.value_handle {
+            info!("beacon_actions on_write");
+        }
     }
 }
