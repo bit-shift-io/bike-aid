@@ -2,7 +2,6 @@ use crate::utils::signals;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
 use defmt::*;
-use panic_persist::get_panic_message_utf8;
 
 const TASK_ID: &str = "PANIC";
 
@@ -31,14 +30,15 @@ pub async fn task() {
 
 
 async fn run() {
-    Timer::after_secs(2).await;
+    Timer::after_secs(1).await;
 
-    if let Some(msg) = get_panic_message_utf8() {
+    if let Some(msg) = panic_persist::get_panic_message_utf8() {
         info!("{}: {}", TASK_ID, msg);
         signals::send_ble(signals::BleHandles::Uart, msg.as_bytes()).await;
     }
 
-    //Timer::after_secs(10).await;
+    
     // panic test
+    //Timer::after_secs(10).await;
     //defmt::panic!("test panic");
 }

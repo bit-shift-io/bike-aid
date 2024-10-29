@@ -59,9 +59,7 @@ use crate::utils::signals;
 
 // external imports
 use core::cell::RefCell;
-use cortex_m::asm::nop;
-use defmt::{info, warn};
-use embassy_nrf::gpio::{Input, Pull};
+use defmt::info;
 use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority, peripherals::TWISPI0};
 use embassy_nrf::peripherals::{self};
@@ -69,9 +67,6 @@ use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use defmt_rtt as _;
-//use panic_probe as _; // this doesnt yet reset on panic, so implemented my own
-use panic_persist as _;
-use core::panic::PanicInfo;
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
@@ -96,7 +91,7 @@ async fn main(spawner: Spawner) {
         c
     };
 
-    let mut p = embassy_nrf::init(config);
+    let p = embassy_nrf::init(config); // make mut if need be for shared resources
 
     // add sleep incase we need to flash during debug and get a crash
     Timer::after_secs(2).await;
@@ -104,17 +99,8 @@ async fn main(spawner: Spawner) {
     // init default signals
     signals::init();
 
+    // == I2C DEVICES ==
 
-    // == INIT DEVICES ==
-
-    // check if i2c is setup
-    let i2c_hardware_configured = {
-        let sda_state = Input::new(&mut p.P0_08, Pull::None).is_high();
-        let scl_state = Input::new(&mut p.P0_06, Pull::None).is_high();
-        sda_state && scl_state
-    };
-
-    // shared i2c/twi bus
     let i2c_bus = {
         bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
         interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
@@ -124,68 +110,55 @@ async fn main(spawner: Spawner) {
         I2C_BUS.init(i2c_bus)
     };
 
-    if i2c_hardware_configured { // i2c_hardware_configured 
-        spawner.must_spawn(throttle_adc::task(i2c_bus));
-        spawner.must_spawn(throttle_dac::task(i2c_bus));
-        spawner.must_spawn(gyroscope::task(i2c_bus));
-        spawner.must_spawn(temperature::task(i2c_bus));
-        spawner.must_spawn(battery_adc::task(i2c_bus));
-    } else {
-        warn!("I2C: hardware disabled!");
-    }
-    
+    spawner.must_spawn(throttle_adc::task(i2c_bus));
+    spawner.must_spawn(throttle_dac::task(i2c_bus));
+    spawner.must_spawn(gyroscope::task(i2c_bus));
+    spawner.must_spawn(temperature::task(i2c_bus));
+    spawner.must_spawn(battery_adc::task(i2c_bus));
 
-    // == INIT TASKS ==
+    // == TASKS ==
 
     spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
-
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
-
     spawner.must_spawn(park_brake::task());
-
     spawner.must_spawn(speed::task(p.P0_09.degrade()));
-
     spawner.must_spawn(switch_power::task(p.P0_10.degrade()));
-
     spawner.must_spawn(power_down::task());
-
     spawner.must_spawn(manual_override::task(p.P0_20.degrade()));
-
     //spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
-
     //spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
-
     spawner.must_spawn(battery::task());
-
-    // disable when debug to mute
-    spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade()));
-
+    spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade())); // disable when debug to mute
     spawner.must_spawn(alarm::task());
-
     spawner.must_spawn(throttle::task());
-
     spawner.must_spawn(cruise::task());
-
     spawner.must_spawn(bluetooth::task(spawner));
-
     spawner.must_spawn(cli::task());
-
     spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
     spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
-
     spawner.must_spawn(clock::task());
-
     spawner.must_spawn(panic::task());
 
+    // == FINALISE ==
+
+    boot_ok().await;
+    debug().await;
+}
+
+
+async fn boot_ok() {
     Timer::after_millis(100).await;
     info!("======== Boot Ok ========");
     let send_led = signals::LED_MODE_WATCH.sender();
     let send_piezo = signals::PIEZO_MODE_WATCH.sender();
     send_led.send(signals::LedModeType::SingleSlow);
     send_piezo.send(signals::PiezoModeType::Boot);
+}
 
 
-    // == DEBUG ==
+async fn debug() {
+    //Timer::after_millis(100).await;
+    //info!("======== Debug ========");
 
     //use embassy_nrf::gpio::{Level, Output, OutputDrive};
     //Output::new(p.P0_14, Level::Low, OutputDrive::Standard);
@@ -204,16 +177,4 @@ async fn main(spawner: Spawner) {
     //Timer::after_millis(100).await;
     //let send_power = signals::POWER_ON_WATCH.sender();
     //send_power.send(true);
-}
-
-
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    cortex_m::interrupt::disable();
-    defmt::error!("{}", defmt::Display2Format(info));
-    panic_persist::report_panic_info(info);
-    for _ in 0..2_000_000 { // delay before reset
-        nop()
-    }
-    cortex_m::peripheral::SCB::sys_reset();
 }

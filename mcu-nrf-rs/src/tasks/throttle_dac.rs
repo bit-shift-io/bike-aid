@@ -27,6 +27,7 @@ pub async fn task(
     // power on/off
     let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
     let mut state = false;
+    let mut init = false;
 
     loop { 
         if let Some(b) = rec.try_get() {state = b}
@@ -39,8 +40,9 @@ pub async fn task(
                     Either::Second(_) => { Timer::after_secs(60).await; } // retry
                 }
             },
-            false => { 
-                stop(i2c_bus).await; // set power to device off
+            false => {
+                if init { stop(i2c_bus).await; } // set power to device off
+                else { init = true; } 
                 state = rec.changed().await; 
             }
         }
@@ -49,6 +51,7 @@ pub async fn task(
 
 
 async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+    info!("{} : park brake", TASK_ID);
     // park brake on/off
     let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
     let mut state = true; // default to on
@@ -76,18 +79,9 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 async fn run(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
-    let i2c = I2cDevice::new(i2c_bus);
-    let mut rec_throttle = signals::THROTTLE_OUT_WATCH.receiver().unwrap();
-    let mut dac = MCP4725::new(i2c, ADDRESS);
-    let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
+    let mut dac = get_dac(i2c_bus).await;
     let mut last_value = 0;
-    match result {
-        Ok(()) => {},
-        Err(_e) => {
-            info!("{} : device error", TASK_ID);
-            return
-        }, // unable to communicate with device
-    }
+    let mut rec_throttle = signals::THROTTLE_OUT_WATCH.receiver().unwrap();
 
     loop {
         let value = rec_throttle.changed().await; // desired mv
@@ -107,32 +101,32 @@ async fn run(
 async fn stop(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
+    get_dac(i2c_bus).await; // will reset it also
+}
+
+
+async fn get_dac(
+    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+) -> MCP4725<I2cDevice<'_, NoopRawMutex, Twim<'_, TWISPI0>>> {
     let i2c = I2cDevice::new(i2c_bus);
     let mut dac = MCP4725::new(i2c, ADDRESS);
+    // TODO: sometimes we get a crash here with no i2c. Maybe try a read first?
     let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
     match result {
-        Ok(()) => {},
+        Ok(_) => {},
         Err(_e) => {
-            info!("{} : device error", TASK_ID);
-            return
+            info!("{}: device error", TASK_ID);
         }, // unable to communicate with device
     }
+    dac
 }
+
 
 #[allow(unused)]
 async fn calibrate(
     i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
 ) {
-    let i2c = I2cDevice::new(i2c_bus);
-    let mut dac = MCP4725::new(i2c, ADDRESS);
-    let result = dac.set_dac_and_eeprom(mcp4725::PowerDown::Normal, 0); // set 0 volts output
-    match result {
-        Ok(()) => {},
-        Err(_e) => {
-            info!("{} : device error", TASK_ID);
-            return
-        }, // unable to communicate with device
-    }
+    let mut dac = get_dac(i2c_bus).await;
 
     loop {
         // testing calibration
