@@ -51,7 +51,6 @@ pub async fn task(
 
 
 async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
-    info!("{} : park brake", TASK_ID);
     // park brake on/off
     let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
     let mut state = true; // default to on

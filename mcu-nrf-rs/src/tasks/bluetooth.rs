@@ -64,8 +64,7 @@ pub async fn task(
     // advertise and scan data
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
         .flags(&[Flag::GeneralDiscovery, Flag::LE_Only])
-        .services_16(ServiceList::Incomplete, &[ServiceUuid16::from_u16(0xFE2C)]) // fast pair
-        //.services_128(ServiceList::Incomplete, &[[0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3, 0xB5, 0x01, 0x00, 0x40, 0x6E]]) // UART Service
+        //.services_16(ServiceList::Incomplete, &[ServiceUuid16::from_u16(0xFE2C)]) // fast pair
         .short_name("BScooter")
         .build();
 

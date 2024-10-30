@@ -1,5 +1,6 @@
-use crate::{piezo::PiezoMode, utils::signals};
+use crate::{piezo::PiezoMode, utils::{globals, signals}};
 use defmt::*;
+use embassy_time::Instant;
 use heapless::String;
 
 const TASK_ID: &str = "CLI";
@@ -10,9 +11,29 @@ pub async fn task() {
     let mut rec_read = signals::UART_READ_WATCH.receiver().unwrap();
  
     loop {
-        let string = rec_read.changed().await;
+        let data = rec_read.changed().await;
+        let string = data.as_string();
         let mut result = false;
+        
         //info!("{}: {}", TASK_ID, string.as_str());
+
+        if string.contains("uptime") {
+            let uptime = Instant::now();
+            let seconds = uptime.elapsed().as_secs();
+            let days = seconds / 86400; // 86400 seconds in a day
+            let hours = (seconds % 86400) / 3600; // 3600 seconds in an hour
+            let minutes = (seconds % 3600) / 60; // 60 seconds in a minute
+            info!("Uptime: {} days, {} hours, {} minutes", days, hours, minutes);
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::new();
+            // str.push_str(days.to_string());
+            // str.push_str(" days ");
+            // str.push(hours.to_string());
+            // str.push_str(" hours ");
+            // str.push(minutes.to_string());
+            // str.push_str(" minutes");
+            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
+            result = true;
+        }
 
         if string.starts_with("passthrough") || string.starts_with("1") {
             let mut throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
@@ -125,28 +146,28 @@ pub async fn task() {
 
 
         if string.starts_with("help") {
-            let str: String<32> = String::try_from("1. passthrough 0/1").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("1. passthrough 0/1").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
     
-            let str: String<32> = String::try_from("2. increase_smooth_factor int").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("2. increase_smooth_factor int").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("3. decrease_smooth_factor int").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("3. decrease_smooth_factor int").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("4. no_throttle int - mv").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("4. no_throttle int - mv").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("5. full_throttle int - mv").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("5. full_throttle int - mv").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("6. deadband_min int - mv").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("6. deadband_min int - mv").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("7. deadband_max int - mv").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("7. deadband_max int - mv").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
-            let str: String<32> = String::try_from("8. speed_limit int - kmhr").unwrap();
+            let str: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("8. speed_limit int - kmhr").unwrap();
             signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
 
             result = true;
@@ -154,10 +175,10 @@ pub async fn task() {
         
         // publish
         if result {
-            let ok: String<32> = String::try_from("ok").unwrap();
+            let ok: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("ok").unwrap();
             signals::send_ble(signals::BleHandles::Uart, ok.as_bytes()).await;
         } else {
-            let error: String<32> = String::try_from("error").unwrap();
+            let error: String<{globals::BLE_BUFFER_LENGTH}> = String::try_from("error").unwrap();
             signals::send_ble(signals::BleHandles::Uart, error.as_bytes()).await;
         }
     }

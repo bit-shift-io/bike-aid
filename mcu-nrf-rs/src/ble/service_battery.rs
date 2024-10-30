@@ -4,10 +4,10 @@ use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::{raw, Softdevice};
 
-const BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);
-const BATTERY_LEVEL: Uuid = Uuid::new_16(0x2a19);
+const UUID_BATTERY_SERVICE: Uuid = Uuid::new_16(0x180f);
+const UUID_BATTERY_LEVEL: Uuid = Uuid::new_16(0x2a19);
 //const BATTERY_VOLTAGE: Uuid = Uuid::new_16(0x2B18);
-const BATTERY_POWER: Uuid = Uuid::new_16(0x2b05);
+const UUID_BATTERY_POWER: Uuid = Uuid::new_16(0x2b05);
 //const BATTERY_CURRENT: Uuid = Uuid::new_16(0x2AEE);
 //const BATTERY_CAPACITY: Uuid = Uuid::new_16(0x2B06);
 
@@ -22,10 +22,10 @@ pub struct BatteryService {
 
 impl BatteryService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
-        let mut service_builder = ServiceBuilder::new(sd, BATTERY_SERVICE)?;
+        let mut service_builder = ServiceBuilder::new(sd, UUID_BATTERY_SERVICE)?;
 
         let characteristic_builder = service_builder.add_characteristic(
-            BATTERY_LEVEL, 
+            UUID_BATTERY_LEVEL, 
             Attribute::new(&[0u8]), 
             Metadata::new(Properties::new().read().notify()).presentation(Presentation {
                 format: raw::BLE_GATT_CPF_FORMAT_UINT8 as u8, // unsigned uint 8
@@ -49,7 +49,7 @@ impl BatteryService {
         // let voltage_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            BATTERY_POWER,
+            UUID_BATTERY_POWER,
             Attribute::new(&[0u8, 0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;

@@ -39,6 +39,6 @@ async fn run() {
 
     
     // panic test
-    //Timer::after_secs(10).await;
-    //defmt::panic!("test panic");
+    Timer::after_secs(10).await;
+    defmt::panic!("test panic");
 }

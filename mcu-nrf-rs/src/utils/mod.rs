@@ -1,3 +1,4 @@
+pub mod data_slice;
 pub mod functions;
 pub mod globals;
 pub mod melody;

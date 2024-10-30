@@ -7,11 +7,11 @@ use nrf_softdevice::Softdevice;
 use crate::utils::signals;
 
 
-const SERVICE_ID: Uuid = Uuid::new_16(0x1000);
-const POWER_ON: Uuid = Uuid::new_16(0x1001);
+const UUID_SETTINGS_SERVICE: Uuid = Uuid::new_16(0x1000);
+const UUID_POWER_ON: Uuid = Uuid::new_16(0x1001);
 //const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
 //const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
-const ALARM_ON: Uuid = Uuid::new_16(0x1004);
+const UUID_ALARM_ON: Uuid = Uuid::new_16(0x1004);
 
 
 pub struct SettingsService {
@@ -24,10 +24,10 @@ pub struct SettingsService {
 
 impl SettingsService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
-        let mut service_builder = ServiceBuilder::new(sd, SERVICE_ID)?;
+        let mut service_builder = ServiceBuilder::new(sd, UUID_SETTINGS_SERVICE)?;
 
         let characteristic_builder = service_builder.add_characteristic(
-            POWER_ON,
+            UUID_POWER_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().write().notify()),
         )?;
@@ -48,7 +48,7 @@ impl SettingsService {
         // let horn_switch_handle = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            ALARM_ON,
+            UUID_ALARM_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().write().notify()),
         )?;
@@ -77,7 +77,7 @@ impl SettingsService {
 
         if handle == self.power_on.value_handle {
             let message = if data[0] == 183 { true } else { false };
-            //info!("ble power on: {:?} {:?}", message, data[0]);
+            info!("ble power on: {:?} {:?}", message, data[0]);
             signals::POWER_ON_WATCH.dyn_sender().send_if_modified(|value| {
                 if *value != Some(message) {
                     *value = Some(message);

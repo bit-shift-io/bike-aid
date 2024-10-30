@@ -4,15 +4,15 @@ use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::Uuid;
 use nrf_softdevice::Softdevice;
 
-const SERVICE_ID: Uuid = Uuid::new_16(0x2000);
-const SPEED: Uuid = Uuid::new_16(0x2001);
-const ODOMETER: Uuid = Uuid::new_16(0x2003);
-const TEMPERATURE: Uuid = Uuid::new_16(0x2004);
-const CLOCK_MINUTES: Uuid = Uuid::new_16(0x2005);
-const CLOCK_HOURS: Uuid = Uuid::new_16(0x2006);
-const BRAKE_ON: Uuid = Uuid::new_16(0x2007);
-const PARK_BRAKE_ON: Uuid = Uuid::new_16(0x2008);
-const CRUISE_LEVEL: Uuid = Uuid::new_16(0x2009);
+const UUID_DATA_SERVICE: Uuid = Uuid::new_16(0x2000);
+const UUID_SPEED: Uuid = Uuid::new_16(0x2001);
+const UUID_ODOMETER: Uuid = Uuid::new_16(0x2003);
+const UUID_TEMPERATURE: Uuid = Uuid::new_16(0x2004);
+const UUID_CLOCK_MINUTES: Uuid = Uuid::new_16(0x2005);
+const UUID_CLOCK_HOURS: Uuid = Uuid::new_16(0x2006);
+const UUID_BRAKE_ON: Uuid = Uuid::new_16(0x2007);
+const UUID_PARK_BRAKE_ON: Uuid = Uuid::new_16(0x2008);
+const UUID_CRUISE_LEVEL: Uuid = Uuid::new_16(0x2009);
 
 pub struct DataService {
     pub speed: CharacteristicHandles,
@@ -27,59 +27,59 @@ pub struct DataService {
 
 impl DataService {
     pub fn new(sd: &mut Softdevice) -> Result<Self, RegisterError> {
-        let mut service_builder = ServiceBuilder::new(sd, SERVICE_ID)?;
+        let mut service_builder = ServiceBuilder::new(sd, UUID_DATA_SERVICE)?;
 
         let characteristic_builder = service_builder.add_characteristic(
-            SPEED,
+            UUID_SPEED,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify())
         )?;
         let speed = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            ODOMETER,
+            UUID_ODOMETER,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let odometer = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            TEMPERATURE,
+            UUID_TEMPERATURE,
             Attribute::new(&[0u8; 2]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let temperature = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            CLOCK_MINUTES,
+            UUID_CLOCK_MINUTES,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let clock_minutes = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            CLOCK_HOURS,
+            UUID_CLOCK_HOURS,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let clock_hours = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            BRAKE_ON,
+            UUID_BRAKE_ON,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;
         let brake_on = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            PARK_BRAKE_ON,
+            UUID_PARK_BRAKE_ON,
             Attribute::new(&[1u8]), // default true
             Metadata::new(Properties::new().read().notify()),
         )?;
         let park_brake_on = characteristic_builder.build();
 
         let characteristic_builder = service_builder.add_characteristic(
-            CRUISE_LEVEL,
+            UUID_CRUISE_LEVEL,
             Attribute::new(&[0u8]),
             Metadata::new(Properties::new().read().notify()),
         )?;

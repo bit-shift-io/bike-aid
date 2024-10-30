@@ -1,4 +1,4 @@
-use crate::utils::{globals, signals};
+use crate::utils::signals;
 use super::command::{BleCommand, BleHandles};
 use super::service_data::DataService;
 use super::service_device::DeviceInformationService;
@@ -7,7 +7,7 @@ use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::info;
-use embassy_time::{Instant, Timer};
+use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -131,7 +131,7 @@ pub async fn run(connection: &Connection, server: &Server) {
         // wait for command
         let command = rec_queue.receive().await;
 
-        let value: &[u8] = &command.data[..command.data_len];
+        let value: &[u8] = command.as_bytes();
         let handle;
         match command.handle {
             signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
@@ -189,23 +189,7 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
 
 pub async fn send_queue(handle: BleHandles, data: &[u8]) {
     Timer::after_ticks(1).await; // allow at least 1 tick between queing items
-
+    let msg = BleCommand::new(handle, data);
     let send_ble_queue = QUEUE_CHANNEL.sender();
-
-    let data_len = data.len();
-    if data_len > globals::BLE_BUFFER_LENGTH {
-        panic!("Data length exceeds buffer size");
-    }
-
-    let mut buffer = [0u8; globals::BLE_BUFFER_LENGTH];
-    buffer[..data_len].copy_from_slice(data);
-
-    let time = Instant::now();
-
-    let _ = send_ble_queue.try_send(BleCommand {
-        time,
-        handle,
-        data: buffer,
-        data_len,
-    });
+    let _ = send_ble_queue.try_send(msg);
 }
