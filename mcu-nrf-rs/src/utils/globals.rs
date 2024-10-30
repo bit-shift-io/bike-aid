@@ -1,1 +1,1 @@
-pub const BLE_BUFFER_LENGTH: usize = 64;
+pub const BUFFER_LENGTH: usize = 32;

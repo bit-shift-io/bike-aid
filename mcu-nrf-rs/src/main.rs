@@ -35,10 +35,11 @@ brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off po
 
 App Todo
 ----------
-
+disconnect while connecting causes multiple instances of scanner
 
 Todo
 ----------
+attach debugger to running mcu
 try use a watch  for settings(settings change, restart throttle??) etc..
 alarm
 ble tracker
@@ -137,7 +138,6 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
     spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
     spawner.must_spawn(clock::task());
-    spawner.must_spawn(panic::task());
 
     // == FINALISE ==
 

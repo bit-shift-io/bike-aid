@@ -18,7 +18,7 @@ pub async fn task(
 
     loop {
         let state = rec_power_on.changed().await;
-        info!("state: {}", state);
+
         match state {
             true => {
                 pin_state.set_high();

@@ -26,14 +26,14 @@ impl UartService {
 
         let cb = service_builder.add_characteristic(
             Uuid::new_128(&UUID_RX),
-            Attribute::new(&[]).variable_len(globals::BLE_BUFFER_LENGTH as u16),
+            Attribute::new(&[]).variable_len(globals::BUFFER_LENGTH as u16),
             Metadata::new(Properties::new().write()), // .notify()
         )?;
         let rx = cb.build();
 
         let cb = service_builder.add_characteristic(
             Uuid::new_128(&UUID_TX),
-            Attribute::new(&[]).variable_len(globals::BLE_BUFFER_LENGTH as u16), 
+            Attribute::new(&[]).variable_len(globals::BUFFER_LENGTH as u16), 
             Metadata::new(Properties::new().notify().read()),
         )?;
         let tx = cb.build();

@@ -33,7 +33,7 @@ pub fn init() {
     ALARM_MOTION_DETECTED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     
     //UART_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BLE_BUFFER_LENGTH],data_len: globals::BLE_BUFFER_LENGTH}); false });
-    UART_READ_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BLE_BUFFER_LENGTH],data_len: globals::BLE_BUFFER_LENGTH}); false });
+    UART_READ_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BUFFER_LENGTH],data_len: globals::BUFFER_LENGTH}); false });
 
     STORE_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     STORE_UPDATED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });

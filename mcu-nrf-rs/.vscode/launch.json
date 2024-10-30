@@ -23,7 +23,7 @@
                 "showTimestamps": false
             }]
         }],
-        "consoleLogLevel": "Console" // console
+        "consoleLogLevel": "Console"
       }, 
 
       {
@@ -48,29 +48,24 @@
                 "showTimestamps": false
             }]
         }],
-        "consoleLogLevel": "Console" // console
+        "consoleLogLevel": "Console"
       }, 
 
       {
-          "type": "probe-rs-debug",
-          "request": "attach",
-          "name": "Attach Debug",
-          "cwd": "${workspaceFolder}",
-          //!MODIFY (or remove)
-          //"speed": 24000,
-          "chip": "nRF52840_xxAA",
-          //!MODIFY  probe-rs list
-          //"probe": "2e8a:000c:E6616407E3543A2C",
-          "coreConfigs": [
-            {
-              "coreIndex": 0,
-              "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-              //!MODIFY
-              "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
-            }
-          ],
-          // Info, Debug
-          "consoleLogLevel": "Console"
-        },
+        "type": "probe-rs-debug",
+        "request": "attach",
+        "name": "Attach Debug",
+        "cwd": "${workspaceFolder}",
+        "chip": "nRF52840_xxAA",
+        "coreConfigs": [
+          {
+            "coreIndex": 0,
+            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            //!MODIFY
+            "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
+          }
+        ],
+        "consoleLogLevel": "Console"
+      },
     ]
   }
