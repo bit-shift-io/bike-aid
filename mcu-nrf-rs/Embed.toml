@@ -1,0 +1,18 @@
+# https://probe.rs/docs/tools/cargo-embed/
+
+[default.general]
+chip = "nRF52840_xxAA"
+
+[default.rtt]
+# Whether or not an RTTUI should be opened after flashing.
+enabled = true
+
+# UI tab settings. All up channels are displayed, except when hidden here. You can specify how each
+# tab is displayed and whether they allow sending data to the target.
+# up_channel              - The channel_number of the RTT up channel to display
+# hide         (Optional) - Whether to hide the tab. Defaults to false.
+# down_channel (Optional) - The channel_number of the RTT down channel to use for this tab.
+# name         (Optional) - String to be displayed in the RTTUI tab. Defaults to the channel name.
+tabs = [
+  { up_channel = 0, down_channel = 0, name = "Log" },
+]

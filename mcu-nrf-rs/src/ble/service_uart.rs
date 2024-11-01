@@ -52,7 +52,7 @@ impl UartService {
             handle if handle == self.rx.value_handle => {
                 // send data to uart
                 //info!("tx: {:?}", functions::bytes_to_string(data));
-                signals::receive_uart(data);
+                signals::send_cli(data);
             }
             _ => {}
         }

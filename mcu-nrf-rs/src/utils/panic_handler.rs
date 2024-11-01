@@ -12,4 +12,6 @@ fn panic(info: &PanicInfo) -> ! {
         nop()
     }
     cortex_m::peripheral::SCB::sys_reset();
+    // or use for backtrace
+    // asm::bkpt();
 }

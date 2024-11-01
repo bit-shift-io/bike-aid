@@ -12,6 +12,7 @@ pub mod manual_override;
 pub mod park_brake;
 pub mod piezo;
 pub mod power_down;
+pub mod rtt;
 pub mod speed;
 pub mod store;
 pub mod switch_horn;

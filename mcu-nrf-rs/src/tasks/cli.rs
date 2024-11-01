@@ -1,6 +1,6 @@
 use crate::{piezo::PiezoMode, utils::{globals, signals}};
 use defmt::info;
-use embassy_time::Instant;
+use embassy_time::{Instant, Timer};
 use heapless::String;
 use core::fmt::Write;
 
@@ -10,7 +10,7 @@ const TASK_ID: &str = "CLI";
 pub async fn task() {
     info!("{}", TASK_ID);
     let start_time = Instant::now();
-    let mut rec_read = signals::UART_READ_WATCH.receiver().unwrap();
+    let mut rec_read = signals::WATCH_CLI.receiver().unwrap();
  
     loop {
         let data = rec_read.changed().await;
@@ -24,13 +24,10 @@ pub async fn task() {
         }
 
         if string.contains("crash") || string.contains("report") || string.contains("panic") {
-            if let Some(msg) = panic_persist::get_panic_message_utf8() {
-                info!("{}: {}", TASK_ID, msg);
-                signals::send_ble(signals::BleHandles::Uart, msg.as_bytes()).await;
-                // TODO: save panic back to memory??
+            if let Some(msg) = panic_persist::get_panic_message_bytes() {
+                send(msg).await;
             } else {
-                info!("{}: no panic message", TASK_ID);
-                signals::send_ble(signals::BleHandles::Uart, "no panic message".as_bytes()).await;
+                send(b"no panic message").await;
             }
             result = true;    
         }
@@ -40,10 +37,9 @@ pub async fn task() {
             let days = seconds / 86400; // 86400 seconds in a day
             let hours = (seconds % 86400) / 3600; // 3600 seconds in an hour
             let minutes = (seconds % 3600) / 60; // 60 seconds in a minute
-            info!("Uptime: {} days, {} hours, {} minutes", days, hours, minutes);
             let mut str: String<{globals::BUFFER_LENGTH}> = String::new();
             let _ = write!(str,"{} days {} hours {} minutes", days, hours, minutes);
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
+            send(str.as_bytes()).await;
             result = true;
         }
 
@@ -107,8 +103,6 @@ pub async fn task() {
             result = true;
         }
 
-
-        // TODO
         if string.starts_with("settings") {
             if string.ends_with("write") {
                // TODO
@@ -116,7 +110,9 @@ pub async fn task() {
             result = true;
         }
 
-        if string.starts_with("reboot") || string.starts_with("restart") {
+        if string.starts_with("reboot") || string.starts_with("restart") || string.starts_with("reset") {
+            send(b"reset in 2 seconds...").await;
+            Timer::after_secs(2).await;
             cortex_m::peripheral::SCB::sys_reset();
         }
 
@@ -158,40 +154,28 @@ pub async fn task() {
 
 
         if string.starts_with("help") {
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("1. passthrough 0/1").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-    
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("2. increase_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("3. decrease_smooth_factor int").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("4. no_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("5. full_throttle int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("6. deadband_min int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("7. deadband_max int - mv").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
-            let str: String<{globals::BUFFER_LENGTH}> = String::try_from("8. speed_limit int - kmhr").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, str.as_bytes()).await;
-
+            send(b"1. passthrough 0/1").await;
+            send(b"2. increase_smooth_factor int").await;
+            send(b"3. decrease_smooth_factor int").await;
+            send(b"4. no_throttle int - mv").await;
+            send(b"5. full_throttle int - mv").await;
+            send(b"6. deadband_min int - mv").await;
+            send(b"7. deadband_max int - mv").await;
+            send(b"8. speed_limit int - kmhr").await;
             result = true;
         }
         
         // publish
         if result {
-            let ok: String<{globals::BUFFER_LENGTH}> = String::try_from("ok").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, ok.as_bytes()).await;
+            send(b"ok").await;
         } else {
-            let error: String<{globals::BUFFER_LENGTH}> = String::try_from("error").unwrap();
-            signals::send_ble(signals::BleHandles::Uart, error.as_bytes()).await;
+            send(b"error").await;
         }
     }
+}
+
+
+pub async fn send(data: &[u8]) {
+    info!("{}", core::str::from_utf8(&data[..data.len()]).unwrap());
+    signals::send_ble(signals::BleHandles::Uart, data).await;
 }

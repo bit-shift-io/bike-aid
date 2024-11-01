@@ -67,7 +67,7 @@ use embassy_nrf::peripherals::{self};
 use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
-use defmt_rtt as _;
+//use defmt_rtt as _;
 
 // Static i2c/twi mutex for shared-bus functionality
 use static_cell::StaticCell;
@@ -79,6 +79,8 @@ static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new(
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    rtt::init(spawner);
+
     info!("======== Starting ========");
     
     let config = {
@@ -138,6 +140,7 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
     spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
     spawner.must_spawn(clock::task());
+    
 
     // == FINALISE ==
 

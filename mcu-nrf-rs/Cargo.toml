@@ -65,11 +65,11 @@ embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime
 embassy-nrf = { version = "0.2.0", features = ["defmt", "time-driver-rtc1", "gpiote", "nfc-pins-as-gpio", "nrf52840"] }
 embassy-embedded-hal = { version = "0.2.0" }
 
-# log
-defmt = "0.3.8"
-defmt-rtt = "0.4.1"
+# rtt / log
+defmt = { version = "0.3.8" }
+#defmt-rtt = "0.4.1" # use this if dont want to use rtt target
+rtt-target = { version = "0.6.0", features = ["defmt"] } # use this if you want a input channel
 panic-persist = { version = "0.3.0", features = ["custom-panic-handler", "utf8"] }
-#panic-probe = { version = "0.3.1", features = ["print-defmt"] }
 
 # arm
 cortex-m = { version = "0.7.7", features = ["inline-asm"] }
@@ -100,6 +100,7 @@ ads1x1x = "0.2.2"
 mpu6050 = "0.1.6"
 
 
+
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:
 # https://github.com/embassy-rs/embassy/commits/main/
@@ -113,3 +114,5 @@ embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "9
 nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
 nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
 #nrf-softdevice-macro = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
+
+rtt-target = { git = "https://github.com/probe-rs/rtt-target", rev = "5b7603b6114bb08385f71674b9d962471c221681"}

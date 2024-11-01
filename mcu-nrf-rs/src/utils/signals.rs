@@ -1,3 +1,4 @@
+use defmt::info;
 //#![allow(unused)]
 use embassy_sync::{blocking_mutex::raw::{CriticalSectionRawMutex, ThreadModeRawMutex}, mutex::Mutex, watch::Watch};
 use crate::ble::server;
@@ -33,7 +34,7 @@ pub fn init() {
     ALARM_MOTION_DETECTED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     
     //UART_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BLE_BUFFER_LENGTH],data_len: globals::BLE_BUFFER_LENGTH}); false });
-    UART_READ_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BUFFER_LENGTH],data_len: globals::BUFFER_LENGTH}); false });
+    WATCH_CLI.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BUFFER_LENGTH],data_len: globals::BUFFER_LENGTH}); false });
 
     STORE_WRITE_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     STORE_UPDATED_WATCH.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
@@ -68,8 +69,7 @@ pub static ALARM_ENABLED_WATCH: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static ALARM_ALERT_ACTIVE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static ALARM_MOTION_DETECTED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 
-//pub static UART_WRITE_WATCH: Watch<WatchMutex, DataSlice, 1> = Watch::new();
-pub static UART_READ_WATCH: Watch<WatchMutex, DataSlice, 1> = Watch::new();
+pub static WATCH_CLI: Watch<WatchMutex, DataSlice, 1> = Watch::new();
 
 pub static STORE_WRITE_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static STORE_UPDATED_WATCH: Watch<WatchMutex, bool, 1> = Watch::new();
@@ -81,9 +81,9 @@ pub async fn send_ble(handle: BleHandles, data: &[u8]) {
     server::send_queue(handle, data).await;    
 }
 
-pub fn receive_uart(data: &[u8]) {
+pub fn send_cli(data: &[u8]) {
     let msg = DataSlice::new(data);
-    let sender = UART_READ_WATCH.sender();
+    let sender = WATCH_CLI.sender();
     let _ = sender.send(msg);
 }
 
