@@ -10,7 +10,7 @@ pub async fn task () {
     info!("{}", TASK_ID);
 /*
     // change here for testing
-    let send_test = signals::BATTERY_IN_WATCH.sender();
+    let send_test = signals::BATTERY_IN.sender();
 
     let mut count = 7;
 

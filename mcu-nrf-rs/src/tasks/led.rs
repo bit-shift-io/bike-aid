@@ -16,8 +16,8 @@ pub async fn task(
     let mut led_mode = LedMode::None;
     let mut rec_mode;
 
-    if id == 0 { rec_mode = signals::LED_MODE_WATCH.receiver().unwrap(); }
-    else { rec_mode = signals::LED_DEBUG_MODE_WATCH.receiver().unwrap(); }
+    if id == 0 { rec_mode = signals::LED_MODE.receiver().unwrap(); }
+    else { rec_mode = signals::LED_DEBUG_MODE.receiver().unwrap(); }
 
     loop {
         // Try to poll read new mode

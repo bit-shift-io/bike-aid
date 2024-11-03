@@ -22,7 +22,7 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut sub = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
+    let mut sub = signals::ALARM_ENABLED.receiver().unwrap();
     let mut state = false;
 
     loop { 
@@ -61,7 +61,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     //let _ = mpu.set_accel_hpf(ACCEL_HPF::_RESET); // default ACCEL_HPF::_RESET
     //mpu.setup_motion_detection().unwrap();
 
-    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
+    let send_motion = signals::ALARM_MOTION_DETECTED.sender();
     let mut last_gyro = mpu.get_gyro().unwrap();
     let mut last_acc_angles = mpu.get_acc_angles().unwrap();
 

@@ -9,7 +9,7 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    let mut rec_button = signals::SWITCH_LIGHT_WATCH.receiver().unwrap();
+    let mut rec_button = signals::SWITCH_LIGHT.receiver().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
 
     loop {

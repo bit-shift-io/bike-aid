@@ -1,5 +1,4 @@
 use crate::utils::signals;
-use crate::utils::functions;
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
@@ -17,6 +16,7 @@ const ADDRESS: u8 = 0x60;
 // Controller supply voltage - 4.36v = 4360mv
 // onboard power supply - 4.98v = 4980mv
 const SUPPLY_VOLTAGE: u16 = 5000; // mv
+const DAC_MAX: u16 = 4095; // 15 bits
 
 #[embassy_executor::task]
 pub async fn task(
@@ -25,7 +25,7 @@ pub async fn task(
     info!("{}", TASK_ID);
   
     // power on/off
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
     let mut init = false;
 
@@ -52,7 +52,7 @@ pub async fn task(
 
 async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     // park brake on/off
-    let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
+    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true; // default to on
 
     loop { 
@@ -80,7 +80,7 @@ async fn run(
 ) {
     let mut dac = get_dac(i2c_bus).await;
     let mut last_value = 0;
-    let mut rec_throttle = signals::THROTTLE_OUT_WATCH.receiver().unwrap();
+    let mut rec_throttle = signals::THROTTLE_OUT.receiver().unwrap();
 
     loop {
         let value = rec_throttle.changed().await; // desired mv
@@ -89,8 +89,10 @@ async fn run(
         if value == last_value { continue; };
         last_value = value;
 
-        let dac_value = (f32::from(value) * 4095.0 / SUPPLY_VOLTAGE as f32) as u16;
-        let dac_value = functions::min(4095, dac_value); // 4095 is supply voltage, cant go above this
+        // using larger integer type to avoid overflow
+        // note: changed from f32 to u32
+        let dac_value = (value as u32 * DAC_MAX as u32 / SUPPLY_VOLTAGE as u32) as u16;
+        let dac_value = dac_value.min(DAC_MAX);
         let _ = dac.set_dac(mcp4725::PowerDown::Normal, dac_value as u16);
         //info!("{} : {}", TASK_ID, dac_value); // dac value, not in mv
     }

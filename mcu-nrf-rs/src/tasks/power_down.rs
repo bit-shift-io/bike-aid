@@ -11,7 +11,7 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     // power on/off
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 
@@ -32,8 +32,8 @@ pub async fn task() {
 
 
 pub async fn run() {
-    let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
-    let send_power_on = signals::POWER_ON_WATCH.sender();
+    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
+    let send_power_on = signals::POWER_ON.sender();
     let mut state = true;
 
     loop {

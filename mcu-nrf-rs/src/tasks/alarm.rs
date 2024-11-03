@@ -14,7 +14,7 @@ static WARNING_COUNT: Mutex<ThreadModeRawMutex, u8> = Mutex::new(0);
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::ALARM_ENABLED_WATCH.receiver().unwrap();
+    let mut rec = signals::ALARM_ENABLED.receiver().unwrap();
     let mut state = false;
     let mut init = false;
 
@@ -44,10 +44,10 @@ pub async fn task() {
 }
 
 async fn run() {
-    let send_alarm = signals::ALARM_ALERT_ACTIVE_WATCH.sender();
-    let mut rec_motion = signals::ALARM_MOTION_DETECTED_WATCH.receiver().unwrap();
-    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_alarm = signals::ALARM_ALERT_ACTIVE.sender();
+    let mut rec_motion = signals::ALARM_MOTION_DETECTED.receiver().unwrap();
+    let send_motion = signals::ALARM_MOTION_DETECTED.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
 
     // TODO: want to time limit the warnings to every xx seconds
     loop {
@@ -75,9 +75,9 @@ async fn run() {
 
 
 async fn stop() {
-    let send_alarm = signals::ALARM_ALERT_ACTIVE_WATCH.sender();
-    let send_motion = signals::ALARM_MOTION_DETECTED_WATCH.sender();
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_alarm = signals::ALARM_ALERT_ACTIVE.sender();
+    let send_motion = signals::ALARM_MOTION_DETECTED.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
     send_alarm.send(false);
     send_piezo.send(signals::PiezoModeType::None);
     send_motion.send(false);

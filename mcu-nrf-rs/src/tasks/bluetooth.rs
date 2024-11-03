@@ -2,7 +2,7 @@ use crate::ble::server::{self, Server};
 use defmt::*;
 use embassy_executor::Spawner;
 use core::mem;
-use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList, ServiceUuid16};
+use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
 use futures::future::{select, Either};

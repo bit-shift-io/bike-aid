@@ -1,4 +1,3 @@
-use defmt::info;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
@@ -67,7 +66,7 @@ impl SettingsService {
     pub fn on_write(&self, _conn: &Connection, handle: u16, data: &[u8]) {
         if handle == self.alarm_on.value_handle {
             let message = if data[0] == 205 { true } else { false };
-            signals::ALARM_ENABLED_WATCH.dyn_sender().send_if_modified(|value| {
+            signals::ALARM_ENABLED.dyn_sender().send_if_modified(|value| {
                 if *value != Some(message) {
                     *value = Some(message);
                     true
@@ -78,7 +77,7 @@ impl SettingsService {
         if handle == self.power_on.value_handle {
             let message = if data[0] == 183 { true } else { false };
             //info!("ble power on: {:?} {:?}", message, data[0]);
-            signals::POWER_ON_WATCH.dyn_sender().send_if_modified(|value| {
+            signals::POWER_ON.dyn_sender().send_if_modified(|value| {
                 if *value != Some(message) {
                     *value = Some(message);
                     true

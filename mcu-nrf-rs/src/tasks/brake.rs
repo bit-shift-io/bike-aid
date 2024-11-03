@@ -14,7 +14,7 @@ pub async fn task(
 
     let mut brake_state = Input::new(pin, Pull::None); // high = brake off, low = brake on
     // need to turn off the brake when power if off, so that it doesnt rest the handbrake when power comes back on
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 
@@ -38,7 +38,7 @@ pub async fn run<'a>(
     brake_state: &mut Input<'a>
 ) {
     
-    let watch_brake_on = signals::BRAKE_ON_WATCH.sender();
+    let watch_brake_on = signals::BRAKE_ON.sender();
    
     loop {
         brake_state.wait_for_high().await; // brake off

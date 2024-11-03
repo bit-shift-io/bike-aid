@@ -18,7 +18,7 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 

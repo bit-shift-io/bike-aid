@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{settings, signals};
 use defmt::*;
 use embassy_nrf::nvmc::Nvmc;
 use embedded_storage_async::nor_flash::MultiwriteNorFlash;
@@ -25,7 +25,7 @@ pub async fn task(
     // shoudnt need this?
     //unwrap!(flash.erase(address, address + size));
 
-    let mut rec_write = signals::STORE_WRITE_WATCH.receiver().unwrap();
+    let mut rec_write = signals::STORE_WRITE.receiver().unwrap();
 
     loop {
         if rec_write.changed().await {
@@ -44,7 +44,7 @@ async fn write_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
+    let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     write_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
@@ -63,11 +63,11 @@ async fn read_store<E: defmt::Format>(
 ) {
     info!("{}: read store", TASK_ID);
 
-    let send_updated = signals::STORE_UPDATED_WATCH.sender();
+    let send_updated = signals::STORE_UPDATED.sender();
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
+    let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     read_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
     read_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;

@@ -1,4 +1,5 @@
 use crate::utils::functions;
+use crate::utils::settings;
 use crate::utils::signals;
 use defmt::*;
 use num_traits::Float;
@@ -10,16 +11,16 @@ const SPEED_STEP: u16 = 1500;
 pub async fn task() {
     info!("{}", TASK_ID);
     
-    let send_throttle = signals::THROTTLE_OUT_WATCH.sender();
-    let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
+    let send_throttle = signals::THROTTLE_OUT.sender();
+    let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let mut output_voltage = 0u16;
-    let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
+    let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
     
     // TODO: when settings change, reload the loop, so we dont need to mutex lock each itter....
     
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
-        let throttle_settings = { *signals::THROTTLE_SETTINGS_MUTEX.lock().await }; // minimise lock time
+        let throttle_settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {
@@ -33,7 +34,7 @@ pub async fn task() {
 
         // get mutex values, minimise lock time
         let (cruise_voltage, brake_on) = {
-            let cruise_voltage = *signals::CRUISE_VOLTAGE_MUTEX.lock().await;
+            let cruise_voltage = *settings::CRUISE_VOLTAGE.lock().await;
             let brake_on = watch_brake_on.try_get().unwrap();
             (cruise_voltage, brake_on)
         };

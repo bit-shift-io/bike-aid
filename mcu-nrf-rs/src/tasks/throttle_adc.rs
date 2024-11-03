@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{globals, signals};
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::*;
@@ -20,7 +20,7 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     // power on/off
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 
@@ -42,7 +42,7 @@ pub async fn task(
 
 async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     // park brake on/off
-    let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
+    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true; // default to on
 
     loop { 
@@ -64,7 +64,7 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let send_throttle = signals::THROTTLE_IN_WATCH.sender();
+    let send_throttle = signals::THROTTLE_IN.sender();
     let address = SlaveAddr::default(); // 0x48
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
     let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
@@ -76,17 +76,15 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         }, // unable to communicate with device
     }
     let mut count = 0u8;
+    let mut last_voltage = 0u16;
     
     loop {
         Timer::after_millis(INTERVAL).await;
-
-        //let value = adc.read(ChannelSelection::SingleA0).unwrap(); // crash here
         let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
 
         // convert to voltage
         // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
         let input_voltage: u16 = (f32::from(value) * 6144.0 / 32768.0) as u16; // converted to mv
-
 
         // voltage of the actual throttle before the resitor divider
         // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
@@ -100,10 +98,13 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         if input_voltage > 20 {
             send_throttle.send(input_voltage);
 
-            // lower updated for ble
+            // lower update for ble
             if count > 4 {
                 count = 0;
-                signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
+                if input_voltage != last_voltage {
+                    last_voltage = input_voltage;
+                    signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
+                };
             }
         }
 

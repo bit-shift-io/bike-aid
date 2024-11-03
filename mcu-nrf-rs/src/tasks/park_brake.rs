@@ -11,7 +11,7 @@ const MAX_COUNT: u16 = 30 * 10; // this equals 30 seonds of throttle updates
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
     let mut init = false;
 
@@ -38,7 +38,7 @@ pub async fn task() {
 
 
 pub async fn cruise() {
-    let mut rec = signals::CRUISE_LEVEL_WATCH.receiver().unwrap();
+    let mut rec = signals::CRUISE_LEVEL.receiver().unwrap();
     let mut state = 0;
 
     loop { 
@@ -60,7 +60,7 @@ pub async fn cruise() {
 
 
 async fn run() {
-    let mut watch = signals::PARK_BRAKE_ON_WATCH.receiver().unwrap();
+    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true;
 
     loop {
@@ -77,9 +77,9 @@ async fn run() {
 
 async fn park_brake_on() {
     // detect when to turn park brake on
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
-    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
-    let mut rec_throttle = signals::THROTTLE_IN_WATCH.receiver().unwrap();
+    let send_piezo = signals::PIEZO_MODE.sender();
+    let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
+    let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let mut count = 0;
 
     loop {
@@ -105,13 +105,13 @@ async fn park_brake_on() {
 
 async fn park_brake_off() {
     // wait for brake to be on
-    let mut watch_brake_on = signals::BRAKE_ON_WATCH.receiver().unwrap();
+    let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
     let _ = watch_brake_on.changed_and(|x| *x == true).await; // predicate version to wait for brake to be on
  
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
     send_piezo.send(signals::PiezoModeType::BeepLong);
 
-    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
+    let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
     watch_park_brake_on.send(false);
     signals::send_ble(signals::BleHandles::ParkBrakeOn, &(false as u8).to_le_bytes()).await;
 
@@ -120,7 +120,7 @@ async fn park_brake_off() {
 
 
 async fn stop() {
-    let watch_park_brake_on = signals::PARK_BRAKE_ON_WATCH.sender();
+    let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
     watch_park_brake_on.send(true);
     signals::send_ble(signals::BleHandles::ParkBrakeOn, &(true as u8).to_le_bytes()).await;
     //info!("{}: stop - turn on park brake", TASK_ID);

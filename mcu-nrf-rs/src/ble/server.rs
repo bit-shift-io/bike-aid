@@ -105,14 +105,14 @@ impl gatt_server::Server for Server {
 
 pub async fn connected(_connection: &Connection, _server: &Server) {
     info!("{}: device connected", TASK_ID);
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
     send_piezo.send(signals::PiezoModeType::Notify);
 }
 
 
 pub async fn disconnected(_connection: &Connection, _server: &Server) {
     info!("{}: device disconnected", TASK_ID);
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
     send_piezo.send(signals::PiezoModeType::Notify);
 }
 
@@ -122,7 +122,7 @@ pub async fn run(connection: &Connection, server: &Server) {
 
     // command queue
     let rec_queue = QUEUE_CHANNEL.receiver();
-    let send_led = signals::LED_DEBUG_MODE_WATCH.sender();
+    let send_led = signals::LED_DEBUG_MODE.sender();
   
     loop {
         // TODO: lock here if needed, but we don't need it

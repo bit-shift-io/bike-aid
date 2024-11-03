@@ -50,8 +50,6 @@ impl UartService {
     pub fn on_write(&self, _connection: &Connection, handle: u16, data: &[u8]) {
         match handle {
             handle if handle == self.rx.value_handle => {
-                // send data to uart
-                //info!("tx: {:?}", functions::bytes_to_string(data));
                 signals::send_cli(data);
             }
             _ => {}

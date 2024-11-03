@@ -10,10 +10,10 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut rec_power_on = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
     let mut pin_state = Output::new(pin, Level::Low, OutputDrive::Standard);
-    let send_led = signals::LED_MODE_WATCH.sender();
-    let send_piezo = signals::PIEZO_MODE_WATCH.sender();
+    let send_led = signals::LED_MODE.sender();
+    let send_piezo = signals::PIEZO_MODE.sender();
     let mut init = false;
 
     loop {

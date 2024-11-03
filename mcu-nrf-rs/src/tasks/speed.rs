@@ -14,19 +14,20 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    let send_instant_speed = signals::INSTANT_SPEED_WATCH.sender();
-    let send_smooth_speed = signals::SMOOTH_SPEED_WATCH.sender();
-    let send_wheel_rotations = signals::WHEEL_ROTATIONS_WATCH.sender();
-    let send_odometer = signals::ODOMETER_WATCH.sender();
+
+    // debug
+    return;
+
+    let send_instant_speed = signals::INSTANT_SPEED.sender();
+    let send_smooth_speed = signals::SMOOTH_SPEED.sender();
+    let send_wheel_rotations = signals::WHEEL_ROTATIONS.sender();
+    let send_odometer = signals::ODOMETER.sender();
 
     let mut segment_count = 0;
     let mut rotation_count = 0_u16;
     let mut last_time = embassy_time::Instant::now().as_micros();
     let mut smooth_speed = 0.0;
     let mut pin_state = Input::new(pin, Pull::Down); // low
-
-    // debug
-    return;
 
     loop {
         pin_state.wait_for_low().await; // not sure if we need this one?

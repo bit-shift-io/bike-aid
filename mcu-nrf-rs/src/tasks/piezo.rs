@@ -17,7 +17,7 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     let mut pwm = SimplePwm::new_1ch(pwm_device, pin);
-    let mut rec_mode = signals::PIEZO_MODE_WATCH.receiver().unwrap();
+    let mut rec_mode = signals::PIEZO_MODE.receiver().unwrap();
     let mut piezo_mode = PiezoMode::None;
 
     loop {

@@ -33,7 +33,7 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::POWER_ON_WATCH.receiver().unwrap();
+    let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 
@@ -58,7 +58,7 @@ pub async fn task(
 
 async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let send_data = signals::BATTERY_IN_WATCH.sender();
+    let send_data = signals::BATTERY_IN.sender();
     let address = SlaveAddr::Alternative(true, false); // new_sda(); //// sda 0x4A
     let mut adc = Ads1x1x::new_ads1115(i2c, address);
 

@@ -4,8 +4,6 @@ use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Prop
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
-use crate::utils::{functions, globals};
-use crate::utils::signals;
 
 // fast pair locator tags
 // https://developers.google.com/nearby/fast-pair/specifications/service/gatt
