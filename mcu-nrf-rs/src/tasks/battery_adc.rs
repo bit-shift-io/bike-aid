@@ -11,7 +11,7 @@ use embassy_time::Timer;
 use nb::block;
 
 const TASK_ID: &str = "BATTERY ADC";
-const INTERVAL: u64 = 2; // seconds
+const INTERVAL: u64 = 1; // seconds
 
 // consts for voltage divider
 const VOLTAGE_CALIBATION : u16 = 10; // calibration level = multimeter - measured

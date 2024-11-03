@@ -83,6 +83,25 @@ public class MainActivity extends AppCompatActivity {
 
     // connect gui to signals
     private void initGui() {
+        // reset log button
+        Button logReset = findViewById(R.id.log_reset);
+        logReset.setOnClickListener(v -> log.reset());
+
+        // send uart button
+        Button sendBtn = findViewById(R.id.send_button);
+        sendBtn.setOnClickListener(v -> {
+            TextView tv = findViewById(R.id.send_text);
+            signals.setUART(tv.getText().toString());
+            tv.setText("");
+        });
+
+        // power button
+        Button powerBtn = findViewById(R.id.power_button);
+        powerBtn.setOnClickListener(v -> signals.togglePower());
+
+        // alarm button
+        Button alarmBtn = findViewById(R.id.alarm_button);
+        alarmBtn.setOnClickListener(v -> signals.toggleAlarm());
 
         // callaback for log updates
         ScrollView logScroll = findViewById(R.id.log_scroll);
@@ -192,29 +211,12 @@ public class MainActivity extends AppCompatActivity {
                 TextView item = findViewById(R.id.battery_power);
                 item.setText(result);
             }
+
+            @Override
+            public void onThrottleLevel(String result) {
+                TextView item = findViewById(R.id.throttle_level);
+                item.setText(result);
+            }
         });
-
-        // reset log button
-        Button logReset = findViewById(R.id.log_reset);
-        logReset.setOnClickListener(v -> log.reset());
-
-        // send uart button
-        Button sendBtn = findViewById(R.id.send_button);
-        sendBtn.setOnClickListener(v -> {
-            TextView tv = findViewById(R.id.send_text);
-            signals.setUART(tv.getText().toString());
-            tv.setText("");
-        });
-
-        // power button
-        Button powerBtn = findViewById(R.id.power_button);
-        powerBtn.setOnClickListener(v -> signals.togglePower());
-
-        // alarm button
-        Button alarmBtn = findViewById(R.id.alarm_button);
-        alarmBtn.setOnClickListener(v -> signals.toggleAlarm());
-
     }
-
-
 }

@@ -134,19 +134,20 @@ pub async fn run(connection: &Connection, server: &Server) {
         let value: &[u8] = command.as_bytes();
         let handle;
         match command.handle {
-            signals::BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
-            signals::BleHandles::BatteryPower => handle = server.battery.power.value_handle,
-            signals::BleHandles::Speed => handle = server.data.speed.value_handle,
-            signals::BleHandles::Odometer => handle = server.data.odometer.value_handle,
-            signals::BleHandles::Temperature => handle = server.data.temperature.value_handle,
-            signals::BleHandles::ClockMinutes => handle = server.data.clock_minutes.value_handle,
-            signals::BleHandles::ClockHours => handle = server.data.clock_hours.value_handle,
-            signals::BleHandles::BrakeOn => handle = server.data.brake_on.value_handle,
-            signals::BleHandles::ParkBrakeOn => handle = server.data.park_brake_on.value_handle,
-            signals::BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
-            signals::BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
-            signals::BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
-            signals::BleHandles::Uart => handle = server.uart.tx.value_handle,
+            BleHandles::BatteryLevel => handle = server.battery.level.value_handle,
+            BleHandles::BatteryPower => handle = server.battery.power.value_handle,
+            BleHandles::Speed => handle = server.data.speed.value_handle,
+            BleHandles::Odometer => handle = server.data.odometer.value_handle,
+            BleHandles::Temperature => handle = server.data.temperature.value_handle,
+            BleHandles::ClockMinutes => handle = server.data.clock_minutes.value_handle,
+            BleHandles::ClockHours => handle = server.data.clock_hours.value_handle,
+            BleHandles::BrakeOn => handle = server.data.brake_on.value_handle,
+            BleHandles::ParkBrakeOn => handle = server.data.park_brake_on.value_handle,
+            BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
+            BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
+            BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
+            BleHandles::Uart => handle = server.uart.tx.value_handle,
+            BleHandles::ThrottleLevel => handle = server.data.throttle_level.value_handle,
         }
 
         //info!("{}", command);

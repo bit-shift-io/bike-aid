@@ -75,6 +75,7 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
             return
         }, // unable to communicate with device
     }
+    let mut count = 0u8;
     
     loop {
         Timer::after_millis(INTERVAL).await;
@@ -94,8 +95,18 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
         // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
         // note ive added 100k pulldown resistor to remove fluctation during power off
         // so do a check, if value is larger than 20 we can report it
+
+        
         if input_voltage > 20 {
             send_throttle.send(input_voltage);
+
+            // lower updated for ble
+            if count > 4 {
+                count = 0;
+                signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
+            }
         }
+
+        count += 1;
     }
 }

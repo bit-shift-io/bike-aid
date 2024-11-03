@@ -52,6 +52,7 @@ pub enum BleHandles {
     Speed,
     Odometer,
     Temperature,
+    ThrottleLevel,
 }
 
 
@@ -110,6 +111,7 @@ impl fmt::Debug for BleHandles {
             BleHandles::Speed => "Speed",
             BleHandles::Odometer => "Odometer",
             BleHandles::Temperature => "Temperature",
+            BleHandles::ThrottleLevel => "ThrottleLevel",
         };
         write!(f, "{}", name)
     }

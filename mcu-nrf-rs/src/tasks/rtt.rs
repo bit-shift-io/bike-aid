@@ -1,6 +1,6 @@
 use defmt::info;
 use embassy_executor::Spawner;
-use embassy_futures::yield_now;
+use embassy_time::Timer;
 use rtt_target::{rtt_init, ChannelMode, DownChannel};
 
 use crate::utils::signals;
@@ -16,7 +16,8 @@ pub async fn task(
     let mut buf = [0u8; 512];
 
     loop {
-        yield_now().await;
+        //yield_now().await;
+        Timer::after_secs(1).await;
         let count = input.read(&mut buf[..]);
         if count > 0 {
             let str = core::str::from_utf8(&buf[..count]).unwrap().trim_end();

@@ -19,7 +19,7 @@ pub async fn task() {
     
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
-        let throttle_settings = signals::THROTTLE_SETTINGS_MUTEX.lock().await;
+        let throttle_settings = { *signals::THROTTLE_SETTINGS_MUTEX.lock().await }; // minimise lock time
 
         // direct pass through for debug or pure fun off road!
         if throttle_settings.passthrough {

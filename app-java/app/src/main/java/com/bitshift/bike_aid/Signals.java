@@ -45,6 +45,7 @@ public class Signals {
         void onBrake(boolean result);
         void onParkBrake(boolean result);
         void onBatteryPower(String result);
+        void onThrottleLevel(String result);
     }
 
 
@@ -130,6 +131,14 @@ public class Signals {
         // speed
         if (id.equals("2001"))
             new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onSpeed(String.format("%02d", value[0])));
+
+        // throttle level
+        if (id.equals("2002")) {
+            if (value.length != 2) return;
+            int v = (value[0] & 0xFF) | ((value[1] & 0xFF) << 8); // 16 bit value
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onThrottleLevel(String.valueOf(v)));
+        }
+
 
         // temperature
         if (id.equals("2004"))

@@ -3,9 +3,9 @@ use defmt::*;
 use embassy_futures::select::{select, Either};
 
 const TASK_ID: &str = "CRUISE";
-const NO_THROTTLE_THRESHOLD: u16 = 1100;
-const FULL_THROTTLE_THRESHOLD: u16 = 2700;
-const MAX_COUNT: u8 = 6; // this equals X x 100ms of throttle updates
+const NO_THROTTLE_THRESHOLD: u16 = 1200;
+const FULL_THROTTLE_THRESHOLD: u16 = 2600;
+const MAX_COUNT: u8 = 8; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
 pub async fn task() {
@@ -60,16 +60,12 @@ async fn run() {
         // Count for timing, each update is 100ms
         let mut count = 0;
 
-        //info!("above min throttle - {}", count);
-
         // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD
         while throttle_voltage < FULL_THROTTLE_THRESHOLD && count < MAX_COUNT {
             throttle_voltage = rec_throttle.changed().await; // millivolts
             //info!("throttle {}", throttle_voltage);
             count += 1;
         }
-
-        //info!("full throttle {}", count);
 
         if count >= MAX_COUNT {
             continue; // Restart the loop if we didn't detect a full throttle
@@ -82,13 +78,12 @@ async fn run() {
             count += 1;
         }
 
-        //info!("throttle dropped below no throttle threshold, count: {}", count);
-
-        // Check if the tap was detected within the time limit (0.6 seconds)
+        // Check if the tap was detected within the time limit
         if count < MAX_COUNT {
             //info!("tap detected");
             increment_cruise().await;
             send_piezo.send(signals::PiezoModeType::BeepShort);
+            signals::send_ble(signals::BleHandles::Uart, b"tap").await; // debug
         }
     }
 }
