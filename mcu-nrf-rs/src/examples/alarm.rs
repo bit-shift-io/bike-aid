@@ -5,7 +5,7 @@ use embassy_time::Timer;
 use embassy_sync::channel::Channel;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex::Mutex;
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "ALARM";
 const WARN_INTERVAL: u64 = 10000; // 10 sec

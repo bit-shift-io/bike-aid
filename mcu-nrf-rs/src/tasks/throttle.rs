@@ -1,7 +1,7 @@
 use crate::utils::functions;
 use crate::utils::settings;
 use crate::utils::signals;
-use defmt::*;
+use defmt::info;
 use num_traits::Float;
 
 const TASK_ID: &str = "THROTTLE";

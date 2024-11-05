@@ -77,8 +77,10 @@ cortex-m-rt = "0.7.3"
 
 # misc
 embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
 static_cell = "2.0.0"
 format_no_std = "1.2.0"
+critical-section = "1.1"
 
 # maths
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
@@ -94,10 +96,10 @@ embedded-storage = "0.3.1"
 embedded-storage-async = "0.4.1"
 
 # device driver
-nb = "1.1.0"
-mcp4725 = "0.4.2"
-ads1x1x = "0.2.2"
-mpu6050 = "0.1.6"
+mcp4725-async = "0.1.0"
+mpu6050-async = { version = "0.0.1", path = "../mpu6050-async" }
+embedded-ads111x = { version = "0.1.2", features = ["async"] }
+
 
 
 

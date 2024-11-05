@@ -1,6 +1,6 @@
 use crate::utils::{note::*, melody, signals};
 use embassy_nrf::gpio::AnyPin;
-use defmt::*;
+use defmt::info;
 use embassy_nrf::peripherals::PWM0;
 use embassy_nrf::pwm::SimplePwm;
 use embassy_time::Timer;

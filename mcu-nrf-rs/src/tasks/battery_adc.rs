@@ -1,14 +1,12 @@
 use crate::utils::signals;
-use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
-use defmt::*;
+use defmt::info;
 use embassy_futures::select::{select, Either};
-use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::blocking_mutex::Mutex;
-use core::cell::RefCell;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex;
+use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
 use embassy_time::Timer;
-use nb::block;
 
 const TASK_ID: &str = "BATTERY ADC";
 const INTERVAL: u64 = 1; // seconds
@@ -29,7 +27,7 @@ const NON_ZERO: u16 = 7; // 7mV value to make voltage zero when there is no curr
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
 
@@ -56,57 +54,76 @@ pub async fn task(
 }
 
 
-async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let send_data = signals::BATTERY_IN.sender();
-    let address = SlaveAddr::Alternative(true, false); // new_sda(); //// sda 0x4A
-    let mut adc = Ads1x1x::new_ads1115(i2c, address);
+    let config = ADS111xConfig::default()
+        .mux(InputMultiplexer::AIN0GND)
+        .dr(DataRate::SPS8)
+        .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
-    let result = adc.set_full_scale_range(FullScaleRange::Within4_096V); // set range to 4.096v
-    match result {
-        Ok(()) => {},
+    let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
         Err(_e) => {
             info!("{}: device error", TASK_ID);
             return
-        }, // unable to communicate with device
-    }
+        },
+        Ok(x) => x, // assign the mutex to adc
+    };
+
+    // Write the configuration to the chip's registers
+    if let Err(_e) = adc.write_config(None).await {
+        info!("{}: device error", TASK_ID);
+        return
+    };
+    
+    let send_data = signals::BATTERY_IN.sender();
 
     loop {
-        let value_a0 = block!(adc.read(ChannelSelection::SingleA0)).unwrap(); // current
-        let value_a1 = block!(adc.read(ChannelSelection::SingleA1)).unwrap(); // voltage
+        Timer::after_secs(INTERVAL).await;
 
-        let voltage = calculate_voltage(value_a1);
-        let current = calculate_current(value_a0);
+        let value_a0 = adc.read_single_voltage(Some(InputMultiplexer::AIN0GND)).await; // current
+        let value_a1 = adc.read_single_voltage(Some(InputMultiplexer::AIN1GND)).await; // voltage
+
+        if value_a0.is_err() || value_a1.is_err() {
+            info!("{}: device error", TASK_ID);
+            continue
+        };
+
+        // TODO: check voltages!
+        info!("{} {}", value_a0.unwrap(), value_a1.unwrap());
+
+        let voltage = calculate_voltage(value_a1.unwrap());
+        let current = calculate_current(value_a0.unwrap());
 
         send_data.send([voltage, current]);
-        Timer::after_secs(INTERVAL).await;
     }
 }
 
 
-fn calculate_voltage(input: i16) -> u16 {
+fn calculate_voltage(input: f32) -> u16 {
     // convert to voltage
     // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-    let mut input_voltage_a1: u16 = (f32::from(input) * 4096.0 / 32768.0) as u16; // converted to mv
+    //let mut input_voltage_a1: u16 = (input * 4096.0 / 32768.0) as u16; // converted to mv
+    let mut input_voltage = (input * 1000f32) as u16; // mv
 
     // calibration
-    input_voltage_a1 += VOLTAGE_CALIBATION; 
+    input_voltage += VOLTAGE_CALIBATION; 
 
     //info!("{}: a0: {} -> {}, a1: {} -> {}", TASK_ID, value_a0, input_voltage_a0, value_a1, input_voltage_a1);
     //info!("{}: multiplier: {}", TASK_ID, VOLTAGE_MULTIPLIER);
     
     // voltage before the resitor divider
-    (f32::from(input_voltage_a1) * VOLTAGE_MULTIPLIER) as u16 // mv
+    (f32::from(input_voltage) * VOLTAGE_MULTIPLIER) as u16 // mv
 }
 
 
-fn calculate_current(input: i16) -> u16 {
+fn calculate_current(input: f32) -> u16 {
     // convert to voltage
     // ADC - 4.096v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-    let input_voltage_a0: u16 = (f32::from(input) * 4096.0 / 32768.0) as u16; // converted to mv
+    //let input_voltage_a0: u16 = (input * 4096.0 / 32768.0) as u16; // converted to mv
+    let input_voltage = (input * 1000f32) as u16; // mv
 
     // TODO: current sensor
-    let differential_voltage = input_voltage_a0 - QUIESCENT_VOLTAGE + NON_ZERO;
+    let differential_voltage = input_voltage - QUIESCENT_VOLTAGE + NON_ZERO;
     let current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
     // if current < CUTOFF_LIMIT {
     //     current = 0;

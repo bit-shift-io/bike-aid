@@ -1,6 +1,6 @@
 use crate::utils::signals;
 use embassy_nrf::gpio::{AnyPin, Input, Pull};
-use defmt::*;
+use defmt::info;
 use embassy_time::Timer;
 
 const TASK_ID: &str = "MANUAL OVERRIDE";

@@ -1,5 +1,5 @@
 use crate::utils::{functions, signals};
-use defmt::*;
+use defmt::info;
 use embassy_time::Timer;
 
 const TASK_ID : &str = "FAKE SIGNALS";

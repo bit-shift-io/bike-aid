@@ -1,6 +1,6 @@
 use crate::utils::signals;
 use embassy_nrf::gpio::{AnyPin, Input, Pull};
-use defmt::*;
+use defmt::info;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
 

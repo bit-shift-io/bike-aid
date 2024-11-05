@@ -1,5 +1,5 @@
 use crate::utils::signals;
-use defmt::*;
+use defmt::info;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
 

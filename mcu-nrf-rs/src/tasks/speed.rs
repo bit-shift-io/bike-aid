@@ -1,7 +1,7 @@
 use crate::utils::signals;
 use embassy_nrf::gpio::AnyPin;
 use embassy_nrf::gpio::{Input, Pull};
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "SPEED";
 const WHEEL_CIRCUMFERENCE: f32 = 1105.0; // 1105mm measured, (12.5inch diameter -> 317.5mm diameter -> 997.46mm circumference)

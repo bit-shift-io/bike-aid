@@ -1,5 +1,5 @@
 use crate::utils::signals;
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "BATTERY";
 //const BATTERY_CAPACITY: u16 = 2400; // mAh

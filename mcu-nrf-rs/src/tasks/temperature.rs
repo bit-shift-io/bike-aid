@@ -1,12 +1,11 @@
 use crate::utils::signals;
-use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
-use defmt::*;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::blocking_mutex::Mutex;
-use core::cell::RefCell;
+use defmt::info;
+use mpu6050_async::Mpu6050;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex;
 use embassy_time::{Delay, Timer};
-use mpu6050::*;
 use embassy_futures::select::{select, Either};
 
 const TASK_ID : &str = "TEMPERATURE";
@@ -14,7 +13,7 @@ const INTERVAL: u64 = 20; // seconds
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
 
@@ -38,11 +37,10 @@ pub async fn task(
 }
 
 
-async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut mpu = Mpu6050::new(i2c);
-    let result = mpu.init(&mut Delay);
-    match result {
+    match mpu.init(&mut Delay).await {
         Ok(()) => {},
         Err(_e) => {
             info!("{}: device error", TASK_ID);
@@ -53,11 +51,15 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     let mut last_temperature: u8 = 0;
 
     loop {
-        let temp = mpu.get_temp().unwrap() as u8;
-
-        if last_temperature != temp {
-            last_temperature = temp;
-            signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice()).await;
+        match mpu.get_temp().await {
+            Ok(t) => {
+                let temp = t as u8;
+                if last_temperature != temp {
+                    last_temperature = temp;
+                    signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice()).await;
+                }
+            },
+            Err(_e) => { info!("{}: device error", TASK_ID); },
         }
         
         Timer::after_secs(INTERVAL).await;

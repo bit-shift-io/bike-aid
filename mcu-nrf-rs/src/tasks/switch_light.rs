@@ -1,6 +1,6 @@
 use crate::utils::signals;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "SWITCH LIGHT";
 

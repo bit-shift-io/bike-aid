@@ -1,5 +1,5 @@
 use embassy_time::Timer;
-use defmt::*;
+use defmt::info;
 use embassy_nrf::gpio::{AnyPin, Level, Output, OutputDrive};
 use crate::utils::signals;
 

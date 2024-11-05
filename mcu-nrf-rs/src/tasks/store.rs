@@ -1,5 +1,5 @@
 use crate::utils::{settings, signals};
-use defmt::*;
+use defmt::info;
 use embassy_nrf::nvmc::Nvmc;
 use embedded_storage_async::nor_flash::MultiwriteNorFlash;
 

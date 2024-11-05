@@ -1,6 +1,6 @@
 use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
-use defmt::*;
+use defmt::info;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::Mutex;
 use core::cell::RefCell;

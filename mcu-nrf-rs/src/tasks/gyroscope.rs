@@ -1,13 +1,13 @@
 use crate::utils::signals;
-use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
-use defmt::*;
-use embassy_futures::select::{select, Either};
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::blocking_mutex::Mutex;
-use core::cell::RefCell;
+use defmt::info;
+use mpu6050_async::Mpu6050;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex;
 use embassy_time::{Delay, Timer};
-use mpu6050::*;
+use embassy_futures::select::{select, Either};
+use num_traits::Float;
 
 const TASK_ID : &str = "GYROSCOPE";
 // TODO: move these to settings?
@@ -18,7 +18,7 @@ const INTERVAL: u64 = 500;
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
 
@@ -42,12 +42,10 @@ pub async fn task(
 }
 
 
-async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     let i2c = I2cDevice::new(i2c_bus);
     let mut mpu = Mpu6050::new(i2c);
-    let mut delay = Delay;
-    let result = mpu.init(&mut delay);
-    match result {
+    match mpu.init(&mut Delay).await {
         Ok(()) => {},
         Err(_e) => {
             info!("{}: device error", TASK_ID);
@@ -62,35 +60,39 @@ async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0
     //mpu.setup_motion_detection().unwrap();
 
     let send_motion = signals::ALARM_MOTION_DETECTED.sender();
-    let mut last_gyro = mpu.get_gyro().unwrap();
-    let mut last_acc_angles = mpu.get_acc_angles().unwrap();
+    let mut last_gyro = mpu.get_gyro().await.unwrap();
+    let mut last_acc_angles = mpu.get_acc_angles().await.unwrap();
 
     loop {
         Timer::after_millis(INTERVAL).await;
         let mut motion_detected = false;
 
         // get roll and pitch estimate
-        let acc_angles = mpu.get_acc_angles().unwrap();
-        let x_acc_delta = acc_angles.x - last_acc_angles.x;
-        let y_acc_delta = acc_angles.y - last_acc_angles.y;
+        let acc_angles = mpu.get_acc_angles().await.unwrap();
+        let x_acc_delta = acc_angles.0 - last_acc_angles.0;
+        let y_acc_delta = acc_angles.1 - last_acc_angles.1;
         if x_acc_delta > ANGLE_SENSITIVITY || y_acc_delta > ANGLE_SENSITIVITY {
             motion_detected = true;
             //info!("{}: angles detected", TASK_ID);
         }
 
         // get gyro data, scaled with sensitivity
-        let gyro = mpu.get_gyro().unwrap();
-        let x_gyro_delta = gyro.x - last_gyro.x;
-        let y_gyro_delta = gyro.y - last_gyro.y;
-        let z_gyro_delta = gyro.z - last_gyro.z;
+        let gyro = mpu.get_gyro().await.unwrap();
+        let x_gyro_delta = gyro.0 - last_gyro.0;
+        let y_gyro_delta = gyro.1 - last_gyro.1;
+        let z_gyro_delta = gyro.2 - last_gyro.2;
         if x_gyro_delta > GYRO_SENSITIVITY || y_gyro_delta > GYRO_SENSITIVITY || z_gyro_delta > GYRO_SENSITIVITY {
             motion_detected = true;
             //info!("{}: gyro detected", TASK_ID);
         }
         
         // get accelerometer data, scaled with sensitivity
-        let acc = mpu.get_acc().unwrap(); // in G's
-        if acc.abs().amax() > ACC_SENSITIVITY {
+        let acc = mpu.get_acc().await.unwrap(); // in G's
+        // tuple -> array
+        // map abs on each element
+        // find the max value with parital compare
+        let acc_abs = [acc.0, acc.1, acc.2].iter().map(|x| x.abs()).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap(); 
+        if acc_abs > ACC_SENSITIVITY {
             motion_detected = true;
             //info!("{}: acc detected", TASK_ID);
         }

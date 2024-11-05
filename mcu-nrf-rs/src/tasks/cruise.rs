@@ -1,5 +1,5 @@
 use crate::utils::{settings, signals};
-use defmt::*;
+use defmt::info;
 use embassy_futures::select::{select, Either};
 
 const TASK_ID: &str = "CRUISE";

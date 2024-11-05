@@ -4,7 +4,7 @@ use embassy_time::Timer;
 use embassy_nrf::{bind_interrupts, interrupt};
 use embassy_nrf::interrupt::InterruptExt;
 use embassy_nrf::temp;
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "TEMPERATURE";
 

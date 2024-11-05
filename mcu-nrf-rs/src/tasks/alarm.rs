@@ -2,7 +2,7 @@ use crate::utils::signals;
 use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex::Mutex;
-use defmt::*;
+use defmt::info;
 use embassy_futures::{join::join, select::{select, Either}};
 
 const TASK_ID: &str = "ALARM";

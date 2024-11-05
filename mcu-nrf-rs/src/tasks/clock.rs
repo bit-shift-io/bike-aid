@@ -1,7 +1,7 @@
 use crate::utils::signals;
 use embassy_futures::select::{select, Either};
 use embassy_time::Timer;
-use defmt::*;
+use defmt::info;
 
 const TASK_ID: &str = "CLOCK";
 

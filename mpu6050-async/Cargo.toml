@@ -1,0 +1,16 @@
+[package]
+name = "mpu6050-async"
+version = "0.0.1"
+authors = ["Henrik Alsér <henrik.alser@me.com>"]
+edition = "2018"
+
+description = "Platform agnostic async driver for MPU6050 6-axis IMU"
+repository = "https://github.com/kalkyl/mpu6050-async"
+readme = "README.md"
+keywords = ["mpu6050", "imu", "embedded"]
+license = "MIT"
+
+[dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-async = { version = "1.0.0" }
+libm = "0.2.1"

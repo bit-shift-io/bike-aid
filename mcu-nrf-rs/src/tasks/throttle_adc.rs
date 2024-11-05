@@ -1,21 +1,19 @@
-use crate::utils::{globals, signals};
-use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
+use crate::utils::signals;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
-use defmt::*;
+use defmt::info;
 use embassy_futures::select::{select, Either};
-use ads1x1x::{Ads1x1x, ChannelSelection, DynamicOneShot, FullScaleRange, SlaveAddr};
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::blocking_mutex::Mutex;
-use core::cell::RefCell;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex;
+use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
 use embassy_time::Timer;
-use nb::block;
 
 const TASK_ID : &str = "THROTTLE ADC";
 const INTERVAL: u64 = 100;
 
 #[embassy_executor::task]
 pub async fn task(
-    i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>
+    i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
 
@@ -40,7 +38,7 @@ pub async fn task(
 }
 
 
-async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     // park brake on/off
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true; // default to on
@@ -62,52 +60,59 @@ async fn park_brake(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, 
 }
 
 
-async fn run(i2c_bus: &'static Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>>) {
+async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     let i2c = I2cDevice::new(i2c_bus);
-    let send_throttle = signals::THROTTLE_IN.sender();
-    let address = SlaveAddr::default(); // 0x48
-    let mut adc = Ads1x1x::new_ads1115(i2c, address);
-    let result = adc.set_full_scale_range(FullScaleRange::Within6_144V); // Within2_048V +- 2.048v // Within6_144V +-6.144v
-    match result {
-        Ok(()) => {},
+    let config = ADS111xConfig::default()
+        .mux(InputMultiplexer::AIN0GND)
+        .dr(DataRate::SPS8)
+        .pga(ProgramableGainAmplifier::V6_144); // 6.144v
+
+    let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
         Err(_e) => {
             info!("{}: device error", TASK_ID);
             return
-        }, // unable to communicate with device
-    }
+        },
+        Ok(x) => x, // assign the mutex to adc
+    };
+
+    // Write the configuration to the chip's registers
+    if let Err(_e) = adc.write_config(None).await {
+        info!("{}: device error", TASK_ID);
+        return
+    };
+
+    let send_throttle = signals::THROTTLE_IN.sender();
     let mut count = 0u8;
     let mut last_voltage = 0u16;
     
     loop {
         Timer::after_millis(INTERVAL).await;
-        let value = block!(adc.read(ChannelSelection::SingleA0)).unwrap();
-
-        // convert to voltage
-        // ADC - 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
-        let input_voltage: u16 = (f32::from(value) * 6144.0 / 32768.0) as u16; // converted to mv
-
-        // voltage of the actual throttle before the resitor divider
-        // some minor inaccuracy here from resitors, is it worth compensating for 2-3mv?
-        //let real_voltage = (input_voltage * 5 / 2) as u16; // 2 resitor values 330 & 220 : 5v = 2v
-
-        // Note, the impedance acts as a 10mo resistor from pin to ground, so need to calulate that also!
-        // note ive added 100k pulldown resistor to remove fluctation during power off
-        // so do a check, if value is larger than 20 we can report it
-
         
-        if input_voltage > 20 {
-            send_throttle.send(input_voltage);
+        match adc.read_single_voltage(None).await {
+            Ok(v) => {
+                // TODO: check output voltages!
+                info!("{}: voltage: {}", TASK_ID, v);
 
-            // lower update for ble
-            if count > 4 {
-                count = 0;
-                if input_voltage != last_voltage {
-                    last_voltage = input_voltage;
-                    signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
-                };
-            }
+                // convert to voltage -> 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
+                //let input_voltage: u16 = (v * 6144.0 / 32768.0) as u16; // mv
+                let input_voltage = (v * 1000f32) as u16; // mv
+        
+                if input_voltage > 20 {
+                    send_throttle.send(input_voltage);
+        
+                    // lower update for ble
+                    if count > 4 {
+                        count = 0;
+                        if input_voltage != last_voltage {
+                            last_voltage = input_voltage;
+                            signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
+                        };
+                    }
+                }
+        
+                count += 1;
+            },
+            Err(_e) => info!("{}: device error", TASK_ID),
         }
-
-        count += 1;
     }
 }

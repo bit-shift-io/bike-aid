@@ -1,4 +1,4 @@
-use defmt::*;
+use defmt::info;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};

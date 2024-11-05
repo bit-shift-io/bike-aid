@@ -55,6 +55,8 @@ mod tasks;
 mod examples;
 mod ble;
 mod utils;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+use embassy_sync::mutex;
 use tasks::*;
 use utils::signals;
 
@@ -66,12 +68,18 @@ use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority};
 use embassy_nrf::peripherals::{self, TWISPI0};
 use embassy_nrf::nvmc::Nvmc;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::blocking_mutex::raw::{NoopRawMutex, ThreadModeRawMutex};
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use embassy_nrf::twim::{self, Twim};
 use embassy_sync::blocking_mutex::{Mutex, NoopMutex};
 use static_cell::StaticCell;
+
+// async i2c drivers!
+// https://github.com/thatredox/mcp4725-async
+// https://github.com/kalkyl/mpu6050-async/tree/main/examples/src/bin
+// https://crates.io/crates/embedded-ads111x
+
 
 
 #[embassy_executor::main]
@@ -81,10 +89,11 @@ async fn main(spawner: Spawner) {
     let p = embassy_nrf::init(get_config()); // make mut if need be for shared resources
     Timer::after_secs(2).await; // sleep incase we need to flash during debug and get a crash
     signals::init();
-    
+
     // == I2C DEVICES ==
 
-    let i2c_bus = init_i2c_bus(p.TWISPI0, p.P0_08.degrade(), p.P0_06.degrade());
+    let i2c_bus = init_async_i2c(p.TWISPI0, p.P0_08.degrade(), p.P0_06.degrade());
+
     spawner.must_spawn(throttle_adc::task(i2c_bus));
     spawner.must_spawn(throttle_dac::task(i2c_bus));
     spawner.must_spawn(gyroscope::task(i2c_bus));
@@ -131,18 +140,32 @@ fn get_config() -> Config {
     c
 }
 
-
-fn init_i2c_bus(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>> {
+// -> &'static embassy_sync::mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>> 
+fn init_async_i2c(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>> {
     bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
     interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
     
     let config = twim::Config::default();
-    let i2c = Twim::new(twim, Irqs, sda, scl, config); // sda: p0.08, scl: p0.06
-    let i2c_bus = NoopMutex::new(RefCell::new(i2c));
-    
-    static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new();
-    I2C_BUS.init(i2c_bus)
+    let i2c = Twim::new(twim, Irqs, sda, scl, config);
+    let i2c_bus = mutex::Mutex::<ThreadModeRawMutex, _>::new(i2c);
+    // note, we can place a refcell around the twim bus to allow it to be shared between tasks
+    static ASYNC_I2C_BUS: StaticCell<mutex::Mutex<ThreadModeRawMutex, Twim<TWISPI0>>> = StaticCell::new();
+    let result: &mut mutex::Mutex<ThreadModeRawMutex, Twim<'_, TWISPI0>> = ASYNC_I2C_BUS.init(i2c_bus);
+    result
 }
+
+
+// fn init_i2c_bus(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>> {
+//     bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
+//     interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
+    
+//     let config = twim::Config::default();
+//     let i2c = Twim::new(twim, Irqs, sda, scl, config); // sda: p0.08, scl: p0.06
+//     let i2c_bus = NoopMutex::new(RefCell::new(i2c));
+    
+//     static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new();
+//     I2C_BUS.init(i2c_bus)
+// }
 
 
 async fn boot_ok() {
