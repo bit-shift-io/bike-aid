@@ -62,22 +62,29 @@ use utils::signals;
 use defmt::info;
 use embassy_nrf::config::Config;
 use embassy_nrf::gpio::AnyPin;
-use embassy_nrf::interrupt::{self, InterruptExt};
-use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority};
+use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin};
 use embassy_nrf::peripherals::{self, TWISPI0};
 use embassy_nrf::nvmc::Nvmc;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_time::Timer;
-use embassy_executor::Spawner;
+use embassy_nrf::interrupt;
+use embassy_nrf::interrupt::{InterruptExt, Priority};
+use embassy_executor::{InterruptExecutor, Spawner};
 use embassy_nrf::twim::{self, Twim};
 use static_cell::StaticCell;
 
-// async i2c drivers!
-// https://github.com/thatredox/mcp4725-async
-// https://github.com/kalkyl/mpu6050-async/tree/main/examples/src/bin
-// https://crates.io/crates/embedded-ads111x
+static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
+static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
 
+#[interrupt]
+unsafe fn SWI1_EGU1() {
+    EXECUTOR_HIGH.on_interrupt()
+}
 
+#[interrupt]
+unsafe fn SWI0_EGU0() {
+    EXECUTOR_MED.on_interrupt()
+}
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -86,6 +93,16 @@ async fn main(spawner: Spawner) {
     let p = embassy_nrf::init(get_config()); // make mut if need be for shared resources
     Timer::after_secs(2).await; // sleep incase we need to flash during debug and get a crash
     signals::init();
+
+    // == Pirority Spawners ==
+
+    // High-priority executor: SWI1_EGU1, priority level 6
+    interrupt::SWI1_EGU1.set_priority(Priority::P6);
+    let spawner_high = EXECUTOR_HIGH.start(interrupt::SWI1_EGU1);
+
+    // Medium-priority executor: SWI0_EGU0, priority level 7
+    interrupt::SWI0_EGU0.set_priority(Priority::P7);
+    let spawner_med = EXECUTOR_MED.start(interrupt::SWI0_EGU0);
 
     // == I2C DEVICES ==
 

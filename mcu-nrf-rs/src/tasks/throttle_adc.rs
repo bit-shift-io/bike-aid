@@ -6,7 +6,7 @@ use embassy_futures::select::{select, Either};
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
-use embassy_time::Timer;
+use embassy_time::{Instant, Timer};
 
 const TASK_ID : &str = "THROTTLE ADC";
 const INTERVAL: u64 = 100;
@@ -84,15 +84,18 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let send_throttle = signals::THROTTLE_IN.sender();
     let mut count = 0u8;
     let mut last_voltage = 0u16;
+
+    let mut last_time = Instant::now();
     
     loop {
+        let delta = Instant::now().duration_since(last_time).as_millis();
+        info!("{}: {:?}", TASK_ID, delta);
+        last_time = Instant::now();
+
         Timer::after_millis(INTERVAL).await;
         
         match adc.read_single_voltage(None).await {
             Ok(v) => {
-                // TODO: check output voltages!
-                info!("{}: voltage: {}", TASK_ID, v);
-
                 // convert to voltage -> 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
                 //let input_voltage: u16 = (v * 6144.0 / 32768.0) as u16; // mv
                 let input_voltage = (v * 1000f32) as u16; // mv

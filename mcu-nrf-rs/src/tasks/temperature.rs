@@ -9,7 +9,7 @@ use embassy_time::{Delay, Timer};
 use embassy_futures::select::{select, Either};
 
 const TASK_ID : &str = "TEMPERATURE";
-const INTERVAL: u64 = 20; // seconds
+const INTERVAL: u64 = 10; // seconds
 
 #[embassy_executor::task]
 pub async fn task(
@@ -56,6 +56,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
                 let temp = t as u8;
                 if last_temperature != temp {
                     last_temperature = temp;
+                    //info!("{}: {}", TASK_ID, temp);
                     signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice()).await;
                 }
             },

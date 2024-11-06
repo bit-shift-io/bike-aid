@@ -65,7 +65,7 @@ async fn run() {
 
     loop {
         if let Some(b) = watch.try_get() {state = b}
-        info!("{}: {}", TASK_ID, state);
+        //info!("{}: {}", TASK_ID, state);
 
         match state {
             true => { park_brake_off().await; },

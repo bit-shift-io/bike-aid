@@ -57,7 +57,6 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
 
     loop { 
         if let Some(b) = watch.try_get() {state = b}
-        info!("{}: park brake state {}", TASK_ID, state);
         match state {
             false => {
                 let watch_future = watch.changed();
@@ -70,7 +69,6 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
             true => { 
                 let _ = stop(i2c_bus).await; // set power to device off
                 state = watch.changed().await;
-                info!("not here");
             }
         }
     }

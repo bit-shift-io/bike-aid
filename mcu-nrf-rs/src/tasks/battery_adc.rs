@@ -62,7 +62,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
         .dr(DataRate::SPS8)
         .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
-    let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
+    let mut adc = match ADS111x::new(i2c, 0x4Au8, config) { // 0x4A
         Err(_e) => {
             info!("{}: device error", TASK_ID);
             return;
@@ -89,13 +89,12 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
             continue
         };
 
-        // TODO: check voltages!
-        info!("{} {}", value_a0.unwrap(), value_a1.unwrap());
-
         let voltage = calculate_voltage(value_a1.unwrap());
         let current = calculate_current(value_a0.unwrap());
 
         send_data.send([voltage, current]);
+
+        //info!("{}: voltage: {} current: {}", TASK_ID, voltage, current);
     }
 }
 
