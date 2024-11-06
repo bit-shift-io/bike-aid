@@ -6,7 +6,6 @@ const TASK_ID: &str = "BATTERY";
 const BATTERY_MAX_VOLTAGE: u16 = 54_600; // mV
 const BATTERY_MIN_VOLTAGE: u16 = 39_000; // mv
 const BATTERY_RANGE: u16 = BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE; // mv
-const MIN_CURRENT: u16 = 700; // mA
 
 
 #[embassy_executor::task]
@@ -51,6 +50,5 @@ async fn calculate_percent(voltage: u16) -> u8 {
 
 
 async fn calculate_power(voltage: u16, current: u16) -> u16 {
-    if current <= MIN_CURRENT { return 0 };
     ((voltage as u32 * current as u32) / 1_000_000) as u16 // milliwatts P=IV - watts
 }

@@ -44,7 +44,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
         Ok(()) => {},
         Err(_e) => {
             info!("{}: device error", TASK_ID);
-            return
+            return;
         }, // unable to communicate with device
     }
 

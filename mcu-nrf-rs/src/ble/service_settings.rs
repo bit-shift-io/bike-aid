@@ -77,7 +77,7 @@ impl SettingsService {
         if handle == self.power_on.value_handle {
             let message = if data[0] == 183 { true } else { false };
             //info!("ble power on: {:?} {:?}", message, data[0]);
-            signals::POWER_ON.dyn_sender().send_if_modified(|value| {
+            signals::REQUEST_POWER_ON.dyn_sender().send_if_modified(|value| {
                 if *value != Some(message) {
                     *value = Some(message);
                     true

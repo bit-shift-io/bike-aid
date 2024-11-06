@@ -70,7 +70,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
         Err(_e) => {
             info!("{}: device error", TASK_ID);
-            return
+            return;
         },
         Ok(x) => x, // assign the mutex to adc
     };
@@ -78,7 +78,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     // Write the configuration to the chip's registers
     if let Err(_e) = adc.write_config(None).await {
         info!("{}: device error", TASK_ID);
-        return
+        return;
     };
 
     let send_throttle = signals::THROTTLE_IN.sender();

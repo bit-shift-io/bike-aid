@@ -29,7 +29,8 @@ probe-rs list
 
 ## Getting rust working
 Run ```cargo build``` in the rust project root directory  
-Then ```cargo run```
+Then ```cargo run```  
+or ```cargo-embed``` for user input terminal
 
 
 ## Error: No connected probes were found.

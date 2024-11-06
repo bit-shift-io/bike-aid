@@ -12,14 +12,14 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut brake_state = Input::new(pin, Pull::None); // high = brake off, low = brake on
+    // todo: change to pullup so that defaults to off when not pluged in
+    let mut brake_state = Input::new(pin, Pull::Up); // high = brake off, low = brake on
     // need to turn off the brake when power if off, so that it doesnt rest the handbrake when power comes back on
     let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
 
     loop { 
         if let Some(b) = rec.try_get() {state = b}
-        
         match state {
             true => {
                 let watch_future = rec.changed();
@@ -34,21 +34,19 @@ pub async fn task(
     }
 }
 
-pub async fn run<'a>(
-    brake_state: &mut Input<'a>
-) {
-    
+
+pub async fn run<'a>(brake_state: &mut Input<'a>) {
     let watch_brake_on = signals::BRAKE_ON.sender();
    
     loop {
         brake_state.wait_for_high().await; // brake off
         watch_brake_on.send(false);
         signals::send_ble(signals::BleHandles::BrakeOn, &(false as u8).to_le_bytes()).await;
-        //info!("{}: brake off", TASK_ID);
+        info!("{}: brake off", TASK_ID);
 
         brake_state.wait_for_low().await; // brake on
         watch_brake_on.send(true);
         signals::send_ble(signals::BleHandles::BrakeOn, &(true as u8).to_le_bytes()).await;
-        //info!("{}: brake on", TASK_ID);
+        info!("{}: brake on", TASK_ID);
     }
 }

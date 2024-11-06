@@ -6,7 +6,7 @@ use super::service_battery::BatteryService;
 use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
-use defmt::info;
+use defmt::{info, warn};
 use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
@@ -130,6 +130,7 @@ pub async fn run(connection: &Connection, server: &Server) {
 
         // wait for command
         let command = rec_queue.receive().await;
+        if rec_queue.is_full() { warn!("{}: queue full", TASK_ID); }
 
         let value: &[u8] = command.as_bytes();
         let handle;

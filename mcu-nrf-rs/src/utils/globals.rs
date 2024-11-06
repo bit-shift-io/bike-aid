@@ -1,4 +1,2 @@
-
-
-// buffer length for strings & ble
+// cli data slice & ble command
 pub const BUFFER_LENGTH: usize = 32;

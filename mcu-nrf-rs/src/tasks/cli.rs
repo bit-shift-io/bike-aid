@@ -10,7 +10,7 @@ const TASK_ID: &str = "CLI";
 pub async fn task() {
     info!("{}", TASK_ID);
     let start_time = Instant::now();
-    let mut rec_read = signals::WATCH_CLI.receiver().unwrap();
+    let mut rec_read = signals::CLI.receiver().unwrap();
  
     loop {
         let data = rec_read.changed().await;
@@ -118,9 +118,9 @@ pub async fn task() {
 
         if string.starts_with("power") {
             if string.ends_with("on") {
-                signals::POWER_ON.dyn_sender().send(true);
+                signals::REQUEST_POWER_ON.dyn_sender().send(true);
             } else {
-                signals::POWER_ON.dyn_sender().send(false);
+                signals::REQUEST_POWER_ON.dyn_sender().send(false);
             }
 
             result = true;

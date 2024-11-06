@@ -13,6 +13,7 @@ pub fn init() {
     CRUISE_LEVEL.dyn_sender().send_if_modified(|value| { *value = Some(0u8); false });
     THROTTLE_IN.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
     THROTTLE_OUT.dyn_sender().send_if_modified(|value| { *value = Some(0u16); false });
+    REQUEST_POWER_ON.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     POWER_ON.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     SWITCH_HORN.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     SWITCH_LIGHT.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
@@ -31,7 +32,7 @@ pub fn init() {
     ALARM_MOTION_DETECTED.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     
     //UART_WRITE.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BLE_BUFFER_LENGTH],data_len: globals::BLE_BUFFER_LENGTH}); false });
-    WATCH_CLI.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BUFFER_LENGTH],data_len: globals::BUFFER_LENGTH}); false });
+    CLI.dyn_sender().send_if_modified(|value| { *value = Some(DataSlice {data: [0u8; globals::BUFFER_LENGTH],data_len: globals::BUFFER_LENGTH}); false });
 
     STORE_WRITE.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
     STORE_UPDATED.dyn_sender().send_if_modified(|value| { *value = Some(false); false });
@@ -46,6 +47,7 @@ pub static PARK_BRAKE_ON: Watch<WatchMutex, bool, 5> = Watch::new();
 pub static CRUISE_LEVEL: Watch<WatchMutex, u8, 3> = Watch::new();
 pub static THROTTLE_IN: Watch<WatchMutex, u16, 3> = Watch::new();
 pub static THROTTLE_OUT: Watch<WatchMutex, u16, 1> = Watch::new();
+pub static REQUEST_POWER_ON: Watch<WatchMutex, bool, 2> = Watch::new();
 pub static POWER_ON: Watch<WatchMutex, bool, 10> = Watch::new();
 pub static SWITCH_HORN: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static SWITCH_LIGHT: Watch<WatchMutex, bool, 1> = Watch::new();
@@ -66,7 +68,7 @@ pub static ALARM_ENABLED: Watch<WatchMutex, bool, 3> = Watch::new();
 pub static ALARM_ALERT_ACTIVE: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static ALARM_MOTION_DETECTED: Watch<WatchMutex, bool, 1> = Watch::new();
 
-pub static WATCH_CLI: Watch<WatchMutex, DataSlice, 1> = Watch::new();
+pub static CLI: Watch<WatchMutex, DataSlice, 1> = Watch::new();
 
 pub static STORE_WRITE: Watch<WatchMutex, bool, 1> = Watch::new();
 pub static STORE_UPDATED: Watch<WatchMutex, bool, 1> = Watch::new();
@@ -86,6 +88,6 @@ pub async fn send_ble(handle: BleHandles, data: &[u8]) {
 
 pub fn send_cli(data: &[u8]) {
     let msg = DataSlice::new(data);
-    let sender = WATCH_CLI.sender();
+    let sender = CLI.sender();
     let _ = sender.send(msg);
 }

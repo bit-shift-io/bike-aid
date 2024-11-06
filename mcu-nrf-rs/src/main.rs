@@ -55,12 +55,10 @@ mod tasks;
 mod examples;
 mod ble;
 mod utils;
-use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_sync::mutex;
 use tasks::*;
 use utils::signals;
 
-use core::cell::RefCell;
 use defmt::info;
 use embassy_nrf::config::Config;
 use embassy_nrf::gpio::AnyPin;
@@ -68,11 +66,10 @@ use embassy_nrf::interrupt::{self, InterruptExt};
 use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin, interrupt::Priority};
 use embassy_nrf::peripherals::{self, TWISPI0};
 use embassy_nrf::nvmc::Nvmc;
-use embassy_sync::blocking_mutex::raw::{NoopRawMutex, ThreadModeRawMutex};
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_time::Timer;
 use embassy_executor::Spawner;
 use embassy_nrf::twim::{self, Twim};
-use embassy_sync::blocking_mutex::{Mutex, NoopMutex};
 use static_cell::StaticCell;
 
 // async i2c drivers!

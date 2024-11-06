@@ -1,5 +1,6 @@
 use crate::utils::signals;
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+use embassy_embedded_hal::shared_bus::I2cDeviceError;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
 use embassy_futures::select::{select, Either};
@@ -40,7 +41,7 @@ pub async fn task(
                 }
             },
             false => {
-                if init { stop(i2c_bus).await; } // set power to device off
+                if init { let _ = stop(i2c_bus).await; } // set power to device off
                 else { init = true; } 
                 state = rec.changed().await; 
             }
@@ -56,6 +57,7 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
 
     loop { 
         if let Some(b) = watch.try_get() {state = b}
+        info!("{}: park brake state {}", TASK_ID, state);
         match state {
             false => {
                 let watch_future = watch.changed();
@@ -66,8 +68,9 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
                 }
             },
             true => { 
-                stop(i2c_bus).await; // set power to device off
-                state = watch.changed().await; 
+                let _ = stop(i2c_bus).await; // set power to device off
+                state = watch.changed().await;
+                info!("not here");
             }
         }
     }
@@ -75,7 +78,15 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
 
 
 async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
-    let mut dac = get_dac(i2c_bus).await;
+    //let mut dac = get_dac(i2c_bus).await;
+    let mut dac = match get_dac(i2c_bus).await {
+        Ok(x) => { x },
+        Err(_e) => {
+            info!("{}: device error", TASK_ID);
+            return;
+        }
+    };
+
     let mut last_value = 0;
     let mut rec_throttle = signals::THROTTLE_OUT.receiver().unwrap();
 
@@ -95,6 +106,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
             Ok(_) => {},
             Err(_e) => {
                 info!("{}: device error", TASK_ID);
+                return;
             }
         }
         
@@ -103,12 +115,12 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
 }
 
 
-async fn stop(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
-    get_dac(i2c_bus).await; // will reset it also
+async fn stop(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) -> Result<MCP4725<I2cDevice<'_, ThreadModeRawMutex, Twim<'_, TWISPI0>>>, I2cDeviceError<embassy_nrf::twim::Error>> {
+    get_dac(i2c_bus).await // will reset it also
 }
 
 
-async fn get_dac(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) -> MCP4725<I2cDevice<'_, ThreadModeRawMutex, Twim<'_, TWISPI0>>>{
+async fn get_dac(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) -> Result<MCP4725<I2cDevice<'_, ThreadModeRawMutex, Twim<'_, TWISPI0>>>, I2cDeviceError<embassy_nrf::twim::Error>>{
     let i2c = I2cDevice::new(i2c_bus);
 
     // Address corresponds to A2,A1=0, and A0 tied to Vss
@@ -117,18 +129,25 @@ async fn get_dac(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static
     
     // Set DAC to 0x000 = Zero volts, write to eeprom
     match dac.set_voltage(0x000, true).await {
-        Ok(_) => {},
-        Err(_e) => {
+        Ok(_) => { return Ok(dac); },
+        Err(e) => {
             info!("{}: device error", TASK_ID);
+            return Err(e);
         }, // unable to communicate with device
     }
-    dac
 }
 
 
 #[allow(unused)]
 async fn calibrate(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
-    let mut dac = get_dac(i2c_bus).await;
+    let mut dac = match get_dac(i2c_bus).await {
+        Ok(x) => { x },
+        Err(_e) => {
+            info!("{}: device error", TASK_ID);
+            return;
+        }
+    };
+
     let v0 = 0u16;
     let v1 = (1000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16;
     let v2 = (2000.0 * 4095.0 / f32::from(SUPPLY_VOLTAGE)) as u16;

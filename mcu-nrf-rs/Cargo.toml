@@ -65,6 +65,12 @@ embassy-time = { version = "0.3.2", features = ["defmt", "defmt-timestamp-uptime
 embassy-nrf = { version = "0.2.0", features = ["defmt", "time-driver-rtc1", "gpiote", "nfc-pins-as-gpio", "nrf52840"] }
 embassy-embedded-hal = { version = "0.2.0" }
 
+# embedded
+embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
+embedded-storage = "0.3.1"
+embedded-storage-async = "0.4.1"
+
 # rtt / log
 defmt = { version = "0.3.8" }
 #defmt-rtt = "0.4.1" # use this if dont want to use rtt target
@@ -76,11 +82,9 @@ cortex-m = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt = "0.7.3"
 
 # misc
-embedded-hal = "1.0.0"
-embedded-hal-async = "1.0.0"
 static_cell = "2.0.0"
 format_no_std = "1.2.0"
-critical-section = "1.1"
+#critical-section = "1.1"
 
 # maths
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
@@ -91,16 +95,10 @@ nrf-softdevice = { version = "0.1.0", features = ["nrf52840", "s140", "defmt", "
 futures = { version = "0.3.30", default-features = false, features = ["async-await"]}
 heapless = "0.8.0"
 
-# flash
-embedded-storage = "0.3.1"
-embedded-storage-async = "0.4.1"
-
 # device driver
 mcp4725-async = "0.1.0"
 mpu6050-async = { version = "0.0.1", path = "../mpu6050-async" }
 embedded-ads111x = { version = "0.1.2", features = ["async"] }
-
-
 
 
 [patch.crates-io]

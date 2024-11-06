@@ -33,7 +33,7 @@ pub async fn task() {
 
 pub async fn run() {
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
-    let send_power_on = signals::POWER_ON.sender();
+    let send_power_on = signals::REQUEST_POWER_ON.sender();
     let mut state = true;
 
     loop {

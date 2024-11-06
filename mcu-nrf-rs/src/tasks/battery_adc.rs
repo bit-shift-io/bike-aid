@@ -23,6 +23,7 @@ const VCC : u16 = 3300; // 3.3v = 3,300mV
 const QUIESCENT_VOLTAGE : u16 = VCC / 2; // 0.5 (half) for ACS758LCB-100B
 const SENSITIVITY: u16 = 100; // Sensitivity in mV/A for ACS758LCB-100B
 const NON_ZERO: u16 = 7; // 7mV value to make voltage zero when there is no current
+const MIN_CURRENT_LIMIT: u16 = 700; // mA
 
 
 #[embassy_executor::task]
@@ -64,7 +65,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
         Err(_e) => {
             info!("{}: device error", TASK_ID);
-            return
+            return;
         },
         Ok(x) => x, // assign the mutex to adc
     };
@@ -72,7 +73,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     // Write the configuration to the chip's registers
     if let Err(_e) = adc.write_config(None).await {
         info!("{}: device error", TASK_ID);
-        return
+        return;
     };
     
     let send_data = signals::BATTERY_IN.sender();
@@ -122,12 +123,11 @@ fn calculate_current(input: f32) -> u16 {
     //let input_voltage_a0: u16 = (input * 4096.0 / 32768.0) as u16; // converted to mv
     let input_voltage = (input * 1000f32) as u16; // mv
 
-    // TODO: current sensor
     let differential_voltage = input_voltage - QUIESCENT_VOLTAGE + NON_ZERO;
-    let current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
-    // if current < CUTOFF_LIMIT {
-    //     current = 0;
-    // }
+    let mut current = ((1000 * differential_voltage as u32) / SENSITIVITY as u32) as u16; // mA - u32 prevent overflow
+    if current < MIN_CURRENT_LIMIT {
+         current = 0;
+    }
     
     //info!("{} -> {} -> {} -> {}", input, input_voltage_a0, differential_voltage, current);
     current
