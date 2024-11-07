@@ -93,28 +93,28 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(gyroscope::task(i2c_bus));
     spawner.must_spawn(temperature::task(i2c_bus));
     spawner.must_spawn(battery_adc::task(i2c_bus));
-
+ 
     // == TASKS ==
 
-    spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
+    spawner.must_spawn(switch_power::task(p.P0_10.degrade()));
+    spawner.must_spawn(cli::task());
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
     spawner.must_spawn(park_brake::task());
+    spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
     spawner.must_spawn(speed::task(p.P0_09.degrade()));
-    spawner.must_spawn(switch_power::task(p.P0_10.degrade()));
     spawner.must_spawn(power_down::task());
     spawner.must_spawn(manual_override::task(p.P0_20.degrade()));
-    //spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
-    //spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
     spawner.must_spawn(battery::task());
     spawner.must_spawn(piezo::task(p.PWM0, p.P0_29.degrade())); // disable when debug to mute
     spawner.must_spawn(alarm::task());
     spawner.must_spawn(throttle::task());
     spawner.must_spawn(cruise::task());
     spawner.must_spawn(bluetooth::task(spawner));
-    spawner.must_spawn(cli::task());
     spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
     spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
     spawner.must_spawn(clock::task());
+    //spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
+    //spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
 
     // == FINALISE ==
 

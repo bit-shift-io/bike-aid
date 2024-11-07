@@ -1,4 +1,4 @@
-use crate::utils::{profile::{self, Profile}, signals};
+use crate::utils::signals;
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -6,10 +6,10 @@ use embassy_futures::select::{select, Either};
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
-use embassy_time::{Instant, Timer};
+use embassy_time::Timer;
 
 const TASK_ID : &str = "THROTTLE ADC";
-const INTERVAL: u64 = 100;
+const INTERVAL: u64 = 98; // less 2ms for read time
 
 #[embassy_executor::task]
 pub async fn task(
@@ -64,7 +64,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let i2c = I2cDevice::new(i2c_bus);
     let config = ADS111xConfig::default()
         .mux(InputMultiplexer::AIN0GND)
-        .dr(DataRate::SPS8)
+        .dr(DataRate::SPS860) // higher data rate completes read in 2ms instead of 120ms
         .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
     let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
@@ -85,13 +85,10 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let mut count = 0u8;
     let mut last_voltage = 0u16;
 
-    let mut p = Profile::new(TASK_ID);
-
     loop {
-        p.start();
-  
         Timer::after_millis(INTERVAL).await;
         
+        // read takes 2ms | 83 ticks
         match adc.read_single_voltage(None).await {
             Ok(v) => {
                 // convert to voltage -> 6.144v * 1000 (to mv) / 32768 (15 bit, 1 bit +-)
@@ -115,7 +112,5 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
             },
             Err(_e) => info!("{}: device error", TASK_ID),
         }
-
-        p.stop();
     }
 }

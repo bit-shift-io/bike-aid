@@ -76,7 +76,6 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
 
 
 async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
-    //let mut dac = get_dac(i2c_bus).await;
     let mut dac = match get_dac(i2c_bus).await {
         Ok(x) => { x },
         Err(_e) => {
@@ -107,7 +106,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
                 return;
             }
         }
-        
+
         //info!("{} : {}", TASK_ID, dac_value); // dac value, not in mv
     }
 }

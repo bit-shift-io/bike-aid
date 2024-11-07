@@ -17,7 +17,7 @@ pub async fn task() {
     let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
     
     // TODO: when settings change, reload the loop, so we dont need to mutex lock each itter....
-    
+
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
         let throttle_settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time

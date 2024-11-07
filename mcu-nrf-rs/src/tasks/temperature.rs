@@ -51,6 +51,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let mut last_temperature: u8 = 0;
 
     loop {
+        // profile in 0ms
         match mpu.get_temp().await {
             Ok(t) => {
                 let temp = t as u8;
@@ -62,7 +63,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
             },
             Err(_e) => { info!("{}: device error", TASK_ID); },
         }
-        
+
         Timer::after_secs(INTERVAL).await;
     }
 }

@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{profile::Profile, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -59,7 +59,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let i2c = I2cDevice::new(i2c_bus);
     let config = ADS111xConfig::default()
         .mux(InputMultiplexer::AIN0GND)
-        .dr(DataRate::SPS8)
+        .dr(DataRate::SPS860)
         .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
     let mut adc = match ADS111x::new(i2c, 0x4Au8, config) { // 0x4A
@@ -81,6 +81,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     loop {
         Timer::after_secs(INTERVAL).await;
 
+        // read 2 values takes 6ms
         let value_a0 = adc.read_single_voltage(Some(InputMultiplexer::AIN0GND)).await; // current
         let value_a1 = adc.read_single_voltage(Some(InputMultiplexer::AIN1GND)).await; // voltage
 
@@ -91,7 +92,6 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
 
         let voltage = calculate_voltage(value_a1.unwrap());
         let current = calculate_current(value_a0.unwrap());
-
         send_data.send([voltage, current]);
 
         //info!("{}: voltage: {} current: {}", TASK_ID, voltage, current);

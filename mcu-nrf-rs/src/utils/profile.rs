@@ -44,7 +44,7 @@ impl Profile {
     pub fn stop(&mut self) {
         if self.count >= self.iterations {
             let duration = Instant::now().duration_since(self.start.unwrap());
-            info!("{} profile in {} ms", self.name_as_string(), duration.as_millis());
+            info!("{} -> {} ms | {} tick", self.name_as_string(), duration.as_millis(), duration.as_ticks());
             self.reset();
         }
     }
