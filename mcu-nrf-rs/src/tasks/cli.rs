@@ -9,7 +9,7 @@ const TASK_ID: &str = "CLI";
 #[embassy_executor::task]
 pub async fn task() {
     info!("{}", TASK_ID);
-    let start_time = Instant::now();
+
     let mut rec_read = signals::CLI.receiver().unwrap();
  
     loop {
@@ -33,7 +33,7 @@ pub async fn task() {
         }
 
         if string.contains("uptime") {
-            let seconds = start_time.elapsed().as_secs();
+            let seconds = Instant::MIN.elapsed().as_secs();
             let days = seconds / 86400; // 86400 seconds in a day
             let hours = (seconds % 86400) / 3600; // 3600 seconds in an hour
             let minutes = (seconds % 3600) / 60; // 60 seconds in a minute

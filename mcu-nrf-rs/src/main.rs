@@ -69,22 +69,10 @@ use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_time::Timer;
 use embassy_nrf::interrupt;
 use embassy_nrf::interrupt::{InterruptExt, Priority};
-use embassy_executor::{InterruptExecutor, Spawner};
+use embassy_executor::{InterruptExecutor, SendSpawner, Spawner};
 use embassy_nrf::twim::{self, Twim};
 use static_cell::StaticCell;
 
-static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
-static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
-
-#[interrupt]
-unsafe fn SWI1_EGU1() {
-    EXECUTOR_HIGH.on_interrupt()
-}
-
-#[interrupt]
-unsafe fn SWI0_EGU0() {
-    EXECUTOR_MED.on_interrupt()
-}
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -93,16 +81,8 @@ async fn main(spawner: Spawner) {
     let p = embassy_nrf::init(get_config()); // make mut if need be for shared resources
     Timer::after_secs(2).await; // sleep incase we need to flash during debug and get a crash
     signals::init();
-
-    // == Pirority Spawners ==
-
-    // High-priority executor: SWI1_EGU1, priority level 6
-    interrupt::SWI1_EGU1.set_priority(Priority::P6);
-    let spawner_high = EXECUTOR_HIGH.start(interrupt::SWI1_EGU1);
-
-    // Medium-priority executor: SWI0_EGU0, priority level 7
-    interrupt::SWI0_EGU0.set_priority(Priority::P7);
-    let spawner_med = EXECUTOR_MED.start(interrupt::SWI0_EGU0);
+    let (spawn_high, spawn_med) = init_priority_spawners();
+   
 
     // == I2C DEVICES ==
 
@@ -143,6 +123,32 @@ async fn main(spawner: Spawner) {
 }
 
 
+fn init_priority_spawners() -> (SendSpawner, SendSpawner) {
+    static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
+    static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
+
+    #[interrupt]
+    unsafe fn SWI1_EGU1() {
+        EXECUTOR_HIGH.on_interrupt()
+    }
+
+    #[interrupt]
+    unsafe fn SWI0_EGU0() {
+        EXECUTOR_MED.on_interrupt()
+    }
+
+    // High-priority executor: SWI1_EGU1, priority level 6
+    interrupt::SWI1_EGU1.set_priority(Priority::P6);
+    let spawner_high = EXECUTOR_HIGH.start(interrupt::SWI1_EGU1);
+
+    // Medium-priority executor: SWI0_EGU0, priority level 7
+    interrupt::SWI0_EGU0.set_priority(Priority::P7);
+    let spawner_med = EXECUTOR_MED.start(interrupt::SWI0_EGU0);
+
+    (spawner_high, spawner_med)
+}
+
+
 fn get_config() -> Config {
     let mut c = Config::default();
     // change interrupts for softdevice - levels 0, 1 and 4 are reserved by the softdevice
@@ -154,7 +160,7 @@ fn get_config() -> Config {
     c
 }
 
-// -> &'static embassy_sync::mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>> 
+
 fn init_async_i2c(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>> {
     bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
     interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);

@@ -1,6 +1,6 @@
 use crate::utils::signals;
 use embassy_futures::select::{select, Either};
-use embassy_time::Timer;
+use embassy_time::{Instant, Timer};
 use defmt::info;
 
 const TASK_ID: &str = "CLOCK";
@@ -30,19 +30,24 @@ pub async fn task() {
 
 
 async fn run() {
-    let mut minutes: u8 = 0;
-    let mut hours: u8 = 0;
-   
+    let mut last_minutes: u8 = 0;
+    let mut last_hours: u8 = 0;
+    let start_time = Instant::now();
+
     loop {
         Timer::after_secs(60).await;
 
-        // Increment minutes
-        minutes = (minutes + 1) % 60;
-        signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice()).await;
+        let seconds = start_time.elapsed().as_secs();
+        let hours = ((seconds % 86400) / 3600) as u8; // 3600 seconds in an hour
+        let minutes = ((seconds % 3600) / 60) as u8; // 60 seconds in a minute
+
+        if minutes != last_minutes {
+            last_minutes = minutes;
+            signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice()).await;
+        };
     
-        // Increment hours if minutes rolled over to 0
-        if minutes == 0 {
-            hours = (hours + 1) % 24;
+        if hours != last_hours {
+            last_hours = hours;
             signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice()).await;
         }
     }

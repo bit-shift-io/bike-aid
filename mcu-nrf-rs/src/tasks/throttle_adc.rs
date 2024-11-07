@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{profile::{self, Profile}, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -85,13 +85,11 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     let mut count = 0u8;
     let mut last_voltage = 0u16;
 
-    let mut last_time = Instant::now();
-    
-    loop {
-        let delta = Instant::now().duration_since(last_time).as_millis();
-        info!("{}: {:?}", TASK_ID, delta);
-        last_time = Instant::now();
+    let mut p = Profile::new(TASK_ID);
 
+    loop {
+        p.start();
+  
         Timer::after_millis(INTERVAL).await;
         
         match adc.read_single_voltage(None).await {
@@ -117,5 +115,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
             },
             Err(_e) => info!("{}: device error", TASK_ID),
         }
+
+        p.stop();
     }
 }

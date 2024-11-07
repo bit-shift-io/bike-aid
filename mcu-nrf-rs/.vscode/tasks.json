@@ -11,6 +11,7 @@
               "$rustc"
           ]
       },
+
       {
           "label": "cargo run",
           "type": "shell",
@@ -19,6 +20,7 @@
               "$rustc"
           ]
       },
+
       {
           "label": "cargo build",
           "type": "shell",
@@ -31,6 +33,7 @@
             "isDefault": true
           }
       },
+
       {
         "label": "cargo build release",
         "type": "shell",
@@ -42,6 +45,19 @@
           "kind": "build",
           "isDefault": false
         }
+      },
+
+      {
+        "label": "cargo embed",
+        "type": "shell",
+        "command": "cargo-embed",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [
+            "$rustc"
+        ]
     },
   ]
 }

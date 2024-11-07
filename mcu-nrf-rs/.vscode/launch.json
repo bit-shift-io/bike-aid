@@ -1,11 +1,22 @@
 {
     "version": "0.2.0",
     "configurations": [
+
       {
-        "preLaunchTask": "cargo build release",
+        "name": "Debug Embed",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+        "cwd": "${workspaceRoot}",
+        "preLaunchTask": "cargo embed",
+        "stopAtEntry": false,
+      }, 
+
+      {
+        "preLaunchTask": "${defaultBuildTask}",
         "type": "probe-rs-debug",
         "request": "launch",
-        "name": "Release",
+        "name": "Debug",
         "cwd": "${workspaceFolder}",
         "flashingConfig": {
           "flashingEnabled": true,
@@ -27,10 +38,10 @@
       }, 
 
       {
-        "preLaunchTask": "${defaultBuildTask}",
+        "preLaunchTask": "cargo build release",
         "type": "probe-rs-debug",
         "request": "launch",
-        "name": "Debug",
+        "name": "Release",
         "cwd": "${workspaceFolder}",
         "flashingConfig": {
           "flashingEnabled": true,
