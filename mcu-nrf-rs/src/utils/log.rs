@@ -1,3 +1,4 @@
+use defmt::info;
 use rtt_target::UpChannel;
 use portable_atomic::{AtomicBool, Ordering};
 
@@ -10,8 +11,8 @@ struct Logger;
 
 /// Sets the channel to use for [`defmt`] macros.
 pub fn set_defmt_channel(channel: UpChannel) {
-    //unsafe { CHANNEL = Some(channel) }
-    rtt_target::set_defmt_channel(channel);
+    unsafe { CHANNEL = Some(channel) }
+    //rtt_target::set_defmt_channel(channel);
 }
 
 /// Global logger lock.
@@ -55,16 +56,24 @@ unsafe impl defmt::Logger for Logger {
     }
 
     unsafe fn write(bytes: &[u8]) {
+        
+
         // safety: accessing the `static mut` is OK because we have disabled interrupts.
         ENCODER.write(bytes, do_write);
+        //panic!("...");
     }
 }
 
 fn do_write(bytes: &[u8]) {
-    if bytes.starts_with(b"warn") {
-        signals::send_ble(signals::BleHandles::Uart, bytes);
-    }
+    
+
     unsafe {
+        if let Ok(message) = core::str::from_utf8(bytes) {
+            if message.contains("CLI") {
+                info!("found!");
+            };
+        }
+        
         let channel = core::ptr::addr_of_mut!(CHANNEL);
         if let Some(Some(c)) = channel.as_mut() {
             c.write(bytes);

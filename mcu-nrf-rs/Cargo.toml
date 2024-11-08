@@ -19,7 +19,7 @@ codegen-units = 1
 debug = 2
 debug-assertions = false
 incremental = false
-lto = 'fat'
+lto = 'thin'
 opt-level = 's'
 overflow-checks = false
 

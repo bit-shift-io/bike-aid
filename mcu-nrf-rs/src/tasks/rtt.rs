@@ -45,6 +45,7 @@ pub fn init(spawner: Spawner) {
         }
     };
 
+    //log::set_defmt_channel(channels.up.0);
     rtt_target::set_defmt_channel(channels.up.0);
     spawner.must_spawn(task(channels.down.0));
 }

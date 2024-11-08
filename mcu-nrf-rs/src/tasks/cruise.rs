@@ -40,41 +40,31 @@ pub async fn task() {
 async fn run() {
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let send_piezo = signals::PIEZO_MODE.sender();
+    let mut throttle_voltage = rec_throttle.changed().await; // millivolts, initial value
 
     loop {
-        let mut throttle_voltage = rec_throttle.changed().await; // millivolts
-
-        // Wait for throttle to go below the NO_THROTTLE_THRESHOLD
-        while throttle_voltage >= NO_THROTTLE_THRESHOLD {
-            throttle_voltage = rec_throttle.changed().await; // millivolts
+        // Wait for throttle to go below the NO_THROTTLE_THRESHOLD - throttle off
+        while throttle_voltage > NO_THROTTLE_THRESHOLD {
+            throttle_voltage = rec_throttle.changed().await;
         }
 
-        // Now we are below the NO_THROTTLE_THRESHOLD, wait for it to exceed the threshold
-        //info!("below no throttle threshold");
-
-        // Wait for the throttle to exceed the NO_THROTTLE_THRESHOLD
+        // Wait for the throttle to exceed the NO_THROTTLE_THRESHOLD - throttle start/low
         while throttle_voltage < NO_THROTTLE_THRESHOLD {
-            throttle_voltage = rec_throttle.changed().await; // millivolts
+            throttle_voltage = rec_throttle.changed().await;
         }
 
-        // Count for timing, each update is 100ms
+        // start timing, each update is 100ms
         let mut count = 0;
 
-        // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD
+        // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD - throttle high
         while throttle_voltage < FULL_THROTTLE_THRESHOLD && count < MAX_COUNT {
-            throttle_voltage = rec_throttle.changed().await; // millivolts
-            //info!("throttle {}", throttle_voltage);
+            throttle_voltage = rec_throttle.changed().await;
             count += 1;
         }
 
-        if count >= MAX_COUNT {
-            continue; // Restart the loop if we didn't detect a full throttle
-        }
-
-        // Now we are at full throttle, wait for it to drop below the NO_THROTTLE_THRESHOLD
-        //count = 0; // Reset count for timing the drop
+        // Now we are at full throttle, wait for it to drop below the NO_THROTTLE_THRESHOLD - throttle off
         while throttle_voltage > NO_THROTTLE_THRESHOLD && count < MAX_COUNT {
-            throttle_voltage = rec_throttle.changed().await; // millivolts
+            throttle_voltage = rec_throttle.changed().await;
             count += 1;
         }
 

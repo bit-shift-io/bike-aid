@@ -47,8 +47,8 @@ async fn write_store<E: defmt::Format>(
     let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
-    write_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
-    write_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.increase_smoothing_high).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.decrease_smoothing).await;
     write_u16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
     write_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     write_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
@@ -69,8 +69,8 @@ async fn read_store<E: defmt::Format>(
     // == settings begin ==
     let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
-    read_u16(flash, &mut offset, &mut throttle_settings.increase_smooth_factor).await;
-    read_u16(flash, &mut offset, &mut throttle_settings.decrease_smooth_factor).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.increase_smoothing_high).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.decrease_smoothing).await;
     read_u16(flash, &mut offset, &mut throttle_settings.throttle_min).await;
     read_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     read_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;

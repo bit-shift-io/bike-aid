@@ -2,7 +2,7 @@ use crate::{piezo::PiezoMode, utils::{globals, settings, signals}};
 use defmt::{info, warn};
 use embassy_time::{Instant, Timer};
 use heapless::String;
-use core::fmt::Write;
+use core::fmt::{Display, Write};
 
 const TASK_ID: &str = "CLI";
 
@@ -60,61 +60,62 @@ pub async fn task() {
             result = true;
         }
 
-        if string.starts_with("increase_smooth_factor") || string.starts_with("2") {
+        if string.starts_with("increase_smoothing_low") || string.starts_with("2") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
-            throttle_settings.increase_smooth_factor = value.parse::<u16>().unwrap();
+            throttle_settings.increase_smoothing_low = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("decrease_smooth_factor") || string.starts_with("3") {
+        if string.starts_with("increase_smoothing_high") || string.starts_with("3") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
-            throttle_settings.decrease_smooth_factor = value.parse::<u16>().unwrap();
+            throttle_settings.increase_smoothing_high = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("no_throttle") || string.starts_with("4") {
+        if string.starts_with("decrease_smooth_factor") || string.starts_with("4") {
+            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.decrease_smoothing = value.parse::<u16>().unwrap();
+            result = true;
+        }
+
+        if string.starts_with("no_throttle") || string.starts_with("5") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.throttle_min = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("full_throttle") || string.starts_with("5") {
+        if string.starts_with("full_throttle") || string.starts_with("6") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.throttle_max = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("deadband_min") || string.starts_with("6") {
+        if string.starts_with("deadband_min") || string.starts_with("7") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.deadband_min = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("deadband_max") || string.starts_with("7") {
+        if string.starts_with("deadband_max") || string.starts_with("8") {
             let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.deadband_max = value.parse::<u16>().unwrap();
             result = true;
         }
 
-        if string.starts_with("speed_limit") || string.starts_with("8") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
-            let value = string.split_whitespace().last().unwrap();
-            throttle_settings.speed_limit = value.parse::<u16>().unwrap();
-            result = true;
-        }
 
-        if string.starts_with("settings") {
-            if string.ends_with("write") {
-               // TODO
-            }
-            result = true;
-        }
+        // if string.starts_with("settings") {
+        //     if string.ends_with("write") {
+        //        // TODO
+        //     }
+        //     result = true;
+        // }
 
         if string.starts_with("reboot") || string.starts_with("restart") || string.starts_with("reset") {
             send(b"reset in 2 seconds...");
@@ -159,15 +160,33 @@ pub async fn task() {
         }
 
 
-        if string.starts_with("help") {
-            send(b"1. passthrough 0/1");
-            send(b"2. increase_smooth_factor int");
-            send(b"3. decrease_smooth_factor int");
-            send(b"4. no_throttle int - mv");
-            send(b"5. full_throttle int - mv");
-            send(b"6. deadband_min int - mv");
-            send(b"7. deadband_max int - mv");
-            send(b"8. speed_limit int - kmhr");
+        if string.starts_with("help") || string.starts_with("?") || string == ("h") || string.starts_with("settings") {
+            let settings = { *settings::THROTTLE_SETTINGS.lock().await };
+
+            send(b"1. passthrough");
+            if settings.passthrough { send(b"1") } else { send(b"0") };
+
+            send(b"2. increase_smoothing_low");
+            send_str(settings.increase_smoothing_low);
+    
+            send(b"3. increase_smoothing_high");
+            send_str(settings.increase_smoothing_high);
+
+            send(b"4. decrease_smooth_factor");
+            send_str(settings.decrease_smoothing);
+
+            send(b"5. throttle_min");
+            send_str(settings.throttle_min);
+
+            send(b"6. throttle_max");
+            send_str(settings.throttle_max);
+
+            send(b"7. deadband_min");
+            send_str(settings.deadband_min);
+
+            send(b"8. deadband_max");
+            send_str(settings.deadband_max);
+
             result = true;
         }
         
@@ -180,6 +199,12 @@ pub async fn task() {
     }
 }
 
+
+pub fn send_str<T: Display>(value: T) {
+    let mut str: String<{globals::BUFFER_LENGTH}> = String::new();
+    let _ = write!(str, "{}", value);
+    send(str.as_bytes());
+}
 
 pub fn send(data: &[u8]) {
     info!("{}", core::str::from_utf8(&data[..data.len()]).unwrap());

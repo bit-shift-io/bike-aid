@@ -20,15 +20,15 @@ Adjust throttle range to eliminate deadband/deadzones.
 All the ranges below can be determined by watching the serial console and twisting the throttle.
 Or use a multimeter to measure voltage output from the throttle on your ebike.
 
-IN_MIN - Voltage when the throttle is unpressed
-IN_MAX - Voltage when the throttle is fully pressed
-OUT_MIN - Voltage just before the motor starts to activate the wheels
-OUT_MAX - Voltage just after max speed (or use supply voltage otherwise)
+throttle_min - Voltage when the throttle is unpressed
+throttle_max - Voltage when the throttle is fully pressed
+deadband_min - Voltage just before the motor starts to activate the wheels
+deadband_max - Voltage just after max speed (or use supply voltage otherwise)
 
 Smoothing - Jerkiness Mitigation
 ===========================
 How quickly to adjust output over time.
-Larger values are slower and smoother, smaller are more responsive.
+Larger values are faster, lower values are slower.
 
 Speed Limit
 ===========================
@@ -37,14 +37,15 @@ Adjusts throttle output speed limit.
 
 #[derive(Clone, Copy)]
 pub struct ThrottleSettings {
-    pub passthrough: bool, // disable smoothing and limiting
-    pub increase_smooth_factor: u16, // rate of smoothing to acceleration
-    pub decrease_smooth_factor: u16, // rate of smoothing to deceleration
-    pub throttle_min: u16, // mv no throttle
-    pub throttle_max: u16, // mv full throttle
-    pub deadband_min: u16, // mv just before motor active
+    pub passthrough: bool,
+    pub increase_smoothing_low: u16,
+    pub increase_smoothing_high: u16,
+    pub decrease_smoothing: u16,
+    pub throttle_min: u16,
+    pub throttle_max: u16,
+    pub deadband_min: u16,
     pub deadband_max: u16,
-    pub speed_limit: u16, // mv just after max speed, or supply voltage
+    pub speed_limit: u16,
 }
 
 
@@ -53,11 +54,12 @@ Controller supply voltage - 4.36v = 4360mv
 */
 pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
-    increase_smooth_factor: 75, // rate of smoothing to acceleration
-    decrease_smooth_factor: 150, // rate of smoothing to deceleration
+    increase_smoothing_low: 55, // rate of smoothing to acceleration at the low end of the throttle
+    increase_smoothing_high: 45, // rate of smoothing to acceleration at the high end of the throttle
+    decrease_smoothing: 80, // rate of smoothing to deceleration
     throttle_min: 900, // mv no throttle
     throttle_max: 3600, // mv full throttle
     deadband_min: 1200, // mv just before motor active
     deadband_max: 2000, // mv just after max speed, or supply voltage
-    speed_limit: 4000, // as mv
+    speed_limit: 4000, // unused
 });

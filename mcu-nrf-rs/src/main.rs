@@ -7,10 +7,8 @@ P0.20 - Manual Override
 P0.17 - Brake
 P0.09 - Speed
 P0.10 - Power Switch
-
 //P0.10 - Light
 //P1.11 - Horn
-
 P0.06 - I2C SCL - Orange ( Green on breadboard )
 P0.08 - I2C SDA - Yellow
 
@@ -23,7 +21,6 @@ P0.13 controls vcc output on/off 3.3v
 P0.14-0.16 set low resets ?
 p0.15 Debug LED
 
-
 HW Todo
 ----------
 try a smaller pulldown on the throttle module, replace 100k with 47k to see if it helps with floating throttle
@@ -32,7 +29,6 @@ reset push button - hw
 speedo - hardware/oscilliscope
 brake supply 5v with diode to drop 0.7v. then can setup parkbrake to turn off power.
 
-
 App Todo
 ----------
 disconnect while connecting causes multiple instances of scanner
@@ -40,7 +36,6 @@ disconnect while connecting causes multiple instances of scanner
 Todo
 ----------
 attach debugger to running mcu
-try use a watch  for settings(settings change, restart throttle??) etc..
 alarm
 ble tracker
 odometer/speed
@@ -123,6 +118,7 @@ async fn main(spawner: Spawner) {
 }
 
 
+#[allow(dead_code)]
 fn init_priority_spawners() -> (SendSpawner, SendSpawner) {
     static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
     static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
@@ -173,19 +169,6 @@ fn init_async_i2c(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut mutex
     let result: &mut mutex::Mutex<ThreadModeRawMutex, Twim<'_, TWISPI0>> = ASYNC_I2C_BUS.init(i2c_bus);
     result
 }
-
-
-// fn init_i2c_bus(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut Mutex<NoopRawMutex, RefCell<Twim<'static, TWISPI0>>> {
-//     bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
-//     interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
-    
-//     let config = twim::Config::default();
-//     let i2c = Twim::new(twim, Irqs, sda, scl, config); // sda: p0.08, scl: p0.06
-//     let i2c_bus = NoopMutex::new(RefCell::new(i2c));
-    
-//     static I2C_BUS: StaticCell<NoopMutex<RefCell<Twim<TWISPI0>>>> = StaticCell::new();
-//     I2C_BUS.init(i2c_bus)
-// }
 
 
 async fn boot_ok() {

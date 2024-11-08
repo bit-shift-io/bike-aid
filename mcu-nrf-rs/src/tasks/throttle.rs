@@ -20,10 +20,10 @@ pub async fn task() {
 
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
-        let throttle_settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
+        let settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
 
         // direct pass through for debug or pure fun off road!
-        if throttle_settings.passthrough {
+        if settings.passthrough {
             //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
             send_throttle.send(throttle_voltage);
             continue;
@@ -41,16 +41,13 @@ pub async fn task() {
     
         // check brake & cruise conditions
         if brake_on { 
-            input_voltage = throttle_settings.throttle_min; // use min
+            input_voltage = settings.throttle_min; // use min
         } else if input_voltage < cruise_voltage {
             input_voltage = cruise_voltage; // if throttle bellow cruise, use cruise
         }
         
         // smoothing
-        output_voltage = smooth(input_voltage, output_voltage, throttle_settings.increase_smooth_factor, throttle_settings.decrease_smooth_factor).await;
-
-        
-
+        output_voltage = smooth(input_voltage, output_voltage, settings);
         //info!("th: {} in: {} out: {}", throttle_voltage,input_voltage, output_voltage);
         
         // initial speed step
@@ -62,7 +59,7 @@ pub async fn task() {
         if throttle_voltage < SPEED_STEP && output_voltage < SPEED_STEP && cruise_voltage == 0 { 
             // no throttle till hit threshold
             // this is to overcome the issue with the increasing voltage on the throttle line from the controller
-            output_voltage = throttle_settings.throttle_min;
+            output_voltage = settings.throttle_min;
         }
 
         // how to do speed based limit:
@@ -73,30 +70,30 @@ pub async fn task() {
         // deadband/deadzone map
         // throttle to output value map - mapping to controller range
         //info!("{} | {} -> {} {} -> {} {}", throttle_voltage, output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
-        let mapped_output = functions::map(output_voltage, throttle_settings.throttle_min, throttle_settings.throttle_max, throttle_settings.deadband_min, throttle_settings.deadband_max);
+        let mapped_output = functions::map(output_voltage, settings.throttle_min, settings.throttle_max, settings.deadband_min, settings.deadband_max);
         send_throttle.send(mapped_output); 
         //info!("throttle: {} | out: {} | map: {}", throttle_voltage, output_voltage, mapped_output);
     }
 }
 
 
-async fn smooth(
+fn smooth(
     input_voltage: u16, 
     output_voltage: u16, 
-    increase_smooth_factor: u16, 
-    decrease_smooth_factor: u16
+    settings: settings::ThrottleSettings
 ) -> u16 {
     let delta = input_voltage as i16 - output_voltage as i16;
     let mut adjustment = 0i16;
 
     if delta > 0 { // increase speed
-        adjustment = increase_smooth_factor as i16;
+        //adjustment = throttle_settings.increase_smoothing_low as i16;
+        adjustment = get_smoothing_value(input_voltage as i16, settings);
         // cap step so we dont go over
         if (adjustment + output_voltage as i16) > (input_voltage as i16) {
             adjustment = input_voltage as i16 - output_voltage as i16;
         }
     } else if delta < 0 { // decrease speed
-        adjustment = -(decrease_smooth_factor as i16);
+        adjustment = -(settings.decrease_smoothing as i16);
         // cap step so we dont go under
         if (adjustment + output_voltage as i16) < (input_voltage as i16) {
             adjustment = input_voltage as i16 - output_voltage as i16;
@@ -107,6 +104,21 @@ async fn smooth(
     // Apply the adjustment to the output voltage
     let result_voltage = (output_voltage as i16 + adjustment) as u16;
     result_voltage
+}
+
+
+fn get_smoothing_value(
+    input_voltage: i16, 
+    settings: settings::ThrottleSettings
+) -> i16 {
+    if input_voltage < settings.deadband_min as i16 {
+        return settings.increase_smoothing_low as i16;
+    } else if input_voltage > settings.deadband_max as i16 {
+        return settings.increase_smoothing_high as i16;
+    } else {
+        let normalized_value = (input_voltage - settings.deadband_min as i16) * (settings.increase_smoothing_high as i16 - settings.increase_smoothing_low as i16) / (settings.deadband_max as i16 - settings.deadband_min as i16);
+        return settings.increase_smoothing_low as i16 + normalized_value;
+    }
 }
 
 
