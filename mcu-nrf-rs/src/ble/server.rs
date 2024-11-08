@@ -189,19 +189,19 @@ pub fn set_value(handle: u16, val: &[u8]) -> Result<(), SetValueError> {
 }
 
 
-pub async fn send_queue(handle: BleHandles, data: &[u8]) {
+pub fn send_queue(handle: BleHandles, data: &[u8]) {
     let send_ble_queue = QUEUE_CHANNEL.sender();
    
     // If the data is larger than the buffer length, split it into chunks
     if data.len() > globals::BUFFER_LENGTH {
         let mut chunks = data.chunks(globals::BUFFER_LENGTH);
         while let Some(chunk) = chunks.next() {
-            Timer::after_ticks(1).await;
+            embassy_time::block_for(embassy_time::Duration::from_ticks(1));
             let msg = BleCommand::new(handle, chunk);
             let _ = send_ble_queue.try_send(msg);
         }
     } else {
-        Timer::after_ticks(1).await;
+        embassy_time::block_for(embassy_time::Duration::from_ticks(1));
         let msg = BleCommand::new(handle, data);
         let _ = send_ble_queue.try_send(msg);
     }

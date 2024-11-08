@@ -1,5 +1,5 @@
 use crate::{piezo::PiezoMode, utils::{globals, settings, signals}};
-use defmt::info;
+use defmt::{info, warn};
 use embassy_time::{Instant, Timer};
 use heapless::String;
 use core::fmt::Write;
@@ -20,16 +20,22 @@ pub async fn task() {
         //info!("{}: {}", TASK_ID, string.as_str());
 
         if string.contains("panic") && string.contains("test")  {
-            defmt::panic!("cli test panic");
+            panic!("cli test panic");
         }
 
         if string.contains("crash") || string.contains("report") || string.contains("panic") {
             if let Some(msg) = panic_persist::get_panic_message_bytes() {
-                send(msg).await;
+                send(msg);
             } else {
-                send(b"no panic message").await;
+                send(b"no panic message");
             }
             result = true;    
+        }
+
+        if string.contains("test")  {
+            // place test action here
+            warn!("test warning");
+            result = true;
         }
 
         if string.contains("uptime") {
@@ -39,7 +45,7 @@ pub async fn task() {
             let minutes = (seconds % 3600) / 60; // 60 seconds in a minute
             let mut str: String<{globals::BUFFER_LENGTH}> = String::new();
             let _ = write!(str,"{} days {} hours {} minutes", days, hours, minutes);
-            send(str.as_bytes()).await;
+            send(str.as_bytes());
             result = true;
         }
 
@@ -111,7 +117,7 @@ pub async fn task() {
         }
 
         if string.starts_with("reboot") || string.starts_with("restart") || string.starts_with("reset") {
-            send(b"reset in 2 seconds...").await;
+            send(b"reset in 2 seconds...");
             Timer::after_secs(2).await;
             cortex_m::peripheral::SCB::sys_reset();
         }
@@ -154,28 +160,28 @@ pub async fn task() {
 
 
         if string.starts_with("help") {
-            send(b"1. passthrough 0/1").await;
-            send(b"2. increase_smooth_factor int").await;
-            send(b"3. decrease_smooth_factor int").await;
-            send(b"4. no_throttle int - mv").await;
-            send(b"5. full_throttle int - mv").await;
-            send(b"6. deadband_min int - mv").await;
-            send(b"7. deadband_max int - mv").await;
-            send(b"8. speed_limit int - kmhr").await;
+            send(b"1. passthrough 0/1");
+            send(b"2. increase_smooth_factor int");
+            send(b"3. decrease_smooth_factor int");
+            send(b"4. no_throttle int - mv");
+            send(b"5. full_throttle int - mv");
+            send(b"6. deadband_min int - mv");
+            send(b"7. deadband_max int - mv");
+            send(b"8. speed_limit int - kmhr");
             result = true;
         }
         
         // publish
         if result {
-            send(b"ok").await;
+            send(b"ok");
         } else {
-            send(b"error").await;
+            send(b"error");
         }
     }
 }
 
 
-pub async fn send(data: &[u8]) {
+pub fn send(data: &[u8]) {
     info!("{}", core::str::from_utf8(&data[..data.len()]).unwrap());
-    signals::send_ble(signals::BleHandles::Uart, data).await;
+    signals::send_ble(signals::BleHandles::Uart, data);
 }

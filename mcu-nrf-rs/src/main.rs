@@ -81,7 +81,7 @@ async fn main(spawner: Spawner) {
     let p = embassy_nrf::init(get_config()); // make mut if need be for shared resources
     Timer::after_secs(2).await; // sleep incase we need to flash during debug and get a crash
     signals::init();
-    let (spawn_high, spawn_med) = init_priority_spawners();
+    //let (spawn_high, spawn_med) = init_priority_spawners();
    
 
     // == I2C DEVICES ==

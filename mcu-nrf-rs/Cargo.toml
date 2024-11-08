@@ -76,6 +76,8 @@ defmt = { version = "0.3.8" }
 #defmt-rtt = "0.4.1" # use this if dont want to use rtt target
 rtt-target = { version = "0.6.0", features = ["defmt"] } # use this if you want a input channel
 panic-persist = { version = "0.3.0", features = ["custom-panic-handler", "utf8"] }
+critical-section = "1.2.0"
+portable-atomic = { version = "1.9.0", default-features = false }
 
 # arm
 cortex-m = { version = "0.7.7", features = ["inline-asm"] }

@@ -22,7 +22,7 @@ pub async fn task() {
         if let Some(b) = rec.try_changed() {state = b}
         match state {
             true => {
-                signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]).await;
+                signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]);
                 let watch_future = rec.changed();
                 let task1_future = run();
                 let task2_future = warning_cooldown();
@@ -34,7 +34,7 @@ pub async fn task() {
             },
             false => {
                 if init {
-                    signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]).await;
+                    signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]);
                     stop().await; // user turned alarm off
                 } else { init = true; }
                 state = rec.changed().await; 

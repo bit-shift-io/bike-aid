@@ -43,12 +43,12 @@ async fn run() {
 
         if minutes != last_minutes {
             last_minutes = minutes;
-            signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice()).await;
+            signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice());
         };
     
         if hours != last_hours {
             last_hours = hours;
-            signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice()).await;
+            signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice());
         }
     }
 }

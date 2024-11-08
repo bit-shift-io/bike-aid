@@ -27,12 +27,12 @@ pub async fn task() {
 
         if last_percent != percent {
             last_percent = percent;
-            signals::send_ble(signals::BleHandles::BatteryLevel, percent.to_le_bytes().as_slice()).await;
+            signals::send_ble(signals::BleHandles::BatteryLevel, percent.to_le_bytes().as_slice());
         }
 
         if last_power != power {
             last_power = power;
-            signals::send_ble(signals::BleHandles::BatteryPower, power.to_le_bytes().as_slice()).await;
+            signals::send_ble(signals::BleHandles::BatteryPower, power.to_le_bytes().as_slice());
         }
 
         //info!("{}: current:{} voltage:{} power:{} percent:{}", TASK_ID, input_current, input_voltage, power, percent);

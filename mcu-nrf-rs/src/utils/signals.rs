@@ -82,8 +82,8 @@ pub static STORE_UPDATED: Watch<WatchMutex, bool, 1> = Watch::new();
 
 // == FUNCTIONS ==
 pub type BleHandles = crate::ble::command::BleHandles;
-pub async fn send_ble(handle: BleHandles, data: &[u8]) {
-    server::send_queue(handle, data).await;    
+pub fn send_ble(handle: BleHandles, data: &[u8]) {
+    server::send_queue(handle, data);    
 }
 
 pub fn send_cli(data: &[u8]) {

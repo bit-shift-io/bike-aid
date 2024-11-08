@@ -103,7 +103,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
                         count = 0;
                         if input_voltage != last_voltage {
                             last_voltage = input_voltage;
-                            signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice()).await;
+                            signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice());
                         };
                     }
                 }
