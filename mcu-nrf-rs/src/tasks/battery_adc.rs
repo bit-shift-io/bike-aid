@@ -1,4 +1,4 @@
-use crate::utils::{profile::Profile, signals};
+use crate::utils::{i2c, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -10,6 +10,7 @@ use embassy_time::Timer;
 
 const TASK_ID: &str = "BATTERY ADC";
 const INTERVAL: u64 = 1; // seconds
+const ADDRESS: u8 = 0x4A;
 
 // consts for voltage divider
 const VOLTAGE_CALIBATION : u16 = 10; // calibration level = multimeter - measured
@@ -31,6 +32,11 @@ pub async fn task(
     i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
+
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
 
     let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
@@ -62,7 +68,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
         .dr(DataRate::SPS860)
         .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
-    let mut adc = match ADS111x::new(i2c, 0x4Au8, config) { // 0x4A
+    let mut adc = match ADS111x::new(i2c, ADDRESS, config) { // 0x4A
         Err(_e) => {
             info!("{}: device error", TASK_ID);
             return;

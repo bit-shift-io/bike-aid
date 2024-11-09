@@ -50,23 +50,17 @@ mod tasks;
 mod examples;
 mod ble;
 mod utils;
-use embassy_sync::mutex;
+
 use tasks::*;
-use utils::signals;
+use utils::{i2c, signals};
 
 use defmt::info;
 use embassy_nrf::config::Config;
-use embassy_nrf::gpio::AnyPin;
-use embassy_nrf::{bind_interrupts, config::Reg0Voltage, gpio::Pin};
-use embassy_nrf::peripherals::{self, TWISPI0};
+use embassy_nrf::{config::Reg0Voltage, gpio::Pin};
 use embassy_nrf::nvmc::Nvmc;
-use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_time::Timer;
-use embassy_nrf::interrupt;
-use embassy_nrf::interrupt::{InterruptExt, Priority};
-use embassy_executor::{InterruptExecutor, SendSpawner, Spawner};
-use embassy_nrf::twim::{self, Twim};
-use static_cell::StaticCell;
+use embassy_nrf::interrupt::Priority;
+use embassy_executor::Spawner;
 
 
 #[embassy_executor::main]
@@ -81,7 +75,7 @@ async fn main(spawner: Spawner) {
 
     // == I2C DEVICES ==
 
-    let i2c_bus = init_async_i2c(p.TWISPI0, p.P0_08.degrade(), p.P0_06.degrade());
+    let i2c_bus = i2c::init(p.TWISPI0, p.P0_08.degrade(), p.P0_06.degrade());
 
     spawner.must_spawn(throttle_adc::task(i2c_bus));
     spawner.must_spawn(throttle_dac::task(i2c_bus));
@@ -118,31 +112,31 @@ async fn main(spawner: Spawner) {
 }
 
 
-#[allow(dead_code)]
-fn init_priority_spawners() -> (SendSpawner, SendSpawner) {
-    static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
-    static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
+// #[allow(dead_code)]
+// fn init_priority_spawners() -> (SendSpawner, SendSpawner) {
+//     static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
+//     static EXECUTOR_MED: InterruptExecutor = InterruptExecutor::new();
 
-    #[interrupt]
-    unsafe fn SWI1_EGU1() {
-        EXECUTOR_HIGH.on_interrupt()
-    }
+//     #[interrupt]
+//     unsafe fn SWI1_EGU1() {
+//         EXECUTOR_HIGH.on_interrupt()
+//     }
 
-    #[interrupt]
-    unsafe fn SWI0_EGU0() {
-        EXECUTOR_MED.on_interrupt()
-    }
+//     #[interrupt]
+//     unsafe fn SWI0_EGU0() {
+//         EXECUTOR_MED.on_interrupt()
+//     }
 
-    // High-priority executor: SWI1_EGU1, priority level 6
-    interrupt::SWI1_EGU1.set_priority(Priority::P6);
-    let spawner_high = EXECUTOR_HIGH.start(interrupt::SWI1_EGU1);
+//     // High-priority executor: SWI1_EGU1, priority level 6
+//     interrupt::SWI1_EGU1.set_priority(Priority::P6);
+//     let spawner_high = EXECUTOR_HIGH.start(interrupt::SWI1_EGU1);
 
-    // Medium-priority executor: SWI0_EGU0, priority level 7
-    interrupt::SWI0_EGU0.set_priority(Priority::P7);
-    let spawner_med = EXECUTOR_MED.start(interrupt::SWI0_EGU0);
+//     // Medium-priority executor: SWI0_EGU0, priority level 7
+//     interrupt::SWI0_EGU0.set_priority(Priority::P7);
+//     let spawner_med = EXECUTOR_MED.start(interrupt::SWI0_EGU0);
 
-    (spawner_high, spawner_med)
-}
+//     (spawner_high, spawner_med)
+// }
 
 
 fn get_config() -> Config {
@@ -157,22 +151,8 @@ fn get_config() -> Config {
 }
 
 
-fn init_async_i2c(twim: TWISPI0, sda: AnyPin, scl: AnyPin) -> &'static mut mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>> {
-    bind_interrupts!(struct Irqs {SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0 => twim::InterruptHandler<peripherals::TWISPI0>;});
-    interrupt::SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0.set_priority(interrupt::Priority::P3);
-    
-    let config = twim::Config::default();
-    let i2c = Twim::new(twim, Irqs, sda, scl, config);
-    let i2c_bus = mutex::Mutex::<ThreadModeRawMutex, _>::new(i2c);
-    // note, we can place a refcell around the twim bus to allow it to be shared between tasks
-    static ASYNC_I2C_BUS: StaticCell<mutex::Mutex<ThreadModeRawMutex, Twim<TWISPI0>>> = StaticCell::new();
-    let result: &mut mutex::Mutex<ThreadModeRawMutex, Twim<'_, TWISPI0>> = ASYNC_I2C_BUS.init(i2c_bus);
-    result
-}
-
-
 async fn boot_ok() {
-    Timer::after_millis(100).await;
+    Timer::after_millis(10).await;
     info!("======== Boot Ok ========");
     let send_led = signals::LED_MODE.sender();
     let send_piezo = signals::PIEZO_MODE.sender();

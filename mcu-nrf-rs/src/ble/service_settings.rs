@@ -3,7 +3,7 @@ use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Prop
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
-use crate::utils::signals;
+use crate::utils::signals::{self, send_ble};
 
 
 const UUID_SETTINGS_SERVICE: Uuid = Uuid::new_16(0x1000);
@@ -76,6 +76,14 @@ impl SettingsService {
 
         if handle == self.power_on.value_handle {
             let message = if data[0] == 183 { true } else { false };
+
+            // check if we are reciving the correct state, otherwise re-adversie the state
+            let state = signals::REQUEST_POWER_ON.try_get().unwrap();
+            if message == state {
+                send_ble(signals::BleHandles::PowerOn, &[state as u8]);
+                return;
+            }
+
             //info!("ble power on: {:?} {:?}", message, data[0]);
             signals::REQUEST_POWER_ON.dyn_sender().send_if_modified(|value| {
                 if *value != Some(message) {

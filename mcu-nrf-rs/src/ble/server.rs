@@ -7,6 +7,7 @@ use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::{info, warn};
+use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -160,6 +161,8 @@ pub async fn run(connection: &Connection, server: &Server) {
         // debug led
         //send_led.send(signals::LedModeType::Instant);
 
+        info!("{}: {}", TASK_ID, command);
+
         // first we set the value
         let set_result = set_value(handle, value);
         match set_result {
@@ -175,6 +178,7 @@ pub async fn run(connection: &Connection, server: &Server) {
         }
 
         // TODO: may need a sleep here if we are overloading the BLE stack?
+        Timer::after_millis(100).await;
     }
 }
 

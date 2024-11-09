@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{i2c, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -10,12 +10,18 @@ use embassy_futures::select::{select, Either};
 
 const TASK_ID : &str = "TEMPERATURE";
 const INTERVAL: u64 = 10; // seconds
+const ADDRESS: u8 = 0x68;
 
 #[embassy_executor::task]
 pub async fn task(
     i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
+
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
 
     let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;

@@ -25,10 +25,10 @@ pub async fn task(
             true => {
                 pin_state.set_high();
                 Timer::after_millis(100).await; // delay to allow device to power
-                signals::send_ble(signals::BleHandles::PowerOn, &[true as u8]);
+                send_power_on.send(true);
                 send_led.send(signals::LedModeType::None);
                 send_piezo.send(signals::PiezoModeType::PowerOn);
-                send_power_on.send(true);
+                signals::send_ble(signals::BleHandles::PowerOn, &[true as u8]);
             }
             false => {
                 if init {

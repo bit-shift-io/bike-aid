@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::utils::{i2c, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
@@ -10,6 +10,7 @@ use embassy_time::Timer;
 
 const TASK_ID : &str = "THROTTLE ADC";
 const INTERVAL: u64 = 98; // less 2ms for read time
+const ADDRESS: u8 = 0x48;
 
 #[embassy_executor::task]
 pub async fn task(
@@ -17,6 +18,11 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
+    
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
     let mut state = false;
@@ -67,7 +73,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
         .dr(DataRate::SPS860) // higher data rate completes read in 2ms instead of 120ms
         .pga(ProgramableGainAmplifier::V6_144); // 6.144v
 
-    let mut adc = match ADS111x::new(i2c, 0x48u8, config) { // 0x48
+    let mut adc = match ADS111x::new(i2c, ADDRESS, config) { // 0x48
         Err(_e) => {
             info!("{}: device error", TASK_ID);
             return;

@@ -2,7 +2,7 @@ pub mod data_slice;
 pub mod functions;
 pub mod globals;
 //pub mod log;
-//pub mod i2c;
+pub mod i2c;
 //pub mod macros;
 pub mod melody;
 pub mod note;
