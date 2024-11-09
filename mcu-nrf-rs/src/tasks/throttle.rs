@@ -2,10 +2,8 @@ use crate::utils::functions;
 use crate::utils::settings;
 use crate::utils::signals;
 use defmt::info;
-use num_traits::Float;
 
 const TASK_ID: &str = "THROTTLE";
-const SPEED_STEP: u16 = 1500;
 
 #[embassy_executor::task]
 pub async fn task() {
@@ -15,52 +13,49 @@ pub async fn task() {
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let mut output_voltage = 0u16;
     let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
-    
-    // TODO: when settings change, reload the loop, so we dont need to mutex lock each itter....
+    let mut count = 0u8;
+    let mut last_voltage = 0u16;
 
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
-        let settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
 
-        // direct pass through for debug or pure fun off road!
+        let settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
         if settings.passthrough {
-            //info!("{}: passthrough mv: {} ", TASK_ID, input_voltage);
             send_throttle.send(throttle_voltage);
             continue;
         }
 
-        // get throttle voltage
-        let mut input_voltage = throttle_voltage;
+        // get values
+        let cruise_voltage = { *settings::CRUISE_VOLTAGE.lock().await };
+        let brake_on = watch_brake_on.try_get().unwrap();
+        let mut target_voltage = throttle_voltage;
 
-        // get mutex values, minimise lock time
-        let (cruise_voltage, brake_on) = {
-            let cruise_voltage = *settings::CRUISE_VOLTAGE.lock().await;
-            let brake_on = watch_brake_on.try_get().unwrap();
-            (cruise_voltage, brake_on)
-        };
-    
-        // check brake & cruise conditions
-        if brake_on { 
-            input_voltage = settings.throttle_min; // use min
-        } else if input_voltage < cruise_voltage {
-            input_voltage = cruise_voltage; // if throttle bellow cruise, use cruise
-        }
+        // check brake, cruise and target conditions
+        if brake_on { target_voltage = settings.throttle_min; } // throttle 0%
+        else if target_voltage < cruise_voltage { target_voltage = cruise_voltage; } // if throttle bellow cruise, use cruise as target
+        else if target_voltage < settings.throttle_min { target_voltage = settings.throttle_min; }; // if throttle bellow throttle min, use throttle min as target
         
+        // ensure output_voltage is not under throttle min
+        if output_voltage < settings.throttle_min { output_voltage = settings.throttle_min; }
+
+        // if target is larger than the initial speed step, start at the speed step
+        if (target_voltage > settings.speed_step || cruise_voltage > settings.speed_step) && output_voltage < settings.speed_step {
+            output_voltage = settings.speed_step;
+        }
+
         // smoothing
-        output_voltage = smooth(input_voltage, output_voltage, settings);
-        //info!("th: {} in: {} out: {}", throttle_voltage,input_voltage, output_voltage);
+        output_voltage = smooth(target_voltage, output_voltage, settings);
+        //info!("thr: {} -> tgt: {} -> out: {}", throttle_voltage, target_voltage, output_voltage);
         
-        // initial speed step
-        if (throttle_voltage > SPEED_STEP || cruise_voltage > SPEED_STEP) && output_voltage < SPEED_STEP {
-            // minimum speed step if throttle is above threshold
-            output_voltage = SPEED_STEP;
-        }
 
-        if throttle_voltage < SPEED_STEP && output_voltage < SPEED_STEP && cruise_voltage == 0 { 
+/*
+        // shouldnt need this anymore?
+        if throttle_voltage < settings.speed_step && output_voltage < settings.speed_step && cruise_voltage == 0 { 
             // no throttle till hit threshold
             // this is to overcome the issue with the increasing voltage on the throttle line from the controller
-            output_voltage = settings.throttle_min;
+            output_voltage = settings.throttle_min; // throttle 0%
         }
+  */
 
         // how to do speed based limit:
         // As we approach speed limit, adjust deadband_out_max to match the current MV value! This should give speed based limit
@@ -73,78 +68,51 @@ pub async fn task() {
         let mapped_output = functions::map(output_voltage, settings.throttle_min, settings.throttle_max, settings.deadband_min, settings.deadband_max);
         send_throttle.send(mapped_output); 
         //info!("throttle: {} | out: {} | map: {}", throttle_voltage, output_voltage, mapped_output);
+
+        
+        if count >= 5 {
+            count = 0;
+            if output_voltage != last_voltage {
+                last_voltage = output_voltage;
+                // lower update for ble, every 500ms
+                signals::send_ble(signals::BleHandles::ThrottleLevel, output_voltage.to_le_bytes().as_slice());
+            };
+        }
+        count += 1;
     }
 }
 
 
-fn smooth(
-    input_voltage: u16, 
-    output_voltage: u16, 
-    settings: settings::ThrottleSettings
-) -> u16 {
-    let delta = input_voltage as i16 - output_voltage as i16;
+fn smooth(target_voltage: u16, output_voltage: u16, settings: settings::ThrottleSettings) -> u16 {
+    let delta = target_voltage as i16 - output_voltage as i16;
     let mut adjustment = 0i16;
 
     if delta > 0 { // increase speed
         //adjustment = throttle_settings.increase_smoothing_low as i16;
-        adjustment = get_smoothing_value(input_voltage as i16, settings);
+        adjustment = get_smoothing_value(output_voltage as i16, settings);
         // cap step so we dont go over
-        if (adjustment + output_voltage as i16) > (input_voltage as i16) {
-            adjustment = input_voltage as i16 - output_voltage as i16;
+        if (adjustment + output_voltage as i16) > (target_voltage as i16) {
+            adjustment = target_voltage as i16 - output_voltage as i16;
         }
     } else if delta < 0 { // decrease speed
         adjustment = -(settings.decrease_smoothing as i16);
         // cap step so we dont go under
-        if (adjustment + output_voltage as i16) < (input_voltage as i16) {
-            adjustment = input_voltage as i16 - output_voltage as i16;
+        if (adjustment + output_voltage as i16) < (target_voltage as i16) {
+            adjustment = target_voltage as i16 - output_voltage as i16;
         }
     }
 
-    //info!("delta {} | adj {}", delta, adjustment);
+    //info!("{}: delta {} | adj {}", TASK_ID, delta, adjustment);
     // Apply the adjustment to the output voltage
     let result_voltage = (output_voltage as i16 + adjustment) as u16;
     result_voltage
 }
 
 
-fn get_smoothing_value(
-    input_voltage: i16, 
-    settings: settings::ThrottleSettings
-) -> i16 {
-    if input_voltage < settings.deadband_min as i16 {
-        return settings.increase_smoothing_low as i16;
-    } else if input_voltage > settings.deadband_max as i16 {
-        return settings.increase_smoothing_high as i16;
-    } else {
-        let normalized_value = (input_voltage - settings.deadband_min as i16) * (settings.increase_smoothing_high as i16 - settings.increase_smoothing_low as i16) / (settings.deadband_max as i16 - settings.deadband_min as i16);
-        return settings.increase_smoothing_low as i16 + normalized_value;
-    }
-}
-
-
-#[allow(unused)]
-fn throttle_curve(
-    input_value: u16,
-    min_input: u16,
-    max_input: u16,
-    min_output: u16,
-    max_output: u16,
-    exponent: f32,
-) -> u16 {
-    // Ensure input values are within the specified range
-    if input_value < min_input || input_value > max_input {
-        return if input_value < min_input { min_output } else { max_output };
-    }
-
-    // Normalize the input value to the range [0, 1]
-    let normalized_value = (input_value - min_input) as f32 / (max_input - min_input) as f32;
-
-    // Apply a modified curve function to stretch lower values
-    let curved_value = 1.0 - (1.0 - normalized_value).powf(exponent);
-
-    // Map back to the output range
-    let output_value = min_output as f32 + (curved_value * (max_output - min_output) as f32).round();
-
-    // Ensure the output value is within the u16 range
-    output_value.clamp(0.0, u16::MAX as f32) as u16
+fn get_smoothing_value(voltage: i16, settings: settings::ThrottleSettings) -> i16 {
+    // prevent overflow with i32
+    let normalized_value = (voltage as i32 - settings.throttle_min as i32) * (settings.increase_smoothing_high as i32 - settings.increase_smoothing_low as i32) / (settings.throttle_max as i32 - settings.throttle_min as i32);
+    let result = settings.increase_smoothing_low as i16 + normalized_value as i16;
+    //info!("{}: v {} res {} norm {}", TASK_ID, voltage, result, normalized_value as i16);
+    return result;
 }

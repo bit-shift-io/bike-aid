@@ -109,6 +109,13 @@ pub async fn task() {
             result = true;
         }
 
+        if string.starts_with("speed_step") || string.starts_with("9") {
+            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let value = string.split_whitespace().last().unwrap();
+            throttle_settings.speed_step = value.parse::<u16>().unwrap();
+            result = true;
+        }
+
 
         // if string.starts_with("settings") {
         //     if string.ends_with("write") {
@@ -186,6 +193,9 @@ pub async fn task() {
 
             send(b"8. deadband_max");
             send_str(settings.deadband_max);
+
+            send(b"9. speed_step");
+            send_str(settings.speed_step);
 
             result = true;
         }

@@ -45,7 +45,7 @@ pub struct ThrottleSettings {
     pub throttle_max: u16,
     pub deadband_min: u16,
     pub deadband_max: u16,
-    pub speed_limit: u16,
+    pub speed_step: u16,
 }
 
 
@@ -54,12 +54,12 @@ Controller supply voltage - 4.36v = 4360mv
 */
 pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
-    increase_smoothing_low: 55, // rate of smoothing to acceleration at the low end of the throttle
-    increase_smoothing_high: 45, // rate of smoothing to acceleration at the high end of the throttle
+    increase_smoothing_low: 80, // rate of smoothing to acceleration at the low end of the throttle
+    increase_smoothing_high: 30, // rate of smoothing to acceleration at the high end of the throttle
     decrease_smoothing: 80, // rate of smoothing to deceleration
     throttle_min: 900, // mv no throttle
     throttle_max: 3600, // mv full throttle
     deadband_min: 1200, // mv just before motor active
     deadband_max: 2000, // mv just after max speed, or supply voltage
-    speed_limit: 4000, // unused
+    speed_step: 1600, // jump/step to this voltage when throttle engages
 });

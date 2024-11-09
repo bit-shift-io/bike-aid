@@ -7,7 +7,6 @@ use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::{info, warn};
-use embassy_time::Timer;
 use nrf_softdevice::ble::gatt_server::{NotifyValueError, RegisterError, SetValueError, WriteOp};
 use nrf_softdevice::ble::{gatt_server, Connection};
 use nrf_softdevice::{RawError, Softdevice};
@@ -17,7 +16,7 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
 // Min is smaller numbers as priority
 // N is number of messages available
-pub static QUEUE_CHANNEL: PriorityChannel::<CriticalSectionRawMutex, BleCommand, Min, 16> = PriorityChannel::new(); 
+pub static QUEUE_CHANNEL: PriorityChannel::<CriticalSectionRawMutex, BleCommand, Min, 32> = PriorityChannel::new(); 
 
 const TASK_ID: &str = "BLUETOOTH";
 
@@ -122,15 +121,22 @@ pub async fn run(connection: &Connection, server: &Server) {
 
     // command queue
     let rec_queue = QUEUE_CHANNEL.receiver();
-    let send_led = signals::LED_DEBUG_MODE.sender();
-  
+    //let send_led = signals::LED_DEBUG_MODE.sender();
+    let mut queue_full = false;
+
     loop {
-        // TODO: lock here if needed, but we don't need it
-        //info!("queue: {}", rec_queue.len());
+        if rec_queue.is_full() { 
+            warn!("{}: queue full", TASK_ID);
+            queue_full = true;
+        }
 
         // wait for command
         let command = rec_queue.receive().await;
-        if rec_queue.is_full() { warn!("{}: queue full", TASK_ID); }
+
+        if queue_full {
+            signals::send_ble(BleHandles::Uart, b"queue full!");
+            queue_full = false;
+        }
 
         let value: &[u8] = command.as_bytes();
         let handle;
@@ -151,8 +157,8 @@ pub async fn run(connection: &Connection, server: &Server) {
             BleHandles::ThrottleLevel => handle = server.data.throttle_level.value_handle,
         }
 
-        //info!("{}", command);
-        send_led.send(signals::LedModeType::Instant);
+        // debug led
+        //send_led.send(signals::LedModeType::Instant);
 
         // first we set the value
         let set_result = set_value(handle, value);
@@ -167,6 +173,8 @@ pub async fn run(connection: &Connection, server: &Server) {
             Ok(_) => {},
             Err(_) => { info!("{}: notify error {}", TASK_ID, command.handle); } // notify not yet enabled usually
         }
+
+        // TODO: may need a sleep here if we are overloading the BLE stack?
     }
 }
 

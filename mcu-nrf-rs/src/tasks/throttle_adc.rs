@@ -82,8 +82,6 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
     };
 
     let send_throttle = signals::THROTTLE_IN.sender();
-    let mut count = 0u8;
-    let mut last_voltage = 0u16;
 
     loop {
         Timer::after_millis(INTERVAL).await;
@@ -97,18 +95,7 @@ async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TW
         
                 if input_voltage > 20 {
                     send_throttle.send(input_voltage);
-        
-                    // lower update for ble
-                    if count > 4 {
-                        count = 0;
-                        if input_voltage != last_voltage {
-                            last_voltage = input_voltage;
-                            signals::send_ble(signals::BleHandles::ThrottleLevel, input_voltage.to_le_bytes().as_slice());
-                        };
-                    }
-                }
-        
-                count += 1;
+                };
             },
             Err(_e) => info!("{}: device error", TASK_ID),
         }

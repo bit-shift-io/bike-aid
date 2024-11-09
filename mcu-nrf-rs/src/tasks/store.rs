@@ -53,7 +53,7 @@ async fn write_store<E: defmt::Format>(
     write_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     write_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
     write_u16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
-    write_u16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
+    write_u16(flash, &mut offset, &mut throttle_settings.speed_step).await;
     // == settings end ==
 }
 
@@ -75,7 +75,7 @@ async fn read_store<E: defmt::Format>(
     read_u16(flash, &mut offset, &mut throttle_settings.throttle_max).await;
     read_u16(flash, &mut offset, &mut throttle_settings.deadband_min).await;
     read_u16(flash, &mut offset, &mut throttle_settings.deadband_max).await;
-    read_u16(flash, &mut offset, &mut throttle_settings.speed_limit).await;
+    read_u16(flash, &mut offset, &mut throttle_settings.speed_step).await;
 
     // == settings end ==
 
