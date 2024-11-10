@@ -6,7 +6,7 @@ use mpu6050_async::Mpu6050;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embassy_time::{Delay, Timer};
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::select;
 use num_traits::Float;
 
 const TASK_ID : &str = "GYROSCOPE";

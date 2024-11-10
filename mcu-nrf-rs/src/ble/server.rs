@@ -3,7 +3,6 @@ use super::command::{BleCommand, BleHandles};
 use super::service_data::DataService;
 use super::service_device::DeviceInformationService;
 use super::service_battery::BatteryService;
-use super::service_fast_pair::FastPairService;
 use super::service_settings::SettingsService;
 use super::service_uart::UartService;
 use defmt::{info, warn};
@@ -26,7 +25,7 @@ pub struct Server {
     pub battery: BatteryService,
     pub data: DataService,
     pub uart: UartService,
-    pub fast_pair: FastPairService,
+    //pub fast_pair: FastPairService,
     pub _device_informaton: DeviceInformationService,
 }
 
@@ -37,7 +36,7 @@ impl Server {
         let battery = BatteryService::new(sd)?;
         let data = DataService::new(sd)?;
         let uart = UartService::new(sd)?;
-        let fast_pair = FastPairService::new(sd)?;
+        //let fast_pair = FastPairService::new(sd)?;
         let device_informaton = DeviceInformationService::new(sd)?;
 
         Ok(Self {
@@ -45,7 +44,7 @@ impl Server {
             battery,   
             data,
             uart,
-            fast_pair,
+            //fast_pair,
             _device_informaton: device_informaton,
         })
     }
@@ -60,7 +59,7 @@ impl gatt_server::Server for Server {
         self.battery.on_write(connection, handle, data);
         self.settings.on_write(connection, handle, data);
         self.uart.on_write(connection, handle, data);
-        self.fast_pair.on_write(connection, handle, data);
+        //self.fast_pair.on_write(connection, handle, data);
         None
     }
     
@@ -124,14 +123,12 @@ pub async fn run(connection: &Connection, server: &Server) {
     let rec_queue = QUEUE_CHANNEL.receiver();
     rec_queue.clear();
     //let send_led = signals::LED_DEBUG_MODE.sender();
-    let mut queue_full = false;
 
     loop {
         if rec_queue.is_full() { 
             rec_queue.clear();
             signals::send_ble(BleHandles::Uart, b"queue full!");
             warn!("{}: queue full", TASK_ID);
-            queue_full = true;
         }
 
         // wait for command

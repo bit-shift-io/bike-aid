@@ -1,10 +1,9 @@
-use defmt::info;
 use nrf_softdevice::ble::gatt_server::builder::ServiceBuilder;
 use nrf_softdevice::ble::gatt_server::characteristic::{Attribute, Metadata, Properties};
 use nrf_softdevice::ble::gatt_server::{CharacteristicHandles, RegisterError};
 use nrf_softdevice::ble::{Connection, Uuid};
 use nrf_softdevice::Softdevice;
-use crate::utils::signals::{self, send_ble};
+use crate::utils::signals::{self};
 
 
 const UUID_SETTINGS_SERVICE: Uuid = Uuid::new_16(0x1000);

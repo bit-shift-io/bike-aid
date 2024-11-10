@@ -3,7 +3,7 @@ use embassy_time::Timer;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex::Mutex;
 use defmt::info;
-use embassy_futures::{join::join, select::{select, Either}};
+use embassy_futures::{join::join, select::select};
 
 const TASK_ID: &str = "ALARM";
 const WARN_INTERVAL: u64 = 10000; // 10 sec
@@ -15,30 +15,19 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     let mut rec = signals::ALARM_ENABLED.receiver().unwrap();
-    let mut state = false;
-    let mut init = false;
 
     loop { 
-        if let Some(b) = rec.try_changed() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]);
                 let watch_future = rec.changed();
                 let task1_future = run();
                 let task2_future = warning_cooldown();
                 let task_future = join(task1_future, task2_future);
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
+                stop().await;
             },
-            false => {
-                if init {
-                    signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]);
-                    stop().await; // user turned alarm off
-                } else { init = true; }
-                state = rec.changed().await; 
-            }
+            false => {}
         }
     }
 }
