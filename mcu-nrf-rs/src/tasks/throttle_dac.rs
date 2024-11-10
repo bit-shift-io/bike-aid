@@ -23,24 +23,16 @@ pub async fn task(
     i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
-
-    if !i2c::device_available(i2c_bus, ADDRESS).await {
-        info!("{}: end", TASK_ID);
-        return;
-    }
   
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
   
     loop { 
-        match rec.changed().await {
-            true => {
-                let watch_future = rec.changed();
-                let task_future = park_brake(i2c_bus);
-                select(watch_future, task_future).await;
-                let _ = stop(i2c_bus).await;
-            },
-            false => {}
+        if rec.changed().await {
+            let watch_future = rec.changed();
+            let task_future = park_brake(i2c_bus);
+            select(watch_future, task_future).await;
+            let _ = stop(i2c_bus).await;
         }
     }
 }
@@ -54,7 +46,7 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
         match watch.changed().await {
             false => {
                 let watch_future = watch.changed();
-                let task_future = run(i2c_bus);
+                let task_future = throttle_dac(i2c_bus);
                 select(watch_future, task_future).await;
                 let _ = stop(i2c_bus).await; // set power to device off
             },
@@ -64,7 +56,14 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
 }
 
 
-async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+async fn throttle_dac(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+    // check if device available
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
+
+    // init device
     let mut dac = match get_dac(i2c_bus).await {
         Ok(x) => { x },
         Err(_e) => {

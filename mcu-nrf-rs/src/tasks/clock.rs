@@ -13,19 +13,16 @@ pub async fn task() {
     let mut rec = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        match rec.changed().await {
-            true => {
-                let watch_future = rec.changed();
-                let task_future = run();
-                select(watch_future, task_future).await;
-            },
-            false => {}
+        if rec.changed().await {
+            let watch_future = rec.changed();
+            let task_future = clock();
+            select(watch_future, task_future).await;
         }
     }
 }
 
 
-async fn run() {
+async fn clock() {
     let mut last_minutes: u8 = 0;
     let mut last_hours: u8 = 0;
     let start_time = Instant::now();

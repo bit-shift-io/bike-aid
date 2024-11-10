@@ -18,27 +18,26 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    if !i2c::device_available(i2c_bus, ADDRESS).await {
-        info!("{}: end", TASK_ID);
-        return;
-    }
-
     let mut rec = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        match rec.changed().await {
-            true => {
-                let watch_future = rec.changed();
-                let task_future = run(i2c_bus);
-                select(watch_future, task_future).await;
-            },
-            false => {}
+        if rec.changed().await {
+            let watch_future = rec.changed();
+            let task_future = temperature(i2c_bus);
+            select(watch_future, task_future).await;
         }
     }
 }
 
 
-async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+async fn temperature(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+    // check if device available
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
+
+    // init device
     let i2c = I2cDevice::new(i2c_bus);
     let mut mpu = Mpu6050::new(i2c);
     match mpu.init(&mut Delay).await {

@@ -13,6 +13,22 @@ pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
     ]);
 
 
+#[derive(Clone, Copy)]
+pub struct AlarmSettings {
+    pub acc_sensitivity: f32,
+    pub gyro_sensitivity: f32,
+    pub angle_sensitivity: f32,
+    pub warning_count: u8,
+}
+
+pub static ALARM_SETTINGS: Mutex<SignalMutex, AlarmSettings> = Mutex::new(AlarmSettings {
+    acc_sensitivity: 0.9,
+    gyro_sensitivity: 0.8,
+    angle_sensitivity: 0.1,
+    warning_count: 3
+});
+
+
 /* 
 Deadband / Deadzone
 ===========================

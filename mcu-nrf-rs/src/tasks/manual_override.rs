@@ -11,7 +11,7 @@ pub async fn task(
     pin: AnyPin
 ) {
     info!("{}", TASK_ID);
-    // TODO: add request_power or power_state toggle. This task can then handle requests to decide if power is on or off depending on the state
+    
     let send_power_on = signals::POWER_ON.sender();
     let mut pin_state = Input::new(pin, Pull::Up); // high = off, low = on
 

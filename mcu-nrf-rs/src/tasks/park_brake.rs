@@ -13,15 +13,12 @@ pub async fn task() {
     let mut rec = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        match rec.changed().await {
-            true => {
+        if rec.changed().await {
                 //info!("{}: power on", TASK_ID);
                 let watch_future = rec.changed();
                 let task_future = cruise();
                 select(watch_future, task_future).await;
                 stop().await
-            },
-            false => {}
         }
     }
 }
@@ -39,7 +36,7 @@ pub async fn cruise() {
             0 => {
                 //info!("{}: cruise", TASK_ID);
                 let watch_future = rec.changed();
-                let task_future = run();
+                let task_future = park_brake();
                 select(watch_future, task_future).await;
             },
             _ => { state = rec.changed().await;}
@@ -48,7 +45,7 @@ pub async fn cruise() {
 }
 
 
-async fn run() {
+async fn park_brake() {
     // requires try_get as the state doesnt change by default
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true;

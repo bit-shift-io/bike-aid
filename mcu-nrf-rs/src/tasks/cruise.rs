@@ -1,6 +1,6 @@
 use crate::utils::{settings, signals};
 use defmt::info;
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::select;
 
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1200;
@@ -13,32 +13,20 @@ pub async fn task() {
 
     // brake on/off
     let mut watch = signals::BRAKE_ON.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = watch.try_get() {state = b}
-        
-        match state {
-            false => {
-                let watch_future = watch.changed();
-                let task_future = run();
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => {} // other task will never end
-                }
-            },
-            true => { 
-                reset_cruise().await;
-                state = watch.changed().await;
-            }
+        if !watch.changed().await { // brake off
+            let watch_future = watch.changed();
+            let task_future = tap_detection();
+            select(watch_future, task_future).await;
+            reset_cruise().await;
         }
     }
 
 }
 
 
-async fn run() {
-    // tap detection
+async fn tap_detection() {
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let send_piezo = signals::PIEZO_MODE.sender();
     let mut throttle_voltage = rec_throttle.changed().await; // millivolts, initial value

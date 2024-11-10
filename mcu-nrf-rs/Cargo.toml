@@ -19,7 +19,7 @@ codegen-units = 1
 debug = 2
 debug-assertions = false
 incremental = false
-lto = 'thin'
+lto = 'thin' # fat?
 opt-level = 's'
 overflow-checks = false
 
@@ -102,19 +102,21 @@ mcp4725-async = "0.1.0"
 mpu6050-async = { version = "0.0.1", path = "../mpu6050-async" }
 embedded-ads111x = { version = "0.1.2", features = ["async"] }
 
+# my fork
+#embassy-sync = { version = "0.6.0", path = "../../embassy/embassy-sync", features = ["defmt"] }
+
 
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:
 # https://github.com/embassy-rs/embassy/commits/main/
-embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
-embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
-embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
-embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
-embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
-embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "9555259c57a07338792cfe0fdd363a59616a8062"}
+embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
 
 nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
 nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
-#nrf-softdevice-macro = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
 
 rtt-target = { git = "https://github.com/probe-rs/rtt-target", rev = "5b7603b6114bb08385f71674b9d962471c221681"}

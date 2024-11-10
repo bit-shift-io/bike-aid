@@ -35,6 +35,8 @@ disconnect while connecting causes multiple instances of scanner
 
 Todo
 ----------
+patch watch with defaults
+patch qeue predicate filter
 attach debugger to running mcu
 alarm
 ble tracker

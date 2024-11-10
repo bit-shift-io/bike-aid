@@ -17,23 +17,15 @@ pub async fn task(
     i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
-
-    if !i2c::device_available(i2c_bus, ADDRESS).await {
-        info!("{}: end", TASK_ID);
-        return;
-    }
     
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-            match rec.changed().await {
-            true => {
-                let watch_future = rec.changed();
-                let task_future = park_brake(i2c_bus);
-                select(watch_future, task_future).await;
-            },
-            false => {}
+        if rec.changed().await {
+            let watch_future = rec.changed();
+            let task_future = park_brake(i2c_bus);
+            select(watch_future, task_future).await;
         }
     }
 }
@@ -44,19 +36,23 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
 
     loop { 
-        match watch.changed().await {
-            false => {
+        if !watch.changed().await { // if PB off
                 let watch_future = watch.changed();
-                let task_future = run(i2c_bus);
+                let task_future = throttle_adc(i2c_bus);
                 select(watch_future, task_future).await;
-            },
-            true => {}
         }
     }
 }
 
 
-async fn run(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+async fn throttle_adc(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+    // check if device available
+    if !i2c::device_available(i2c_bus, ADDRESS).await {
+        info!("{}: end", TASK_ID);
+        return;
+    }
+
+    // init device
     let i2c = I2cDevice::new(i2c_bus);
     let config = ADS111xConfig::default()
         .mux(InputMultiplexer::AIN0GND)
