@@ -53,6 +53,7 @@ mod examples;
 mod ble;
 mod utils;
 
+use examples::signal_test;
 use tasks::*;
 use utils::{i2c, signals};
 
@@ -110,7 +111,7 @@ async fn main(spawner: Spawner) {
     // == FINALISE ==
 
     boot_ok().await;
-    debug().await;
+    debug(spawner).await;
 }
 
 
@@ -163,20 +164,12 @@ async fn boot_ok() {
 }
 
 
-async fn debug() {
-    //Timer::after_millis(100).await;
-    //info!("======== Debug ========");
+async fn debug(_spawner: Spawner) {
+    // Timer::after_millis(10).await;
+    // info!("======== Debug ========");
 
-    //use embassy_nrf::gpio::{Level, Output, OutputDrive};
-    //Output::new(p.P0_14, Level::Low, OutputDrive::Standard);
-    //Output::new(p.P0_15, Level::Low, OutputDrive::Standard);
-    //Output::new(p.P0_16, Level::Low, OutputDrive::Standard);
-
-    // spawner.must_spawn(fake_signals::task());
-
-    //use crate::examples::blinky;
-    //spawner.must_spawn(blinky::task(p.P0_03.degrade()));
-
+    // spawner.must_spawn(signal_test::task(spawner));
+    
     // use crate::examples::i2c_scan;
     // spawner.must_spawn(i2c_scan::task(i2c_bus));
 

@@ -78,7 +78,7 @@ async fn park_brake_on() {
             if count > MAX_COUNT {
                 send_piezo.send(signals::PiezoModeType::BeepLong);
                 watch_park_brake_on.send(true);
-                signals::send_ble(signals::BleHandles::ParkBrakeOn, &(true as u8).to_le_bytes());
+                signals::send_ble(signals::BleHandles::ParkBrakeOn, &[true as u8]);
                 //info!("on: park brake on");
                 return;
             }
@@ -99,7 +99,7 @@ async fn park_brake_off() {
 
     let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
     watch_park_brake_on.send(false);
-    signals::send_ble(signals::BleHandles::ParkBrakeOn, &(false as u8).to_le_bytes());
+    signals::send_ble(signals::BleHandles::ParkBrakeOn, &[false as u8]);
 
     //info!("off: turned parkbrake off");
 }

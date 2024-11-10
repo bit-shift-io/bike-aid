@@ -77,7 +77,7 @@ async fn increment_cruise() {
 
     let send_cruise_level = signals::CRUISE_LEVEL.sender();
     send_cruise_level.send(current_level);
-    signals::send_ble(signals::BleHandles::CruiseLevel, current_level.to_le_bytes().as_slice());
+    signals::send_ble(signals::BleHandles::CruiseLevel, &[current_level]);
 
     assign_voltage(current_level).await;
 }

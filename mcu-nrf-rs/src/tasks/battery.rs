@@ -27,7 +27,7 @@ pub async fn task() {
 
         if last_percent != percent {
             last_percent = percent;
-            signals::send_ble(signals::BleHandles::BatteryLevel, percent.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::BatteryLevel, &[percent]);
         }
 
         if last_power != power {

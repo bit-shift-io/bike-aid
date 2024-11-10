@@ -35,12 +35,12 @@ pub async fn brake<'a>(brake_input: &mut Input<'a>) {
     loop {
         brake_input.wait_for_high().await; // brake off
         watch_brake_on.send(false);
-        signals::send_ble(signals::BleHandles::BrakeOn, &(false as u8).to_le_bytes());
+        signals::send_ble(signals::BleHandles::BrakeOn, &[false as u8]);
         //info!("{}: off", TASK_ID);
 
         brake_input.wait_for_low().await; // brake on
         watch_brake_on.send(true);
-        signals::send_ble(signals::BleHandles::BrakeOn, &(true as u8).to_le_bytes());
+        signals::send_ble(signals::BleHandles::BrakeOn, &[true as u8]);
         //info!("{}: on", TASK_ID);
     }
 }

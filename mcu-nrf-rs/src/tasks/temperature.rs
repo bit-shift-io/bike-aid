@@ -58,7 +58,7 @@ async fn temperature(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'st
                 if last_temperature != temp {
                     last_temperature = temp;
                     //info!("{}: {}", TASK_ID, temp);
-                    signals::send_ble(signals::BleHandles::Temperature, temp.to_le_bytes().as_slice());
+                    signals::send_ble(signals::BleHandles::Temperature, &[temp]);
                 }
             },
             Err(_e) => { info!("{}: device error", TASK_ID); },

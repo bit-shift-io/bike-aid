@@ -36,12 +36,12 @@ async fn clock() {
 
         if minutes != last_minutes {
             last_minutes = minutes;
-            signals::send_ble(signals::BleHandles::ClockMinutes, minutes.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::ClockMinutes, &[minutes]);
         };
     
         if hours != last_hours {
             last_hours = hours;
-            signals::send_ble(signals::BleHandles::ClockHours, hours.to_le_bytes().as_slice());
+            signals::send_ble(signals::BleHandles::ClockHours, &[hours]);
         }
     }
 }
