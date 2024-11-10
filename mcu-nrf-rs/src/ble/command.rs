@@ -4,7 +4,6 @@ use embassy_time::Instant;
 use crate::utils::globals;
 
 
-#[derive(defmt::Format)]
 pub struct BleCommand {
     pub time: Instant,
     pub handle: BleHandles,
@@ -118,12 +117,20 @@ impl fmt::Debug for BleHandles {
 }
 
 
+impl defmt::Format for BleCommand {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f, "BleCommand {{ time: {}, handle: {}, data: {:?}, data_len: {} }}",
+                      self.time, self.handle, self.as_bytes(), self.data_len);
+    }
+}
+
 // so we can print the whole command struct!
 impl fmt::Debug for BleCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BleCommand")
             .field("time", &self.time)
             .field("handle", &self.handle) // This will now use the custom Debug implementation
+            .field("data", &self.as_bytes())
             .field("data_len", &self.data_len)
             .finish()
     }

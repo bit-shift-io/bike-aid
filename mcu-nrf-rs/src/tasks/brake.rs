@@ -1,8 +1,7 @@
 use crate::utils::signals;
 use embassy_nrf::gpio::{AnyPin, Input, Pull};
 use defmt::info;
-use embassy_futures::select::{select, Either};
-use embassy_time::Timer;
+use embassy_futures::select::select;
 
 const TASK_ID: &str = "BRAKE";
 
@@ -18,20 +17,15 @@ pub async fn task(
     // need to turn off the brake when power if off, so that it doesnt rest the handbrake when power comes back on
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 let watch_future = rec.changed();
                 let task_future = run(&mut brake_state);
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
             },
-            false => { state = rec.changed().await; }
+            false => {}
         }
     }
 }
@@ -52,3 +46,12 @@ pub async fn run<'a>(brake_state: &mut Input<'a>) {
         //info!("{}: on", TASK_ID);
     }
 }
+
+
+// async fn stop() {
+//     let brake_on = signals::BRAKE_ON.dyn_receiver().unwrap().try_get().unwrap();
+//     if brake_on {
+//         signals::BRAKE_ON.dyn_sender().send(false);
+//         signals::send_ble(signals::BleHandles::BrakeOn, &[false as u8]);
+//     }
+// }

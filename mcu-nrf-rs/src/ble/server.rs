@@ -122,22 +122,20 @@ pub async fn run(connection: &Connection, server: &Server) {
 
     // command queue
     let rec_queue = QUEUE_CHANNEL.receiver();
+    rec_queue.clear();
     //let send_led = signals::LED_DEBUG_MODE.sender();
     let mut queue_full = false;
 
     loop {
         if rec_queue.is_full() { 
+            rec_queue.clear();
+            signals::send_ble(BleHandles::Uart, b"queue full!");
             warn!("{}: queue full", TASK_ID);
             queue_full = true;
         }
 
         // wait for command
         let command = rec_queue.receive().await;
-
-        if queue_full {
-            signals::send_ble(BleHandles::Uart, b"queue full!");
-            queue_full = false;
-        }
 
         let value: &[u8] = command.as_bytes();
         let handle;
@@ -160,8 +158,8 @@ pub async fn run(connection: &Connection, server: &Server) {
 
         // debug led
         //send_led.send(signals::LedModeType::Instant);
-
-        info!("{}: {}", TASK_ID, command);
+        //if command.handle == BleHandles::ParkBrakeOn { info!("{}", command) }
+        //else { info!("{}: {}", TASK_ID, command.handle) };
 
         // first we set the value
         let set_result = set_value(handle, value);

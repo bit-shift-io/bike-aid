@@ -38,24 +38,17 @@ pub async fn task(
         return;
     }
 
+    // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 let watch_future = rec.changed();
                 let task_future = run(i2c_bus);
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
             },
-            false => { 
-                // TODO: when power off, we still want to get voltage once an hour or so
-                state = rec.changed().await; 
-            }
+            false => {}
         }
     }
 }

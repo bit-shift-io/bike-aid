@@ -50,10 +50,10 @@
       {
         "label": "cargo embed",
         "type": "shell",
-        "command": "cargo-embed",
+        "command": "cargo embed",
         "group": {
           "kind": "build",
-          "isDefault": true
+          "isDefault": false
         },
         "problemMatcher": [
             "$rustc"

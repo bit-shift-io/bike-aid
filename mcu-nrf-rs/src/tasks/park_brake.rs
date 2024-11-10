@@ -1,7 +1,6 @@
 use crate::utils::signals;
 use defmt::info;
-use embassy_futures::select::{select, Either};
-use embassy_time::Timer;
+use embassy_futures::select::select;
 
 const TASK_ID: &str = "PARK BRAKE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
@@ -12,32 +11,24 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
-    let mut init = false;
 
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        
-        match state {
+        match rec.changed().await {
             true => {
+                //info!("{}: power on", TASK_ID);
                 let watch_future = rec.changed();
                 let task_future = cruise();
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
+                stop().await
             },
-            false => { 
-                if init { stop().await; }
-                else { init = true; }
-                state = rec.changed().await; 
-            }
+            false => {}
         }
     }
 }
 
 
 pub async fn cruise() {
+    // this requires try_get as the state doesnt change by default
     let mut rec = signals::CRUISE_LEVEL.receiver().unwrap();
     let mut state = 0;
 
@@ -46,26 +37,24 @@ pub async fn cruise() {
         
         match state {
             0 => {
+                //info!("{}: cruise", TASK_ID);
                 let watch_future = rec.changed();
                 let task_future = run();
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
             },
-            _ => { state = rec.changed().await; }
+            _ => { state = rec.changed().await;}
         }
     }
 }
 
 
 async fn run() {
+    // requires try_get as the state doesnt change by default
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let mut state = true;
 
     loop {
         if let Some(b) = watch.try_get() {state = b}
-        //info!("{}: {}", TASK_ID, state);
 
         match state {
             true => { park_brake_off().await; },
@@ -120,8 +109,9 @@ async fn park_brake_off() {
 
 
 async fn stop() {
-    let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
-    watch_park_brake_on.send(true);
-    signals::send_ble(signals::BleHandles::ParkBrakeOn, &(true as u8).to_le_bytes());
-    //info!("{}: stop - turn on park brake", TASK_ID);
+    let park_brake_on = signals::PARK_BRAKE_ON.dyn_receiver().unwrap().try_get().unwrap();
+    if !park_brake_on {
+        signals::PARK_BRAKE_ON.dyn_sender().send(true);
+        signals::send_ble(signals::BleHandles::ParkBrakeOn, &[true as u8]);
+    }
 }

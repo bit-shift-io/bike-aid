@@ -1,7 +1,7 @@
 use crate::utils::signals;
 use defmt::info;
 use embassy_time::Timer;
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::select;
 
 const TASK_ID: &str = "POWER DOWN";
 const INTERVAL: u64 = 10 * 60; // seconds - 10 mins
@@ -12,20 +12,15 @@ pub async fn task() {
 
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 let watch_future = rec.changed();
                 let task_future = run();
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
             },
-            false => { state = rec.changed().await; }
+            false => {}
         }
     }
 }
@@ -34,24 +29,18 @@ pub async fn task() {
 pub async fn run() {
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
     let send_power_on = signals::REQUEST_POWER_ON.sender();
-    let mut state = true;
 
     loop {
-        if let Some(b) = watch.try_get() {state = b}
-        
-        match state {
+        match watch.changed().await {
             true => {
                 let rec_future = watch.changed();
                 let task_future = async { 
                     Timer::after_secs(INTERVAL).await;
                     send_power_on.send(false);  // power off
                 };
-                match select(rec_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => {}
-                }
+                select(rec_future, task_future).await;
             },
-            false => { state = watch.changed().await; }
+            false => {}
         }
     }
 }

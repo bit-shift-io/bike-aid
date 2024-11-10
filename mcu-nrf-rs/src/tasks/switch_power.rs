@@ -16,12 +16,9 @@ pub async fn task(
     let send_led = signals::LED_MODE.sender();
     let send_piezo = signals::PIEZO_MODE.sender();
     let send_power_on = signals::POWER_ON.sender();
-    let mut init = false;
 
     loop {
-        let state = rec_power_on.changed().await;
-        //info!("{}: {}", TASK_ID, state);
-        match state {
+        match rec_power_on.changed().await {
             true => {
                 pin_state.set_high();
                 Timer::after_millis(100).await; // delay to allow device to power
@@ -31,14 +28,12 @@ pub async fn task(
                 signals::send_ble(signals::BleHandles::PowerOn, &[true as u8]);
             }
             false => {
-                if init {
-                    pin_state.set_low();
-                    Timer::after_millis(100).await; // delay to allow device to power
-                    signals::send_ble(signals::BleHandles::PowerOn, &[false as u8]);
-                    send_led.send(signals::LedModeType::SingleSlow);
-                    send_piezo.send(signals::PiezoModeType::PowerOff);
-                    send_power_on.send(false);
-                } else { init = true; }
+                pin_state.set_low();
+                Timer::after_millis(100).await; // delay to allow device to power
+                signals::send_ble(signals::BleHandles::PowerOn, &[false as u8]);
+                send_led.send(signals::LedModeType::SingleSlow);
+                send_piezo.send(signals::PiezoModeType::PowerOff);
+                send_power_on.send(false);
             }
         }
     }

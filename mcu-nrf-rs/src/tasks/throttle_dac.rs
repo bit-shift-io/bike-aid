@@ -3,7 +3,7 @@ use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_embedded_hal::shared_bus::I2cDeviceError;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::select;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embassy_time::Timer;
@@ -31,25 +31,16 @@ pub async fn task(
   
     // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
-    let mut init = false;
-
+  
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 let watch_future = rec.changed();
                 let task_future = park_brake(i2c_bus);
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(watch_future, task_future).await;
+                let _ = stop(i2c_bus).await;
             },
-            false => {
-                if init { let _ = stop(i2c_bus).await; } // set power to device off
-                else { init = true; } 
-                state = rec.changed().await; 
-            }
+            false => {}
         }
     }
 }
@@ -58,23 +49,16 @@ pub async fn task(
 async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
     // park brake on/off
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
-    let mut state = true; // default to on
-
+ 
     loop { 
-        if let Some(b) = watch.try_get() {state = b}
-        match state {
+        match watch.changed().await {
             false => {
                 let watch_future = watch.changed();
                 let task_future = run(i2c_bus);
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
-            },
-            true => { 
+                select(watch_future, task_future).await;
                 let _ = stop(i2c_bus).await; // set power to device off
-                state = watch.changed().await;
-            }
+            },
+            true => {}
         }
     }
 }

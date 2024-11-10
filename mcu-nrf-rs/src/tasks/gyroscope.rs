@@ -28,21 +28,17 @@ pub async fn task(
         return;
     }
 
+    // alarm on/off
     let mut sub = signals::ALARM_ENABLED.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = sub.try_changed() {state = b}
-        match state {
+        match sub.changed().await {
             true => {
                 let rec_future = sub.changed();
                 let task_future = run(i2c_bus);
-                match select(rec_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => { Timer::after_secs(60).await; } // retry
-                }
+                select(rec_future, task_future).await;
             },
-            false => { state = sub.changed().await; }
+            false => {}
         }
     }
 }

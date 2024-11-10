@@ -38,6 +38,7 @@ pub async fn task() {
 
 
 async fn run() {
+    // tap detection
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let send_piezo = signals::PIEZO_MODE.sender();
     let mut throttle_voltage = rec_throttle.changed().await; // millivolts, initial value
@@ -102,12 +103,13 @@ async fn assign_voltage(level: u8) {
 
 
 async fn reset_cruise() {
-    signals::CRUISE_LEVEL.dyn_sender().send_if_modified(|value| {
-        if *value != Some(0) {
-            *value = Some(0);
-            true
-        } else { false } // no change
-    });
-    signals::send_ble(signals::BleHandles::CruiseLevel, &[0u8]);
-    assign_voltage(0).await;
+    let mut rec_cruise_level = signals::CRUISE_LEVEL.receiver().unwrap();
+    let current_level = rec_cruise_level.try_get().unwrap();
+
+    // only send if changed
+    if current_level != 0 {
+        signals::CRUISE_LEVEL.dyn_sender().send(0);
+        signals::send_ble(signals::BleHandles::CruiseLevel, &[0u8]);
+        assign_voltage(0).await;
+    }
 }

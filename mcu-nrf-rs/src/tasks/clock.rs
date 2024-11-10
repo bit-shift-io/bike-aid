@@ -1,5 +1,5 @@
 use crate::utils::signals;
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::select;
 use embassy_time::{Instant, Timer};
 use defmt::info;
 
@@ -9,21 +9,17 @@ const TASK_ID: &str = "CLOCK";
 pub async fn task() {
     info!("{}", TASK_ID);
 
+    // power on/off
     let mut rec = signals::POWER_ON.receiver().unwrap();
-    let mut state = false;
 
     loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        match state {
+        match rec.changed().await {
             true => {
                 let watch_future = rec.changed();
                 let task_future = run();
-                match select(watch_future, task_future).await {
-                    Either::First(val) => { state = val; }
-                    Either::Second(_) => {} // other task will never end
-                }
+                select(watch_future, task_future).await;
             },
-            false => { state = rec.changed().await; }
+            false => {}
         }
     }
 }
