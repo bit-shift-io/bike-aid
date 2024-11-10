@@ -53,7 +53,6 @@ mod examples;
 mod ble;
 mod utils;
 
-use examples::signal_test;
 use tasks::*;
 use utils::{i2c, signals};
 
@@ -72,7 +71,6 @@ async fn main(spawner: Spawner) {
     info!("======== Starting ========");
     let p = embassy_nrf::init(get_config()); // make mut if need be for shared resources
     Timer::after_secs(2).await; // sleep incase we need to flash during debug and get a crash
-    signals::init();
     //let (spawn_high, spawn_med) = init_priority_spawners();
    
 

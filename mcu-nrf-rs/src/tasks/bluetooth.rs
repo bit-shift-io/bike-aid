@@ -5,7 +5,7 @@ use core::mem;
 use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
-use futures::future::{select, Either};
+use futures::future::select;
 use futures::pin_mut;
 
 const TASK_ID: &str = "BLUETOOTH";
@@ -85,17 +85,9 @@ pub async fn task(
         pin_mut!(server_future, gatt_future);
 
         // We are using "select" to wait for either one of the futures to complete.
-        // There are some advantages to this approach:
         //  - we only gather data when a client is connected, therefore saving some power.
         //  - when the GATT server finishes operating, our run function does also
-        let _ = match select(server_future, gatt_future).await {
-            Either::Left((_, _)) => {
-                //info!("{}: server run encountered an error and stopped!", TASK_ID);
-            }
-            Either::Right((_, _)) => { // (e, _)
-                //info!("{}: gatt_server exited with error: {:?}", TASK_ID, e);
-            }
-        };
+        select(server_future, gatt_future).await;
 
         // disconnect message
         server::disconnected(&connection, &server).await;

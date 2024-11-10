@@ -86,7 +86,6 @@ cortex-m-rt = "0.7.3"
 # misc
 static_cell = "2.0.0"
 format_no_std = "1.2.0"
-#critical-section = "1.1"
 
 # maths
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
@@ -109,12 +108,12 @@ embedded-ads111x = { version = "0.1.2", features = ["async"] }
 [patch.crates-io]
 # make sure to get the latest git rev from github, you can see the latest one here:
 # https://github.com/embassy-rs/embassy/commits/main/
-embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
-embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
-embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
-embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
-embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
-embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "dc9fc73704b5fc18e9f34a2fc94c06bbe691732a"}
+embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
+embassy-time = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
+embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
 
 nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
 nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}

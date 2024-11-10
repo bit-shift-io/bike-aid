@@ -1,10 +1,12 @@
-use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex};
+use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex, watch::Watch};
 
 // configure types
-type SignalMutex = ThreadModeRawMutex;
+type SettingsMutex = ThreadModeRawMutex;
+type WatchMutex = ThreadModeRawMutex;
 
-pub static CRUISE_VOLTAGE: Mutex<SignalMutex, u16> = Mutex::new(0u16);
-pub static CRUISE_VOLTAGES: Mutex<SignalMutex, [u16;5]> = Mutex::new([
+
+pub static CRUISE_VOLTAGE: Watch<WatchMutex, u16, 1> = Watch::new_with(0u16);
+pub static CRUISE_VOLTAGES: Mutex<SettingsMutex, [u16;5]> = Mutex::new([
         1600u16, // 1408 a little too slow, 1500 a little slow
         2000u16, // 1906 a little to slow
         2300u16, // 2400 a little fast?
@@ -21,7 +23,8 @@ pub struct AlarmSettings {
     pub warning_count: u8,
 }
 
-pub static ALARM_SETTINGS: Mutex<SignalMutex, AlarmSettings> = Mutex::new(AlarmSettings {
+
+pub static ALARM_SETTINGS: Watch<WatchMutex, AlarmSettings, 1> = Watch::new_with(AlarmSettings {
     acc_sensitivity: 0.9,
     gyro_sensitivity: 0.8,
     angle_sensitivity: 0.1,
@@ -68,7 +71,7 @@ pub struct ThrottleSettings {
 /*
 Controller supply voltage - 4.36v = 4360mv
 */
-pub static THROTTLE_SETTINGS: Mutex<SignalMutex, ThrottleSettings> = Mutex::new(ThrottleSettings {
+pub static THROTTLE_SETTINGS: Watch<WatchMutex, ThrottleSettings, 1> = Watch::new_with(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
     increase_smoothing_low: 80, // rate of smoothing to acceleration at the low end of the throttle
     increase_smoothing_high: 30, // rate of smoothing to acceleration at the high end of the throttle

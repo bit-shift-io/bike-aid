@@ -20,9 +20,7 @@ pub async fn task() {
         if rec.changed().await {
             signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]);
             let watch_future = rec.changed();
-            let task1_future = alarm();
-            let task2_future = warning_cooldown();
-            let task_future = join(task1_future, task2_future);
+            let task_future = join(alarm(), warning_cooldown());
             select(watch_future, task_future).await;
             stop().await;
         }
@@ -34,13 +32,14 @@ async fn alarm() {
     let mut rec_motion = signals::ALARM_MOTION_DETECTED.receiver().unwrap();
     let send_motion = signals::ALARM_MOTION_DETECTED.sender();
     let send_piezo = signals::PIEZO_MODE.sender();
+    let mut rec_alarm_settings = settings::ALARM_SETTINGS.receiver().unwrap();
 
     // TODO: want to time limit the warnings to every xx seconds
     loop {
         // motion detected
         if rec_motion.changed().await {
-            info!("{}: motion detected", TASK_ID);
-            let settings = { *settings::ALARM_SETTINGS.lock().await };
+            
+            let settings = rec_alarm_settings.try_get().unwrap();
             let mut warn_count = WARNING_COUNT.lock().await;
             *warn_count += 1;
 
@@ -52,6 +51,7 @@ async fn alarm() {
             } else {
                 // warning
                 send_piezo.send(signals::PiezoModeType::Warning);
+                info!("{}: alarm warning", TASK_ID);
             }
 
             // reset motion detected

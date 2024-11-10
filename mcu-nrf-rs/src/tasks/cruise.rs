@@ -85,8 +85,9 @@ async fn increment_cruise() {
 
 async fn assign_voltage(level: u8) {
     let cruise_voltages = *settings::CRUISE_VOLTAGES.lock().await;
-    if level == 0 { *settings::CRUISE_VOLTAGE.lock().await = 0; }
-    else { *settings::CRUISE_VOLTAGE.lock().await = cruise_voltages[(level -1) as usize]; } 
+    let send_cruise_voltage = settings::CRUISE_VOLTAGE.sender();
+    if level == 0 { send_cruise_voltage.send(0); }
+    else { send_cruise_voltage.send(cruise_voltages[(level -1) as usize]); } 
 }
 
 

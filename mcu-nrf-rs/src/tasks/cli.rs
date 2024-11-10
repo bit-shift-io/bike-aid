@@ -11,6 +11,8 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     let mut rec_read = signals::CLI.receiver().unwrap();
+    let mut rec_throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap();
+    let send_throttle_settings = settings::THROTTLE_SETTINGS.sender();
  
     loop {
         let data = rec_read.changed().await;
@@ -50,7 +52,7 @@ pub async fn task() {
         }
 
         if string.starts_with("passthrough") || string.starts_with("1") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             if string.ends_with("1") {
                 throttle_settings.passthrough = true;
             } else {
@@ -61,58 +63,66 @@ pub async fn task() {
         }
 
         if string.starts_with("increase_smoothing_low") || string.starts_with("2") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.increase_smoothing_low = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("increase_smoothing_high") || string.starts_with("3") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.increase_smoothing_high = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("decrease_smooth_factor") || string.starts_with("4") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.decrease_smoothing = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("no_throttle") || string.starts_with("5") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.throttle_min = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("full_throttle") || string.starts_with("6") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.throttle_max = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("deadband_min") || string.starts_with("7") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.deadband_min = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("deadband_max") || string.starts_with("8") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.deadband_max = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
         if string.starts_with("speed_step") || string.starts_with("9") {
-            let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+            let mut throttle_settings = rec_throttle_settings.try_get().unwrap();
             let value = string.split_whitespace().last().unwrap();
             throttle_settings.speed_step = value.parse::<u16>().unwrap();
+            send_throttle_settings.send(throttle_settings);
             result = true;
         }
 
@@ -168,7 +178,7 @@ pub async fn task() {
 
 
         if string.starts_with("help") || string.starts_with("?") || string == ("h") || string.starts_with("settings") {
-            let settings = { *settings::THROTTLE_SETTINGS.lock().await };
+            let settings = rec_throttle_settings.try_get().unwrap();
 
             send(b"1. passthrough");
             if settings.passthrough { send(b"1") } else { send(b"0") };

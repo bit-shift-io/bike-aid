@@ -44,7 +44,7 @@ async fn write_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap().try_get().unwrap();
 
     write_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     write_u16(flash, &mut offset, &mut throttle_settings.increase_smoothing_high).await;
@@ -67,7 +67,8 @@ async fn read_store<E: defmt::Format>(
     let mut offset = 0; // address read offset
 
     // == settings begin ==
-    let mut throttle_settings = settings::THROTTLE_SETTINGS.lock().await;
+    let mut throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap().try_get().unwrap();
+    
     read_bool(flash, &mut offset, &mut throttle_settings.passthrough).await;
     read_u16(flash, &mut offset, &mut throttle_settings.increase_smoothing_high).await;
     read_u16(flash, &mut offset, &mut throttle_settings.decrease_smoothing).await;

@@ -9,25 +9,27 @@ const TASK_ID: &str = "THROTTLE";
 pub async fn task() {
     info!("{}", TASK_ID);
     
+    let mut rec_throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap();
+    let mut rec_cruise_voltage = settings::CRUISE_VOLTAGE.receiver().unwrap();
     let send_throttle = signals::THROTTLE_OUT.sender();
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
     let mut output_voltage = 0u16;
-    let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
+    let mut rec_brake_on = signals::BRAKE_ON.receiver().unwrap();
     let mut count = 0u8;
     let mut last_voltage = 0u16;
 
     loop {
         let throttle_voltage = rec_throttle.changed().await; // millivolts
 
-        let settings = { *settings::THROTTLE_SETTINGS.lock().await }; // minimise lock time
+        let settings = rec_throttle_settings.try_get().unwrap();
         if settings.passthrough {
             send_throttle.send(throttle_voltage);
             continue;
         }
 
         // get values
-        let cruise_voltage = { *settings::CRUISE_VOLTAGE.lock().await };
-        let brake_on = watch_brake_on.try_get().unwrap();
+        let cruise_voltage = rec_cruise_voltage.try_get().unwrap();
+        let brake_on = rec_brake_on.try_get().unwrap();
         let mut target_voltage = throttle_voltage;
 
         // check brake, cruise and target conditions

@@ -14,11 +14,11 @@ pub async fn task() {
 
     loop { 
         if rec.changed().await {
-                //info!("{}: power on", TASK_ID);
-                let watch_future = rec.changed();
-                let task_future = cruise();
-                select(watch_future, task_future).await;
-                stop().await
+            //info!("{}: power on", TASK_ID);
+            let watch_future = rec.changed();
+            let task_future = cruise();
+            select(watch_future, task_future).await;
+            stop().await;
         }
     }
 }

@@ -55,7 +55,8 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
     //let _ = mpu.set_accel_range(AccelRange::G2); // default AccelRange::G2
     //let _ = mpu.set_accel_hpf(ACCEL_HPF::_RESET); // default ACCEL_HPF::_RESET
     //mpu.setup_motion_detection().unwrap();
-
+    
+    let mut rec_alarm_settings = settings::ALARM_SETTINGS.receiver().unwrap();
     let send_motion = signals::ALARM_MOTION_DETECTED.sender();
     let mut last_gyro = mpu.get_gyro().await.unwrap();
     let mut last_acc_angles = mpu.get_acc_angles().await.unwrap();
@@ -63,7 +64,7 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
     loop {
         Timer::after_millis(INTERVAL).await;
 
-        let settings = { *settings::ALARM_SETTINGS.lock().await };
+        let settings = rec_alarm_settings.try_get().unwrap();
         let mut motion_detected = false;
 
         // get roll and pitch estimate
