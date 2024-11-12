@@ -71,7 +71,7 @@ pub struct ThrottleSettings {
 /*
 Controller supply voltage - 4.36v = 4360mv
 */
-pub static THROTTLE_SETTINGS: Watch<WatchMutex, ThrottleSettings, 1> = Watch::new_with(ThrottleSettings {
+pub static THROTTLE_SETTINGS: Watch<WatchMutex, ThrottleSettings, 2> = Watch::new_with(ThrottleSettings {
     passthrough: false, // disable smoothing and limiting
     increase_smoothing_low: 80, // rate of smoothing to acceleration at the low end of the throttle
     increase_smoothing_high: 30, // rate of smoothing to acceleration at the high end of the throttle

@@ -1,4 +1,4 @@
-use crate::utils::signals;
+use crate::{ble::server::QUEUE_CHANNEL, utils::signals::{self, send_ble, BleHandles}};
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
@@ -8,6 +8,30 @@ const TASK_ID : &str = "SIGNAL TEST";
 #[embassy_executor::task]
 pub async fn task(spawner: Spawner) {
     info!("{}", TASK_ID);
+
+    test_queue(spawner).await;
+
+    info!("{}: end", TASK_ID);
+}
+
+async fn test_queue(spawner: Spawner) {
+  send_ble(BleHandles::Temperature, &[18u8]);
+  send_ble(BleHandles::Temperature, &[18u8]);
+  send_ble(BleHandles::Temperature, &[18u8]);
+  send_ble(BleHandles::Temperature, &[18u8]);
+  send_ble(BleHandles::Temperature, &[18u8]);
+
+  send_ble(BleHandles::Uart, b"test");
+  send_ble(BleHandles::Uart, b"test2");
+
+  let rec_queue = QUEUE_CHANNEL.receiver();
+  let size = rec_queue.len();
+  info!("{}: queue size: {}", TASK_ID, size);
+  
+}
+
+
+async fn test1(spawner: Spawner) {
 
     // power on
     let send_power_on = signals::REQUEST_POWER_ON.sender();
@@ -33,8 +57,6 @@ pub async fn task(spawner: Spawner) {
     //     Timer::after_millis(100).await;
 
     // }
-
-    info!("{}: end", TASK_ID);
 }
 
 

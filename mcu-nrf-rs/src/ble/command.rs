@@ -4,6 +4,7 @@ use embassy_time::Instant;
 use crate::utils::globals;
 
 
+#[derive(Clone)]
 pub struct BleCommand {
     pub time: Instant,
     pub handle: BleHandles,
@@ -32,6 +33,10 @@ impl BleCommand {
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.data[..self.data_len]
+    }
+
+    pub fn is_single_instance(&self) -> bool {
+        self.handle.is_single_instance()
     }
 }
 

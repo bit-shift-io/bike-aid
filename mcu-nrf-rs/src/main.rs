@@ -35,7 +35,6 @@ disconnect while connecting causes multiple instances of scanner
 
 Todo
 ----------
-patch watch with defaults
 patch qeue predicate filter
 attach debugger to running mcu
 alarm
@@ -59,7 +58,6 @@ use utils::{i2c, signals};
 use defmt::info;
 use embassy_nrf::config::Config;
 use embassy_nrf::{config::Reg0Voltage, gpio::Pin};
-use embassy_nrf::nvmc::Nvmc;
 use embassy_time::Timer;
 use embassy_nrf::interrupt::Priority;
 use embassy_executor::Spawner;
@@ -90,7 +88,6 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(cli::task());
     spawner.must_spawn(brake::task(p.P0_17.degrade()));
     spawner.must_spawn(park_brake::task());
-    spawner.must_spawn(store::task(Nvmc::new(p.NVMC)));
     spawner.must_spawn(speed::task(p.P0_09.degrade()));
     spawner.must_spawn(power_down::task());
     spawner.must_spawn(manual_override::task(p.P0_20.degrade()));
@@ -103,8 +100,6 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(led::task(p.P0_31.degrade(), 0));
     spawner.must_spawn(led::task(p.P0_15.degrade(), 1));
     spawner.must_spawn(clock::task());
-    //spawner.must_spawn(switch_horn::task(p.P1_11.degrade()));
-    //spawner.must_spawn(switch_light::task(p.P0_10.degrade()));
 
     // == FINALISE ==
 
@@ -166,6 +161,7 @@ async fn debug(_spawner: Spawner) {
     // Timer::after_millis(10).await;
     // info!("======== Debug ========");
 
+    // use examples::signal_test;
     // spawner.must_spawn(signal_test::task(spawner));
     
     // use crate::examples::i2c_scan;

@@ -205,11 +205,13 @@ pub fn send_queue(handle: BleHandles, data: &[u8]) {
         while let Some(chunk) = chunks.next() {
             embassy_time::block_for(embassy_time::Duration::from_ticks(1));
             let msg = BleCommand::new(handle, chunk);
+            send_ble_queue.remove_if(|i| { i.handle == handle && i.is_single_instance() });
             let _ = send_ble_queue.try_send(msg);
         }
     } else {
         embassy_time::block_for(embassy_time::Duration::from_ticks(1));
         let msg = BleCommand::new(handle, data);
+        send_ble_queue.remove_if(|i| { i.handle == handle && i.is_single_instance() });
         let _ = send_ble_queue.try_send(msg);
     }
 }
