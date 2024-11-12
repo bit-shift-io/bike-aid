@@ -1,6 +1,7 @@
 use crate::{ble::server::QUEUE_CHANNEL, utils::signals::{self, send_ble, BleHandles}};
 use defmt::info;
 use embassy_executor::Spawner;
+use embassy_futures::select::{select, select3, Either, Either3};
 use embassy_time::Timer;
 
 const TASK_ID : &str = "SIGNAL TEST";
@@ -9,10 +10,70 @@ const TASK_ID : &str = "SIGNAL TEST";
 pub async fn task(spawner: Spawner) {
     info!("{}", TASK_ID);
 
-    test_queue(spawner).await;
+    spawner.must_spawn(test_chain());
+
+    // power on
+    let send_power_on = signals::REQUEST_POWER_ON.sender();
+    Timer::after_millis(1000).await;
+    send_power_on.send(true);
+
+    // park brake off
+    let send_park_brake_on = signals::PARK_BRAKE_ON.sender();
+    Timer::after_millis(1000).await;
+    info!("{}: PB off", TASK_ID);
+    send_park_brake_on.send(false);
+
+    // park brake on
+    let send_park_brake_on = signals::PARK_BRAKE_ON.sender();
+    Timer::after_millis(1000).await;
+    info!("{}: PB on", TASK_ID);
+    send_park_brake_on.send(true);
+
+     // park brake off
+     let send_park_brake_on = signals::PARK_BRAKE_ON.sender();
+     Timer::after_millis(1000).await;
+     info!("{}: PB off", TASK_ID);
+     send_park_brake_on.send(false);
+
+    // park brake on
+    let send_park_brake_on = signals::PARK_BRAKE_ON.sender();
+    Timer::after_millis(1000).await;
+    info!("{}: PB on", TASK_ID);
+    send_park_brake_on.send(true);
 
     info!("{}: end", TASK_ID);
 }
+
+
+#[embassy_executor::task]
+async fn test_chain() {
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+    let mut rec_park_brake_on = signals::PARK_BRAKE_ON.receiver().unwrap();
+    let mut rec_cruise = signals::CRUISE_LEVEL.receiver().unwrap();
+    let mut state_power_on = rec_power_on.try_get().unwrap();
+    let mut state_park_brake_on = rec_park_brake_on.try_get().unwrap();
+    let mut state_cruise_level = rec_cruise.try_get().unwrap();
+
+    loop {
+        // power on && park brake off
+        match select3(rec_power_on.changed(), rec_park_brake_on.changed(), rec_cruise.changed()).await {
+            Either3::First(b) => { state_power_on = b; },
+            Either3::Second(b) => { state_park_brake_on = b;},
+            Either3::Third(b) => { state_cruise_level = b;},
+        }
+
+        info!("{}: power on: {}, park brake on: {}", TASK_ID, state_power_on, state_park_brake_on);
+    
+        if !(state_power_on && !state_park_brake_on && state_cruise_level == 1) {
+            continue;
+        }
+
+        // do stuff we want here!
+        // OR we add all our tasks in the first batch.... then we can check what we should do....?
+    }
+}
+
+
 
 async fn test_queue(spawner: Spawner) {
   send_ble(BleHandles::Temperature, &[18u8]);

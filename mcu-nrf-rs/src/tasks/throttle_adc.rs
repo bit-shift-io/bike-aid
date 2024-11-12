@@ -22,7 +22,7 @@ pub async fn task(
     let mut rec = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        if rec.changed().await {
+        if rec.changed().await { // power true/on
             let watch_future = rec.changed();
             let task_future = park_brake(i2c_bus);
             select(watch_future, task_future).await;
@@ -36,7 +36,7 @@ async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'sta
     let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
 
     loop { 
-        if !watch.changed().await { // if PB off
+        if !watch.changed().await { // PB false/off
                 let watch_future = watch.changed();
                 let task_future = throttle_adc(i2c_bus);
                 select(watch_future, task_future).await;

@@ -19,7 +19,7 @@ codegen-units = 1
 debug = 2
 debug-assertions = false
 incremental = false
-lto = 'fat' # fat?
+lto = 'thin' # fat?
 opt-level = 's'
 overflow-checks = false
 
@@ -90,7 +90,7 @@ heapless = "0.8.0"
 
 # device driver
 mcp4725-async = "0.1.0"
-mpu6050-async = { version = "0.0.1", path = "../mpu6050-async" }
+mpu6050-async = { version = "0.0.2", git = "https://github.com/kalkyl/mpu6050-async.git" }
 embedded-ads111x = { version = "0.1.2", features = ["async"] }
 
 # my fork
