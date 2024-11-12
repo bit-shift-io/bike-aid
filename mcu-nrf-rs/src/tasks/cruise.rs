@@ -19,7 +19,7 @@ pub async fn task() {
             let watch_future = watch.changed();
             let task_future = tap_detection();
             select(watch_future, task_future).await;
-            reset_cruise().await;
+            set_cruise(0).await;
         }
     }
 
@@ -68,37 +68,29 @@ async fn tap_detection() {
 
 
 async fn increment_cruise() {
-    let mut rec_cruise_level = signals::CRUISE_LEVEL.receiver().unwrap();
-    let mut current_level = rec_cruise_level.try_get().unwrap();
+    let mut level = signals::CRUISE_LEVEL.try_get().unwrap();
 
     // wrap around 0-4, move 0 -> 5 = range 1-5 instead of 0-4
-    current_level = (current_level + 1) % 5; 
-    if current_level == 0 { current_level = 5; }
+    level = (level + 1) % 5 + 1;
+    //level = (level + 1) % 5; 
+    //if level == 0 { level = 5; }
 
-    let send_cruise_level = signals::CRUISE_LEVEL.sender();
-    send_cruise_level.send(current_level);
-    signals::send_ble(signals::BleHandles::CruiseLevel, &[current_level]);
-
-    assign_voltage(current_level).await;
+    set_cruise(level).await;
 }
 
 
-async fn assign_voltage(level: u8) {
-    let cruise_voltages = *settings::CRUISE_VOLTAGES.lock().await;
-    let send_cruise_voltage = settings::CRUISE_VOLTAGE.sender();
-    if level == 0 { send_cruise_voltage.send(0); }
-    else { send_cruise_voltage.send(cruise_voltages[(level -1) as usize]); } 
-}
-
-
-async fn reset_cruise() {
-    let mut rec_cruise_level = signals::CRUISE_LEVEL.receiver().unwrap();
-    let current_level = rec_cruise_level.try_get().unwrap();
+async fn set_cruise(level: u8) {
+    let current_level = signals::CRUISE_LEVEL.try_get().unwrap();
 
     // only send if changed
-    if current_level != 0 {
-        signals::CRUISE_LEVEL.dyn_sender().send(0);
-        signals::send_ble(signals::BleHandles::CruiseLevel, &[0u8]);
-        assign_voltage(0).await;
+    if current_level != level {
+        // set voltage
+        let cruise_voltages = *settings::CRUISE_VOLTAGES.lock().await;
+        let voltage = if level == 0 { 0 } else { cruise_voltages[(level -1) as usize] }; 
+        settings::CRUISE_VOLTAGE.dyn_sender().send(voltage);
+
+        // set level
+        signals::CRUISE_LEVEL.dyn_sender().send(level);
+        signals::send_ble(signals::BleHandles::CruiseLevel, &[level]);
     }
 }
