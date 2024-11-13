@@ -12,17 +12,14 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     // brake on/off
-    let mut watch = signals::BRAKE_ON.receiver().unwrap();
+    let mut rec_brake_on = signals::BRAKE_ON.receiver().unwrap();
 
     loop { 
-        if !watch.changed().await { // brake off
-            let watch_future = watch.changed();
-            let task_future = tap_detection();
-            select(watch_future, task_future).await;
+        if !rec_brake_on.changed().await { // brake off
+            select(rec_brake_on.changed(), tap_detection()).await;
             set_cruise(0).await;
         }
     }
-
 }
 
 
@@ -71,9 +68,8 @@ async fn increment_cruise() {
     let mut level = signals::CRUISE_LEVEL.try_get().unwrap();
 
     // wrap around 0-4, move 0 -> 5 = range 1-5 instead of 0-4
-    level = (level + 1) % 5 + 1;
-    //level = (level + 1) % 5; 
-    //if level == 0 { level = 5; }
+    level = (level + 1) % 5; 
+    if level == 0 { level = 5; }
 
     set_cruise(level).await;
 }

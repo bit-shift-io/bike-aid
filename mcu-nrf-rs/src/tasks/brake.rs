@@ -16,13 +16,11 @@ pub async fn task(
 
     // need to turn off the brake when power if off, so that it doesnt rest the handbrake when power comes back on
     // power on/off
-    let mut rec = signals::POWER_ON.receiver().unwrap();
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        if rec.changed().await {
-            let watch_future = rec.changed();
-            let task_future = brake(&mut brake_input);
-            select(watch_future, task_future).await;
+        if rec_power_on.changed().await {
+            select(rec_power_on.changed(), brake(&mut brake_input)).await;
             stop().await;
         }
     }

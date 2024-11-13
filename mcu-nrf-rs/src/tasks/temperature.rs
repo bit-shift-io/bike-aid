@@ -18,13 +18,11 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::POWER_ON.receiver().unwrap();
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
 
     loop { 
-        if rec.changed().await {
-            let watch_future = rec.changed();
-            let task_future = temperature(i2c_bus);
-            select(watch_future, task_future).await;
+        if rec_power_on.changed().await {
+            select(rec_power_on.changed(), temperature(i2c_bus)).await;
         }
     }
 }

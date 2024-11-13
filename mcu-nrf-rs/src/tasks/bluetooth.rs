@@ -1,12 +1,12 @@
 use crate::ble::server::{self, Server};
 use defmt::*;
 use embassy_executor::Spawner;
+use embassy_futures::select::select;
 use core::mem;
 use nrf_softdevice::ble::advertisement_builder::{Flag, LegacyAdvertisementBuilder, LegacyAdvertisementPayload, ServiceList};
 use nrf_softdevice::ble::{self, gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, Softdevice};
-use futures::future::select;
-use futures::pin_mut;
+use core::pin::pin;
 
 const TASK_ID: &str = "BLUETOOTH";
 
@@ -79,12 +79,10 @@ pub async fn task(
         let advertisement = peripheral::ConnectableAdvertisement::ScannableUndirected { adv_data: &ADV_DATA, scan_data: &SCAN_DATA };
         let connection: Connection = unwrap!(peripheral::advertise_connectable(softdevice, advertisement, &config).await);
 
-        // Create two futures
-        let server_future = server::run(&connection, &server);
-        let gatt_future = gatt_server::run(&connection, &server, |_| {}); // no events rigistered
-        pin_mut!(server_future, gatt_future);
+        // Create two futures. Pin locks the memory to the stack
+        let server_future = pin!(server::run(&connection, &server));
+        let gatt_future = pin!(gatt_server::run(&connection, &server, |_| {})); // no events rigistered
 
-        // We are using "select" to wait for either one of the futures to complete.
         //  - we only gather data when a client is connected, therefore saving some power.
         //  - when the GATT server finishes operating, our run function does also
         select(server_future, gatt_future).await;

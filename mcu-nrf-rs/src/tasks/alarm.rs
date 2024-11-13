@@ -14,14 +14,12 @@ pub async fn task() {
     info!("{}", TASK_ID);
 
     // alarm on/off
-    let mut rec = signals::ALARM_ENABLED.receiver().unwrap();
+    let mut rec_alarm_enabled = signals::ALARM_ENABLED.receiver().unwrap();
 
     loop { 
-        if rec.changed().await {
+        if rec_alarm_enabled.changed().await {
             signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]);
-            let watch_future = rec.changed();
-            let task_future = join(alarm(), warning_cooldown());
-            select(watch_future, task_future).await;
+            select(rec_alarm_enabled.changed(), join(alarm(), warning_cooldown())).await;
             stop().await;
         }
     }

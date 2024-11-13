@@ -114,12 +114,12 @@ async fn boot_ok() {
 }
 
 
-async fn debug(spawner: Spawner) {
-    Timer::after_millis(10).await;
-    info!("======== Debug ========");
+async fn debug(_spawner: Spawner) {
+    // Timer::after_millis(10).await;
+    // info!("======== Debug ========");
 
-    use examples::signal_test;
-    spawner.must_spawn(signal_test::task(spawner));
+    // use examples::signal_test;
+    // spawner.must_spawn(signal_test::task(spawner));
     
     // use crate::examples::i2c_scan;
     // spawner.must_spawn(i2c_scan::task(i2c_bus));

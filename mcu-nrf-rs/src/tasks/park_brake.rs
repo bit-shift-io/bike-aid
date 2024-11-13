@@ -1,6 +1,7 @@
+use core::future;
 use crate::utils::signals;
 use defmt::info;
-use embassy_futures::select::select;
+use embassy_futures::select::{select4, Either4};
 
 const TASK_ID: &str = "PARK BRAKE";
 const NO_THROTTLE_THRESHOLD: u16 = 1100;
@@ -10,58 +11,42 @@ const MAX_COUNT: u16 = 30 * 10; // this equals 30 seonds of throttle updates
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    let mut rec = signals::POWER_ON.receiver().unwrap();
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+    let mut state_power_on = rec_power_on.try_get().unwrap();
 
-    loop { 
-        if rec.changed().await {
-            //info!("{}: power on", TASK_ID);
-            let watch_future = rec.changed();
-            let task_future = cruise();
-            select(watch_future, task_future).await;
-            stop().await;
-        }
-    }
-}
+    let mut rec_park_brake_on = signals::PARK_BRAKE_ON.receiver().unwrap();
+    let mut state_park_brake_on = rec_park_brake_on.try_get().unwrap();
 
-
-pub async fn cruise() {
-    // this requires try_get as the state doesnt change by default
-    let mut rec = signals::CRUISE_LEVEL.receiver().unwrap();
-    let mut state = 0;
-
-    loop { 
-        if let Some(b) = rec.try_get() {state = b}
-        
-        match state {
-            0 => {
-                //info!("{}: cruise", TASK_ID);
-                let watch_future = rec.changed();
-                let task_future = park_brake();
-                select(watch_future, task_future).await;
-            },
-            _ => { state = rec.changed().await;}
-        }
-    }
-}
-
-
-async fn park_brake() {
-    // requires try_get as the state doesnt change by default
-    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
-    let mut state = true;
+    let mut rec_cruise_level = signals::CRUISE_LEVEL.receiver().unwrap();
+    let mut state_cruise_level = rec_cruise_level.try_get().unwrap();
 
     loop {
-        if let Some(b) = watch.try_get() {state = b}
-
-        match state {
-            true => { park_brake_off().await; },
-            false => { park_brake_on().await; }
+        match select4(rec_power_on.changed(), rec_park_brake_on.changed(), rec_cruise_level.changed(), run(state_power_on, state_park_brake_on, state_cruise_level)).await {
+            Either4::First(b) => { state_power_on = b; },
+            Either4::Second(b) => { state_park_brake_on = b; },
+            Either4::Third(b) => { state_cruise_level = b; }
+            Either4::Fourth(_) => {}
         }
     }
 }
 
 
-async fn park_brake_on() {
+pub async fn run(power_on: bool, park_brake_on: bool, cruise_level: u8) {
+    // power off
+    if !power_on { reset().await; }
+
+    // power off || cruise on - wait for change
+    if !(power_on && cruise_level == 0) { future::pending().await }
+
+    // park_brake_on - false/off
+    match park_brake_on {
+        true => { wait_park_brake_off().await; },
+        false => { wait_park_brake_on().await; }
+    }
+}
+
+
+async fn wait_park_brake_on() {
     // detect when to turn park brake on
     let send_piezo = signals::PIEZO_MODE.sender();
     let watch_park_brake_on = signals::PARK_BRAKE_ON.sender();
@@ -89,7 +74,7 @@ async fn park_brake_on() {
 }
 
 
-async fn park_brake_off() {
+async fn wait_park_brake_off() {
     // wait for brake to be on
     let mut watch_brake_on = signals::BRAKE_ON.receiver().unwrap();
     let _ = watch_brake_on.changed_and(|x| *x == true).await; // predicate version to wait for brake to be on
@@ -105,7 +90,7 @@ async fn park_brake_off() {
 }
 
 
-async fn stop() {
+async fn reset() {
     let park_brake_on = signals::PARK_BRAKE_ON.dyn_receiver().unwrap().try_get().unwrap();
     if !park_brake_on {
         signals::PARK_BRAKE_ON.dyn_sender().send(true);

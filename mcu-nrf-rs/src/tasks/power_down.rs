@@ -2,7 +2,7 @@ use crate::utils::signals;
 use defmt::info;
 use embassy_time::Timer;
 use embassy_futures::select::{select3, Either3};
-use futures::future;
+use core::future;
 
 const TASK_ID: &str = "POWER DOWN";
 const INTERVAL: u64 = 10 * 60; // seconds - 10 mins

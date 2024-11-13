@@ -1,8 +1,9 @@
+use core::future;
 use crate::utils::{i2c, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
-use embassy_futures::select::select;
+use embassy_futures::select::{select3, Either3};
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
@@ -17,31 +18,26 @@ pub async fn task(
     i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>
 ) {
     info!("{}", TASK_ID);
-    
-    // power on/off
-    let mut rec = signals::POWER_ON.receiver().unwrap();
 
-    loop { 
-        if rec.changed().await { // power true/on
-            let watch_future = rec.changed();
-            let task_future = park_brake(i2c_bus);
-            select(watch_future, task_future).await;
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+    let mut state_power_on = rec_power_on.try_get().unwrap();
+
+    let mut rec_park_brake_on = signals::PARK_BRAKE_ON.receiver().unwrap();
+    let mut state_park_brake_on = rec_park_brake_on.try_get().unwrap();
+
+    loop {
+        match select3(rec_power_on.changed(), rec_park_brake_on.changed(), run(state_power_on, state_park_brake_on, i2c_bus)).await {
+            Either3::First(b) => { state_power_on = b; },
+            Either3::Second(b) => { state_park_brake_on = b;},
+            Either3::Third(_) => {}
         }
     }
 }
 
 
-async fn park_brake(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
-    // park brake on/off
-    let mut watch = signals::PARK_BRAKE_ON.receiver().unwrap();
-
-    loop { 
-        if !watch.changed().await { // PB false/off
-                let watch_future = watch.changed();
-                let task_future = throttle_adc(i2c_bus);
-                select(watch_future, task_future).await;
-        }
-    }
+pub async fn run(power_on: bool, park_brake_on: bool, i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+    if power_on && !park_brake_on { throttle_adc(i2c_bus).await }
+    future::pending().await // wait/yield forever doing nothing
 }
 
 

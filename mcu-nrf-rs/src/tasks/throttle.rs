@@ -2,13 +2,25 @@ use crate::utils::functions;
 use crate::utils::settings;
 use crate::utils::signals;
 use defmt::info;
+use embassy_futures::select::select;
 
 const TASK_ID: &str = "THROTTLE";
 
 #[embassy_executor::task]
 pub async fn task() {
     info!("{}", TASK_ID);
-    
+
+    // power on/off - need to reset instead of pause when power is off
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+
+    loop { 
+        if rec_power_on.changed().await {
+            select(rec_power_on.changed(), throttle()).await;
+        }
+    }
+}
+
+pub async fn throttle() {
     let mut rec_throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap();
     let mut rec_cruise_voltage = settings::CRUISE_VOLTAGE.receiver().unwrap();
     let send_throttle = signals::THROTTLE_OUT.sender();

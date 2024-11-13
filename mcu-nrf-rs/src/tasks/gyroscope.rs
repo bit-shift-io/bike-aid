@@ -20,13 +20,11 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     // alarm on/off
-    let mut sub = signals::ALARM_ENABLED.receiver().unwrap();
+    let mut rec_alarm_enabled = signals::ALARM_ENABLED.receiver().unwrap();
 
     loop { 
-        if sub.changed().await {
-            let rec_future = sub.changed();
-            let task_future = motion_detection(i2c_bus);
-            select(rec_future, task_future).await;
+        if rec_alarm_enabled.changed().await {
+            select(rec_alarm_enabled.changed(), motion_detection(i2c_bus)).await;
         }
     }
 }
