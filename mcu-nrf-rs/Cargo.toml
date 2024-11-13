@@ -19,7 +19,7 @@ codegen-units = 1
 debug = 2
 debug-assertions = false
 incremental = false
-lto = 'thin' # fat?
+lto = 'fat' # fat?
 opt-level = 's'
 overflow-checks = false
 
@@ -65,7 +65,7 @@ embedded-storage-async = "0.4.1"
 
 # rtt / log
 defmt = { version = "0.3.8" }
-rtt-target = { version = "0.6.0", features = ["defmt"] } # use this if you want a input channel
+rtt-target = { version = "0.6.0", features = ["defmt"] }
 panic-persist = { version = "0.3.0", features = ["custom-panic-handler", "utf8"] }
 
 # arm
@@ -111,7 +111,7 @@ embassy-embedded-hal = { version = "0.2.0", path = "../../embassy/embassy-embedd
 #embassy-nrf = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
 #embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy", rev = "d6a8dce6eef22564160bf25b20528b8b78ec63b8"}
 
-nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
-nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "991d28e3c61687908acc53e748191eb59d00e27a"}
+nrf-softdevice-s140 = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "6ff81139388c4256c5344ad9167859450abaa97d"}
+nrf-softdevice = { git = "https://github.com/embassy-rs/nrf-softdevice", rev = "6ff81139388c4256c5344ad9167859450abaa97d"}
 
 rtt-target = { git = "https://github.com/probe-rs/rtt-target", rev = "5b7603b6114bb08385f71674b9d962471c221681"}
