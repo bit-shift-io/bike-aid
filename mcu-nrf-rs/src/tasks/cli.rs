@@ -141,25 +141,14 @@ pub async fn task() {
         }
 
         if string.starts_with("power") {
-            if string.ends_with("on") {
-                signals::REQUEST_POWER_ON.dyn_sender().send(true);
-            } else {
-                signals::REQUEST_POWER_ON.dyn_sender().send(false);
-            }
-
+            if string.ends_with("on") { signals::REQUEST_POWER_ON.dyn_sender().send(true); } 
+            else { signals::REQUEST_POWER_ON.dyn_sender().send(false); }
             result = true;
         }
 
         if string.starts_with("alarm") {
-            if string.ends_with("on") {
-                signals::ALARM_MODE.dyn_sender().send(true);
-            } else if string.ends_with("play") {
-                signals::ALARM_ALERT_ACTIVE.dyn_sender().send(true);
-            } else {
-                signals::ALARM_ALERT_ACTIVE.dyn_sender().send(false);
-                signals::ALARM_MODE.dyn_sender().send(false);
-            }
-
+            if string.ends_with("on") { signals::ALARM_MODE.dyn_sender().send(signals::AlarmModeType::On); } 
+            else { signals::ALARM_MODE.dyn_sender().send(signals::AlarmModeType::Off); }
             result = true;
         }
 

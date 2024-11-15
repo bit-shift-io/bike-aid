@@ -63,10 +63,15 @@ impl SettingsService {
         })
     }
 
+    
     pub fn on_write(&self, _conn: &Connection, handle: u16, data: &[u8]) {
+
         if handle == self.alarm_on.value_handle {
             let message = if data[0] == 205 { true } else { false };
-            signals::ALARM_MODE.dyn_sender().send(message);
+            match message {
+                true => signals::ALARM_MODE.dyn_sender().send(signals::AlarmModeType::On),
+                false => signals::ALARM_MODE.dyn_sender().send(signals::AlarmModeType::Off),
+            }
         }
 
         if handle == self.power_on.value_handle {
