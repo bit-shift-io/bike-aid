@@ -152,12 +152,12 @@ pub async fn task() {
 
         if string.starts_with("alarm") {
             if string.ends_with("on") {
-                signals::ALARM_ENABLED.dyn_sender().send(true);
+                signals::ALARM_MODE.dyn_sender().send(true);
             } else if string.ends_with("play") {
                 signals::ALARM_ALERT_ACTIVE.dyn_sender().send(true);
             } else {
                 signals::ALARM_ALERT_ACTIVE.dyn_sender().send(false);
-                signals::ALARM_ENABLED.dyn_sender().send(false);
+                signals::ALARM_MODE.dyn_sender().send(false);
             }
 
             result = true;

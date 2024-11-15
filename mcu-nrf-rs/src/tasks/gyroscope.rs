@@ -10,7 +10,7 @@ use embassy_futures::select::select;
 use num_traits::Float;
 
 const TASK_ID : &str = "GYROSCOPE";
-const INTERVAL: u64 = 500; // ms
+const INTERVAL: u64 = 1000; // ms
 const ADDRESS: u8 = 0x68;
 
 #[embassy_executor::task]
@@ -20,19 +20,21 @@ pub async fn task(
     info!("{}", TASK_ID);
 
     // alarm on/off
-    let mut rec_alarm_enabled = signals::ALARM_ENABLED.receiver().unwrap();
+    let mut rec_alarm_mode = signals::ALARM_MODE.receiver().unwrap();
 
     loop { 
-        if rec_alarm_enabled.changed().await {
-            select(rec_alarm_enabled.changed(), motion_detection(i2c_bus)).await;
+        let alarm_mode = rec_alarm_mode.changed().await;
+        if alarm_mode != signals::AlarmModeType::Off && alarm_mode != signals::AlarmModeType::Siren {
+            select(rec_alarm_mode.changed(), motion_detection(i2c_bus)).await;
         }
     }
 }
 
 
 async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+    let i2c_bus_temp = i2c::get_i2c_bus();
     // check if device available
-    if !i2c::device_available(i2c_bus, ADDRESS).await {
+    if !i2c::device_available(i2c_bus_temp, ADDRESS).await {
         info!("{}: end", TASK_ID);
         return;
     }
@@ -55,7 +57,7 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
     //mpu.setup_motion_detection().unwrap();
     
     let mut rec_alarm_settings = settings::ALARM_SETTINGS.receiver().unwrap();
-    let send_motion = signals::ALARM_MOTION_DETECTED.sender();
+    let send_motion = signals::MOTION_DETECTED.sender();
     let mut last_gyro = mpu.get_gyro().await.unwrap();
     let mut last_acc_angles = mpu.get_acc_angles().await.unwrap();
 
@@ -67,8 +69,8 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
 
         // get roll and pitch estimate
         let acc_angles = mpu.get_acc_angles().await.unwrap();
-        let x_acc_delta = acc_angles.0 - last_acc_angles.0;
-        let y_acc_delta = acc_angles.1 - last_acc_angles.1;
+        let x_acc_delta = (acc_angles.0 - last_acc_angles.0).abs();
+        let y_acc_delta = (acc_angles.1 - last_acc_angles.1).abs();
         if x_acc_delta > settings.angle_sensitivity || y_acc_delta > settings.angle_sensitivity {
             motion_detected = true;
             info!("{}: angles detected", TASK_ID);
@@ -76,9 +78,9 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
 
         // get gyro data, scaled with sensitivity
         let gyro = mpu.get_gyro().await.unwrap();
-        let x_gyro_delta = gyro.0 - last_gyro.0;
-        let y_gyro_delta = gyro.1 - last_gyro.1;
-        let z_gyro_delta = gyro.2 - last_gyro.2;
+        let x_gyro_delta = (gyro.0 - last_gyro.0).abs();
+        let y_gyro_delta = (gyro.1 - last_gyro.1).abs();
+        let z_gyro_delta = (gyro.2 - last_gyro.2).abs();
         if x_gyro_delta > settings.gyro_sensitivity || y_gyro_delta > settings.gyro_sensitivity || z_gyro_delta > settings.gyro_sensitivity {
             motion_detected = true;
             info!("{}: gyro detected", TASK_ID);
@@ -96,12 +98,11 @@ async fn motion_detection(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twi
         }
 
         // for debug
-        // info!("{} | {}", x_acc_delta, y_acc_delta);
-        // info!("{} | {} | {}", x_gyro_delta, y_gyro_delta, z_gyro_delta);
-        // info!("{} | {}", acc.abs().amin(), acc.abs().amax());
-        // info!("acc: {} | gyro: {} | r/p: {}", Debug2Format(&acc), Debug2Format(&gyro), Debug2Format(&acc_angles));
+        //info!(" acc: {} | r/p: {} {} | gyro: {} {} {}", acc_abs, x_acc_delta, y_acc_delta, x_gyro_delta, y_gyro_delta, z_gyro_delta);
+        //info!("acc: {} | gyro: {} | r/p: {}", Debug2Format(&acc), Debug2Format(&gyro), Debug2Format(&acc_angles));
 
         if motion_detected {
+            info!(" acc: {} | r/p: {} {} | gyro: {} {} {}", acc_abs, x_acc_delta, y_acc_delta, x_gyro_delta, y_gyro_delta, z_gyro_delta);
             send_motion.send(true);
         }
 

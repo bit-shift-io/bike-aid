@@ -11,9 +11,7 @@ type WatchMutex = CriticalSectionRawMutex;
 // Watches can not have history
 // Return None if max receivers is reached
 
-pub static ALARM_ENABLED: Watch<WatchMutex, bool, 3> = Watch::new_with(false);
-pub static ALARM_ALERT_ACTIVE: Watch<WatchMutex, bool, 1> = Watch::new_with(false);
-pub static ALARM_MOTION_DETECTED: Watch<WatchMutex, bool, 1> = Watch::new_with(false);
+pub static MOTION_DETECTED: Watch<WatchMutex, bool, 2> = Watch::new_with(false);
 pub static BRAKE_ON: Watch<WatchMutex, bool, 9> = Watch::new_with(false);
 pub static PARK_BRAKE_ON: Watch<WatchMutex, bool, 5> = Watch::new_with(true);
 pub static CRUISE_LEVEL: Watch<WatchMutex, u8, 3> = Watch::new_with(0u8);
@@ -34,6 +32,9 @@ pub static LED_DEBUG_MODE: Watch<WatchMutex, LedModeType, 1> = Watch::new_with(L
 
 pub type PiezoModeType = crate::tasks::piezo::PiezoMode;
 pub static PIEZO_MODE: Watch<WatchMutex, PiezoModeType, 1> = Watch::new_with(PiezoModeType::None);
+
+pub type AlarmModeType = crate::tasks::alarm::AlarmMode;
+pub static ALARM_MODE: Watch<WatchMutex, AlarmModeType, 3> = Watch::new_with(AlarmModeType::Off);
 
 
 // == CHANNELS ==

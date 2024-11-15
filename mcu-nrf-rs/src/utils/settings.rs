@@ -25,9 +25,9 @@ pub struct AlarmSettings {
 
 
 pub static ALARM_SETTINGS: Watch<WatchMutex, AlarmSettings, 2> = Watch::new_with(AlarmSettings {
-    acc_sensitivity: 0.9,
-    gyro_sensitivity: 0.8,
-    angle_sensitivity: 0.1,
+    acc_sensitivity: 0.95,
+    gyro_sensitivity: 0.1,
+    angle_sensitivity: 0.05,
     warning_count: 3
 });
 
