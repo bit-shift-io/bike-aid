@@ -28,29 +28,25 @@ pub async fn task() {
 
 async fn run(alarm_mode: AlarmMode) {
     let send_piezo = signals::PIEZO_MODE.sender();
-    let send_alarm_mode = signals::ALARM_MODE.sender();
     let future_alarm_tasks = join(motion_detection(), warning_cooldown());
 
     match alarm_mode {
         AlarmMode::Off => {
-            send_piezo.send(signals::PiezoModeType::None);
+            send_piezo.send(signals::PiezoModeType::BeepLong);
             signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]);
         },
         AlarmMode::On => {
-            info!("start alarm detection");
+            send_piezo.send(signals::PiezoModeType::BeepLong);
             signals::send_ble(signals::BleHandles::AlarmOn, &[true as u8]);
             future_alarm_tasks.await;
         }
         AlarmMode::Warning(_) => {
             send_piezo.send(signals::PiezoModeType::Warning);
-            send_alarm_mode.send(AlarmMode::Warning(0));
-            info!("{}: alarm warning", TASK_ID);
             future_alarm_tasks.await;
         },
         AlarmMode::Siren => {
-            info!("ALARM!");
-            send_alarm_mode.send(AlarmMode::Siren);
             send_piezo.send(signals::PiezoModeType::Alarm);
+            signals::send_ble(signals::BleHandles::Uart, b"ALARM!");
         }
     }
 
