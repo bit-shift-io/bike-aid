@@ -16,24 +16,31 @@ pub async fn task() {
     // alarm mode
     let mut rec_alarm_mode = signals::ALARM_MODE.receiver().unwrap();
     let mut state_alarm_mode = AlarmMode::Off;
+    let mut previous_alarm_mode = AlarmMode::Off;
 
     loop { 
-        match select(rec_alarm_mode.changed(), run(state_alarm_mode)).await {
-            Either::First(b) => { state_alarm_mode = b },
+        match select(rec_alarm_mode.changed(), run(state_alarm_mode, previous_alarm_mode)).await {
+            Either::First(b) => { 
+                previous_alarm_mode = state_alarm_mode;
+                state_alarm_mode = b 
+            },
             Either::Second(_) => {}
         }
     }
 }
 
 
-async fn run(alarm_mode: AlarmMode) {
+async fn run(alarm_mode: AlarmMode, previous_alarm_mode: AlarmMode) {
     let send_piezo = signals::PIEZO_MODE.sender();
     let future_alarm_tasks = join(motion_detection(), warning_cooldown());
 
     match alarm_mode {
         AlarmMode::Off => {
-            send_piezo.send(signals::PiezoModeType::BeepLong);
-            signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]);
+            // only want a off signal when previous alarm mode is not off
+            if previous_alarm_mode != alarm_mode {
+                send_piezo.send(signals::PiezoModeType::BeepLong);
+                signals::send_ble(signals::BleHandles::AlarmOn, &[false as u8]);
+            }
         },
         AlarmMode::On => {
             send_piezo.send(signals::PiezoModeType::BeepLong);
@@ -96,6 +103,7 @@ async fn warning_cooldown() {
 }
 
 
+#[derive(defmt::Format)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum AlarmMode {
     Off,

@@ -10,12 +10,6 @@ use core::pin::pin;
 
 const TASK_ID: &str = "BLUETOOTH";
 
-// softdevice task
-#[embassy_executor::task]
-async fn softdevice_task(sd: &'static Softdevice) {
-    sd.run().await;
-}
-
 // main task
 #[embassy_executor::task]
 pub async fn task(
@@ -23,43 +17,12 @@ pub async fn task(
 ) {
     info!("{}", TASK_ID);
     
-    // configure bluetooth
-    let config = nrf_softdevice::Config {
-        clock: Some(raw::nrf_clock_lf_cfg_t {
-            source: raw::NRF_CLOCK_LF_SRC_RC as u8,
-            rc_ctiv: 16,
-            rc_temp_ctiv: 2,
-            accuracy: raw::NRF_CLOCK_LF_ACCURACY_500_PPM as u8,
-        }),
-        conn_gap: Some(raw::ble_gap_conn_cfg_t {
-            conn_count: 2, // 6
-            event_length: 24, // 24
-        }),
-        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // 517 is the android default
-        gatts_attr_tab_size: Some(raw::ble_gatts_cfg_attr_tab_size_t { attr_tab_size: 2048 }), // increase if nomem error, default: attr_tab_size: raw::BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
-        gap_role_count: Some(raw::ble_gap_cfg_role_count_t {
-            adv_set_count: 1,
-            periph_role_count: 1, // 3
-            central_role_count: 1, // 3
-            central_sec_count: 0,
-            _bitfield_1: raw::ble_gap_cfg_role_count_t::new_bitfield_1(0),
-        }),
-        gap_device_name: Some(raw::ble_gap_cfg_device_name_t {
-            p_value: b"BScooter" as *const u8 as _, // TODO: use device name here
-            current_len: 8,
-            max_len: 8,
-            write_perm: unsafe { mem::zeroed() },
-            _bitfield_1: raw::ble_gap_cfg_device_name_t::new_bitfield_1(raw::BLE_GATTS_VLOC_STACK as u8),
-        }),
-        ..Default::default()
-    };
-
     // start softdevice with fixed address
-    let softdevice = Softdevice::enable(&config);
+    let softdevice = Softdevice::enable(&get_config());
     let address = ble::Address::new(ble::AddressType::Public, [0x45, 0x42, 0x60, 0xFB, 0xEB, 0xD7]);
     ble::set_address(softdevice, &address);
     let server: Server = unwrap!(Server::new(softdevice));
-    unwrap!(spawner.spawn(softdevice_task(softdevice)));
+    spawner.must_spawn(softdevice_task(softdevice));
    
     // advertise and scan data
     static ADV_DATA: LegacyAdvertisementPayload = LegacyAdvertisementBuilder::new()
@@ -90,4 +53,44 @@ pub async fn task(
         // disconnect message
         server::disconnected(&connection, &server).await;
     }
+}
+
+
+fn get_config() -> nrf_softdevice::Config {
+    nrf_softdevice::Config {
+        clock: Some(raw::nrf_clock_lf_cfg_t {
+            source: raw::NRF_CLOCK_LF_SRC_RC as u8,
+            rc_ctiv: 16,
+            rc_temp_ctiv: 2,
+            accuracy: raw::NRF_CLOCK_LF_ACCURACY_500_PPM as u8,
+        }),
+        conn_gap: Some(raw::ble_gap_conn_cfg_t {
+            conn_count: 2, // 6
+            event_length: 24, // 24
+        }),
+        conn_gatt: Some(raw::ble_gatt_conn_cfg_t { att_mtu: 517 }), // 517 is the android default
+        gatts_attr_tab_size: Some(raw::ble_gatts_cfg_attr_tab_size_t { attr_tab_size: 2048 }), // increase if nomem error, default: attr_tab_size: raw::BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+        gap_role_count: Some(raw::ble_gap_cfg_role_count_t {
+            adv_set_count: 1,
+            periph_role_count: 1, // 3
+            central_role_count: 1, // 3
+            central_sec_count: 0,
+            _bitfield_1: raw::ble_gap_cfg_role_count_t::new_bitfield_1(0),
+        }),
+        gap_device_name: Some(raw::ble_gap_cfg_device_name_t {
+            p_value: b"BScooter" as *const u8 as _, // TODO: use device name here
+            current_len: 8,
+            max_len: 8,
+            write_perm: unsafe { mem::zeroed() },
+            _bitfield_1: raw::ble_gap_cfg_device_name_t::new_bitfield_1(raw::BLE_GATTS_VLOC_STACK as u8),
+        }),
+        ..Default::default()
+    }
+}
+
+
+// softdevice task
+#[embassy_executor::task]
+async fn softdevice_task(sd: &'static Softdevice) {
+    sd.run().await;
 }

@@ -121,8 +121,10 @@ pub async fn run(connection: &Connection, server: &Server) {
 
     // command queue
     let rec_queue = QUEUE_CHANNEL.receiver();
-    rec_queue.clear();
+    //rec_queue.clear(); // shouldnt need this anymore
     //let send_led = signals::LED_DEBUG_MODE.sender();
+
+    info!("server queue len: {}", rec_queue.len());
 
     loop {
         if rec_queue.is_full() { 
@@ -169,7 +171,7 @@ pub async fn run(connection: &Connection, server: &Server) {
         let notify_result = notify_value(connection, handle, value);
         match notify_result {
             Ok(_) => {},
-            Err(_) => { info!("{}: notify error {}", TASK_ID, command.handle); } // notify not yet enabled usually
+            Err(_) => { info!("{}: notify error {}: {}", TASK_ID, command.handle, value); } // notify not yet enabled usually
         }
 
         // TODO: may need a sleep here if we are overloading the BLE stack?
@@ -205,13 +207,13 @@ pub fn send_queue(handle: BleHandles, data: &[u8]) {
         while let Some(chunk) = chunks.next() {
             embassy_time::block_for(embassy_time::Duration::from_ticks(1));
             let msg = BleCommand::new(handle, chunk);
-            send_ble_queue.remove_if(|i| { i.handle == handle && i.is_single_instance() });
+            QUEUE_CHANNEL.remove_if(|i| { i.handle == handle && i.is_single_instance() });
             let _ = send_ble_queue.try_send(msg);
         }
     } else {
         embassy_time::block_for(embassy_time::Duration::from_ticks(1));
         let msg = BleCommand::new(handle, data);
-        send_ble_queue.remove_if(|i| { i.handle == handle && i.is_single_instance() });
+        QUEUE_CHANNEL.remove_if(|i| { i.handle == handle && i.is_single_instance() });
         let _ = send_ble_queue.try_send(msg);
     }
 }
