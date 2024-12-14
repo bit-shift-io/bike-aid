@@ -25,6 +25,10 @@ async fn clock() {
     let mut last_hours: u8 = 0;
     let start_time = Instant::now();
 
+    // send/reset initial time
+    signals::send_ble(signals::BleHandles::ClockMinutes, &[0]);
+    signals::send_ble(signals::BleHandles::ClockHours, &[0]);
+    
     loop {
         Timer::after_secs(60).await;
 

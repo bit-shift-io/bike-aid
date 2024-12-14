@@ -88,32 +88,6 @@ async fn throttle_tap() {
             send_piezo.send(signals::PiezoModeType::BeepShort);
         }
     }
-    /*
-    loop {
-        // should already be at no throttle theshold here! from previous boot & loop
-        // Wait for throttle to go below the NO_THROTTLE_THRESHOLD - throttle off
-        rec_throttle.changed_and(|v| *v < NO_THROTTLE_THRESHOLD).await;
-
-        // Wait for the throttle to exceed the NO_THROTTLE_THRESHOLD - throttle start/low
-        rec_throttle.changed_and(|v| *v > NO_THROTTLE_THRESHOLD).await;
-
-        // start timing
-        let time = Instant::now();
-
-        // Wait for the throttle to exceed the FULL_THROTTLE_THRESHOLD - throttle high
-        rec_throttle.changed_and(|v| *v > FULL_THROTTLE_THRESHOLD || delta(time) > THROTTLE_TAP_TIME).await;
-        if delta(time) > THROTTLE_TAP_TIME { continue };
-
-        // Now we are at full throttle, wait for it to drop below the NO_THROTTLE_THRESHOLD - throttle off
-        rec_throttle.changed_and(|v| *v < NO_THROTTLE_THRESHOLD || delta(time) > THROTTLE_TAP_TIME).await;
-
-        if delta(time) < THROTTLE_TAP_TIME {
-            info!("throttle tap");
-            increment_cruise().await;
-            send_piezo.send(signals::PiezoModeType::BeepShort);
-        }
-    }
-     */
 }
 
 
@@ -124,10 +98,12 @@ pub fn delta(t: Instant) -> u64 {
 
 async fn increment_cruise() {
     let mut level = signals::CRUISE_LEVEL.try_get().unwrap();
+    if level == 5 { return; }
 
+    level += 1;
     // wrap around 0-4, move 0 -> 5 = range 1-5 instead of 0-4
-    level = (level + 1) % 5; 
-    if level == 0 { level = 5; }
+    //level = (level + 1) % 5; 
+    //if level == 0 { level = 5; }
 
     set_cruise(level).await;
 }
@@ -135,10 +111,12 @@ async fn increment_cruise() {
 
 async fn decrement_cruise() {
     let mut level = signals::CRUISE_LEVEL.try_get().unwrap();
+    if level == 0 { return; }
 
+    level -= 1;
     // wrap around 0-4, move 5 -> 0 = range 1-5 instead of 0-4
-    level = (level - 1) % 5;
-    if level == 0 { level = 5; }
+    //level = (level - 1) % 5;
+    //if level == 0 { level = 5; }
 
     set_cruise(level).await;    
 }
