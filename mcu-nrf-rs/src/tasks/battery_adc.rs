@@ -2,7 +2,7 @@ use crate::utils::{i2c, signals};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
 use embassy_nrf::{peripherals::TWISPI0, twim::Twim};
 use defmt::info;
-use embassy_futures::select::select;
+use embassy_futures::select::{select, Either};
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex;
 use embedded_ads111x::{ADS111x, ADS111xConfig, DataRate, InputMultiplexer, ProgramableGainAmplifier};
@@ -10,6 +10,7 @@ use embassy_time::Timer;
 
 const TASK_ID: &str = "BATTERY ADC";
 const INTERVAL: u64 = 1; // seconds
+const IDLE_INTERVAL: u64 = 3600; // 1 hr
 const ADDRESS: u8 = 0x4A;
 
 // consts for voltage divider
@@ -35,21 +36,29 @@ pub async fn task(
 
     // power on/off
     let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+    let mut state_power_on = rec_power_on.try_get().unwrap();
 
     loop { 
-        if rec_power_on.changed().await {
-            select(rec_power_on.changed(), battery_adc(i2c_bus)).await;
+        match select(rec_power_on.changed(), battery_adc(i2c_bus, state_power_on)).await {
+            Either::First(b) => { state_power_on = b; },
+            Either::Second(_) => {}
         }
     }
 }
 
 
-async fn battery_adc(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>) {
+async fn battery_adc(
+    i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'static, TWISPI0>>,
+    power_on: bool) {
+
     // check if device available
     if !i2c::device_available(i2c_bus, ADDRESS).await {
         info!("{}: end", TASK_ID);
         return;
     }
+
+    // set update interval
+    let interval = if power_on { INTERVAL } else { IDLE_INTERVAL };
 
     // init device
     let i2c = I2cDevice::new(i2c_bus);
@@ -75,7 +84,7 @@ async fn battery_adc(i2c_bus: &'static mutex::Mutex<ThreadModeRawMutex, Twim<'st
     let send_data = signals::BATTERY_IN.sender();
 
     loop {
-        Timer::after_secs(INTERVAL).await;
+        Timer::after_secs(interval).await;
 
         // read 2 values takes 6ms
         let value_a0 = adc.read_single_voltage(Some(InputMultiplexer::AIN0GND)).await; // current

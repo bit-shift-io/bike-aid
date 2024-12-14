@@ -20,6 +20,7 @@ pub async fn task() {
     }
 }
 
+
 pub async fn throttle() {
     let mut rec_throttle_settings = settings::THROTTLE_SETTINGS.receiver().unwrap();
     let mut rec_cruise_voltage = settings::CRUISE_VOLTAGE.receiver().unwrap();

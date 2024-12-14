@@ -14,15 +14,27 @@ const THROTTLE_MAX_COUNT: u8 = 8; // this equals X x 100ms of throttle updates
 pub async fn task() {
     info!("{}", TASK_ID);
 
-    // throttle and brake dont work when power if off
-    // but we may need to reset it when power if turned off?
-    select(throttle_tap(), brake_tap()).await;
+    // power on/off
+    let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+
+    loop {
+        if rec_power_on.changed().await {
+            select(rec_power_on.changed(), run()).await;
+        }
+
+        // throttle and brake dont work when power off
+        // but we may need to reset it when powered off purely for gui
+        set_cruise(0).await;
+    }
 }
 
 
+async fn run() {
+    select(throttle_tap(), brake_tap()).await;
+}
+
 async fn brake_tap() {
     let mut rec_brake_on = signals::BRAKE_ON.receiver().unwrap();
-    let send_piezo = signals::PIEZO_MODE.sender();
 
      // wait for brake off - not sure if this is needed?
      //rec_brake_on.changed_and(|b| *b == false).await;
@@ -41,7 +53,6 @@ async fn brake_tap() {
         if delta(time) < BRAKE_TAP_TIME {
             //info!("brake tap");
             decrement_cruise().await;
-            send_piezo.send(signals::PiezoModeType::BeepShort);
         } else {
             // regaulr brake, so reset cruise
             set_cruise(0).await;
@@ -52,7 +63,6 @@ async fn brake_tap() {
 
 async fn throttle_tap() {
     let mut rec_throttle = signals::THROTTLE_IN.receiver().unwrap();
-    let send_piezo = signals::PIEZO_MODE.sender();
     let mut throttle_voltage = rec_throttle.changed().await; // millivolts, initial value
 
     loop {
@@ -85,7 +95,6 @@ async fn throttle_tap() {
         if count < THROTTLE_MAX_COUNT {
             //info!("tap detected");
             increment_cruise().await;
-            send_piezo.send(signals::PiezoModeType::BeepShort);
         }
     }
 }
@@ -118,7 +127,7 @@ async fn decrement_cruise() {
     //level = (level - 1) % 5;
     //if level == 0 { level = 5; }
 
-    set_cruise(level).await;    
+    set_cruise(level).await;
 }
 
 
@@ -135,5 +144,9 @@ async fn set_cruise(level: u8) {
         // set level
         signals::CRUISE_LEVEL.dyn_sender().send(level);
         signals::send_ble(signals::BleHandles::CruiseLevel, &[level]);
+    
+        // beep
+        let send_piezo = signals::PIEZO_MODE.sender();
+        send_piezo.send(signals::PiezoModeType::BeepShort);
     }
 }
