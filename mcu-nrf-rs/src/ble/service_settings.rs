@@ -11,6 +11,7 @@ const UUID_POWER_ON: Uuid = Uuid::new_16(0x1001);
 //const LIGHT_SWITCH: Uuid = Uuid::new_16(0x1002);
 //const HORN_SWITCH: Uuid = Uuid::new_16(0x1003);
 const UUID_ALARM_ON: Uuid = Uuid::new_16(0x1004);
+const UUID_SPORT_MODE_ON: Uuid = Uuid::new_16(0x1005);
 
 
 pub struct SettingsService {
@@ -18,6 +19,7 @@ pub struct SettingsService {
     //light_switch: CharacteristicHandles,
     //horn_switch: CharacteristicHandles,
     pub alarm_on: CharacteristicHandles,
+    pub sport_mode_on: CharacteristicHandles,
 }
 
 
@@ -53,6 +55,13 @@ impl SettingsService {
         )?;
         let alarm_on_handle = characteristic_builder.build();
 
+        let characteristic_builder = service_builder.add_characteristic(
+            UUID_SPORT_MODE_ON,
+            Attribute::new(&[0u8]),
+            Metadata::new(Properties::new().read().write().notify()),
+        )?;
+        let sport_mode_on_handle = characteristic_builder.build();
+
         let _service_handle = service_builder.build();
         
         Ok(SettingsService {
@@ -60,6 +69,7 @@ impl SettingsService {
             //light_switch: light_switch_handle,
             //horn_switch: horn_switch_handle,
             alarm_on: alarm_on_handle,
+            sport_mode_on: sport_mode_on_handle,
         })
     }
 
@@ -78,7 +88,14 @@ impl SettingsService {
             let message = if data[0] == 183 { true } else { false };
             //info!("ble write power_on: {} {}", message, state);
             signals::REQUEST_POWER_ON.dyn_sender().send(message);
-        }   
+        }
+
+        if handle == self.sport_mode_on.value_handle {
+            let message = if data[0] == 1 { true } else { false };
+            //info!("ble write sport_mode_on: {}", message);
+            signals::SPORT_MODE_ON.dyn_sender().send(message);
+            signals::send_ble(signals::BleHandles::SportModeOn, &[message as u8]);
+        }
 
         // if handle == self.light_switch.value_handle {
         //     info!("light switch: {:?}", data);

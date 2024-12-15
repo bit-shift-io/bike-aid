@@ -54,6 +54,7 @@ async fn battery_adc(
     // check if device available
     if !i2c::device_available(i2c_bus, ADDRESS).await {
         info!("{}: end", TASK_ID);
+        Timer::after_secs(3600).await; // retry after 1 hr
         return;
     }
 

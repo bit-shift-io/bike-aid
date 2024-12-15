@@ -26,6 +26,7 @@ public class Signals {
     }
     public boolean alarm_on = false;
     public boolean power_on = false;
+    public boolean sport_on = false;
 
 
     // ==== listener interface ====
@@ -46,6 +47,7 @@ public class Signals {
         void onParkBrake(boolean result);
         void onBatteryPower(String result);
         void onThrottleLevel(String result);
+        void onSport(boolean result);
     }
 
 
@@ -76,6 +78,18 @@ public class Signals {
             b = new byte[]{ (byte) 0 };
         else
             b = new byte[]{ (byte) 205 };
+
+        ble.write(service_id, characteristic_id, b);
+    }
+
+    public void toggleSport() {
+        UUID service_id = Functions.uuidFrom16("1000");
+        UUID characteristic_id = Functions.uuidFrom16("1005");
+        byte[] b;
+        if (sport_on)
+            b = new byte[]{ (byte) 0 };
+        else
+            b = new byte[]{ (byte) 1 };
 
         ble.write(service_id, characteristic_id, b);
     }
@@ -122,6 +136,12 @@ public class Signals {
         if (id.equals("1004")) {
             alarm_on = value[0] != 0;
             new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onAlarm(alarm_on));
+        }
+
+        // sport switch
+        if (id.equals("1005")) {
+            sport_on = value[0] != 0;
+            new Handler(Looper.getMainLooper()).post(() -> mOnEventListener.onSport(sport_on));
         }
 
 

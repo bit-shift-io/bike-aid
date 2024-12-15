@@ -45,6 +45,7 @@ impl BleCommand {
 pub enum BleHandles {
     PowerOn,
     AlarmOn,
+    SportModeOn,
     Uart,
     BrakeOn,
     ParkBrakeOn,
@@ -104,6 +105,7 @@ impl fmt::Debug for BleHandles {
         let name = match self {
             BleHandles::PowerOn => "PowerOn",
             BleHandles::AlarmOn => "AlarmOn",
+            BleHandles::SportModeOn => "SportModeOn",
             BleHandles::Uart => "Uart",
             BleHandles::BrakeOn => "BrakeOn",
             BleHandles::ParkBrakeOn => "ParkBrakeOn",

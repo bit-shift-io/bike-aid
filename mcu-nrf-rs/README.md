@@ -105,6 +105,7 @@ Reflash the firmware above
 ## MCU Todo
 * patch qeue predicate filter
 * attach debugger to running mcu
+* sport mode acceleration values 10% higher?
 * alarm
 * ble tracker
 * odometer/speed

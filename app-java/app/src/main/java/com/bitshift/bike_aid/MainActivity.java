@@ -103,6 +103,10 @@ public class MainActivity extends AppCompatActivity {
         Button alarmBtn = findViewById(R.id.alarm_button);
         alarmBtn.setOnClickListener(v -> signals.toggleAlarm());
 
+        // sport button
+        Button sportBtn = findViewById(R.id.sport_button);
+        sportBtn.setOnClickListener(v -> signals.toggleSport());
+
         // callaback for log updates
         ScrollView logScroll = findViewById(R.id.log_scroll);
         TextView logText = findViewById(R.id.log_text);
@@ -178,6 +182,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     item.setText("Alarm\nOFF");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOff));
+                }
+            }
+
+            @Override
+            public void onSport(boolean result) {
+                Button item = findViewById(R.id.sport_button);
+                if (result) {
+                    item.setText("Sport\nON");
+                    item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOn));
+                }
+                else {
+                    item.setText("Sport\nOFF");
                     item.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.buttonOff));
                 }
             }

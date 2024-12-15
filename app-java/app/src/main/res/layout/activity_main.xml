@@ -523,13 +523,13 @@
         android:layout_below="@+id/divider3">
 
         <Button
-            android:id="@+id/cruise_up_button"
+            android:id="@+id/sport_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_span="1"
             android:layout_weight="1"
             android:backgroundTint="@color/buttonOff"
-            android:text="@string/cruise_up" />
+            android:text="@string/button_sport" />
 
         <Button
             android:id="@+id/cruise_down_button"

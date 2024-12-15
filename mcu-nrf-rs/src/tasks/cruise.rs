@@ -1,13 +1,14 @@
+use core::future;
+
 use crate::utils::{settings, signals};
 use defmt::info;
-use embassy_futures::select::select;
+use embassy_futures::select::{select, select3, Either3};
 use embassy_time::Instant;
 
 const TASK_ID: &str = "CRUISE";
 const NO_THROTTLE_THRESHOLD: u16 = 1200;
 const FULL_THROTTLE_THRESHOLD: u16 = 2600;
 const BRAKE_TAP_TIME: u64 = 300; // ms
-//const THROTTLE_TAP_TIME: u64 = 800; // ms
 const THROTTLE_MAX_COUNT: u8 = 8; // this equals X x 100ms of throttle updates
 
 #[embassy_executor::task]
@@ -16,20 +17,32 @@ pub async fn task() {
 
     // power on/off
     let mut rec_power_on = signals::POWER_ON.receiver().unwrap();
+    let mut state_power_on = rec_power_on.try_get().unwrap();
+
+    // sport mode - cruise enabled/disabled
+    let mut rec_sport_mode_on = signals::SPORT_MODE_ON.receiver().unwrap();
+    let mut state_sport_mode_on = rec_sport_mode_on.try_get().unwrap();
 
     loop {
-        if rec_power_on.changed().await {
-            select(rec_power_on.changed(), run()).await;
+        match select3(rec_power_on.changed(), rec_sport_mode_on.changed(), run(state_power_on, state_sport_mode_on)).await {
+            Either3::First(b) => { state_power_on = b; },
+            Either3::Second(b) => { state_sport_mode_on = b; },
+            Either3::Third(_) => {}
         }
-
-        // throttle and brake dont work when power off
-        // but we may need to reset it when powered off purely for gui
-        set_cruise(0).await;
     }
 }
 
 
-async fn run() {
+async fn run(power_on: bool, sport_mode_on: bool) {
+    // power off/sport mode
+    // throttle and brake dont work when power off
+    // but we need to reset it when powered off purely for gui
+    if !power_on || sport_mode_on {
+        set_cruise(0).await; 
+        future::pending().await // wait/yield forever doing nothing
+    }
+
+    // throttle and brake tap detection
     select(throttle_tap(), brake_tap()).await;
 }
 

@@ -11,6 +11,7 @@ type WatchMutex = CriticalSectionRawMutex;
 // Watches can not have history
 // Return None if max receivers is reached
 
+pub static SPORT_MODE_ON: Watch<WatchMutex, bool, 1> = Watch::new_with(false);
 pub static MOTION_DETECTED: Watch<WatchMutex, bool, 2> = Watch::new_with(false);
 pub static BRAKE_ON: Watch<WatchMutex, bool, 9> = Watch::new_with(false);
 pub static PARK_BRAKE_ON: Watch<WatchMutex, bool, 5> = Watch::new_with(true);

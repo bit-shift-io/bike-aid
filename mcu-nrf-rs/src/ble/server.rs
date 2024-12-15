@@ -151,6 +151,7 @@ pub async fn run(connection: &Connection, server: &Server) {
             BleHandles::CruiseLevel => handle = server.data.cruise_level.value_handle,
             BleHandles::PowerOn => handle = server.settings.power_on.value_handle,
             BleHandles::AlarmOn => handle = server.settings.alarm_on.value_handle,
+            BleHandles::SportModeOn => handle = server.settings.sport_mode_on.value_handle,
             BleHandles::Uart => handle = server.uart.tx.value_handle,
             BleHandles::ThrottleLevel => handle = server.data.throttle_level.value_handle,
         }
