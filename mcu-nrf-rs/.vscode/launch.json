@@ -68,54 +68,27 @@
       }, 
 
 
-      // attach to existing session, doesnt work
+      // attach to existing session
       {
         "type": "probe-rs-debug",
         "request": "attach",
         "name": "Attach Debug",
         "cwd": "${workspaceFolder}",
         "chip": "nRF52840_xxAA",
-        "coreConfigs": [
-          {
-            "coreIndex": 0,
-            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-            "svdFile": "nrf52840.svd"
-          }
-        ],
+        "coreConfigs": [{
+          "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+          "svdFile": "nrf52840.svd",
+          "coreIndex": 0,
+          "rttEnabled": true,
+          "rttChannelFormats": [{
+              "channelNumber": 0,
+              "dataFormat": "String",
+              "showTimestamps": false
+          }]
+        }],
         "consoleLogLevel": "Console"
       },
 
-
-      // dap server doesnt work
-      {
-        // Configure a default build task for 'cargo build'
-        //"preLaunchTask": "${defaultBuildTask}",
-        "type": "probe-rs-debug",
-        "request": "launch",
-        "name": "Attach DAP-Server",
-        //!MODIFY ... can be a server that is remote from the VSCode session, but local to the probe
-        "server": "127.0.0.1:50000",
-        "cwd": "${workspaceFolder}",
-        //!MODIFY (or remove)
-        //"speed": 24000,
-        "chip": "nRF52840_xxAA",
-        //!MODIFY (or remove)
-        //"probe": "VID:PID:<Serial>",
-        "coreConfigs": [
-          {
-            "coreIndex": 0,
-            //!MODIFY
-            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-            //!MODIFY
-            "svdFile": "nrf52840.svd"
-          }
-        ],
-        //!This won't take effect. Please set environment variables before launching `probe-rs dap-server`.
-        "env": {},
-        // Info, Debug
-        "consoleLogLevel": "Console"
-      },
       
-
     ]
   }

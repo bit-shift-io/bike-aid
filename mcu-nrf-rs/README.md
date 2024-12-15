@@ -67,7 +67,8 @@ probe-rs download --verify --binary-format hex --chip nRF52840_xxAA s140_nrf52_7
 
 ## Debug support
 Install probe-rs visual studio plugin  
-Download the svd ```https://github.com/NordicSemiconductor/nrfx/blob/master/mdk/nrf52840.svd```
+Download the svd ```https://github.com/nrf-rs/nrf-pacs/tree/master/svds```  
+Old - Download the svd ```https://github.com/NordicSemiconductor/nrfx/blob/master/mdk/nrf52840.svd```  
 
 ## Reset device
 Double tap rest to ground within 0.5 seconds to reset board
