@@ -2,16 +2,19 @@
     "version": "0.2.0",
     "configurations": [
 
+      // debug build & flash using embed for user input/cli
       {
         "name": "Debug Embed",
         "type": "cppdbg",
         "request": "launch",
-        "program": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+        "program": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
         "cwd": "${workspaceRoot}",
         "preLaunchTask": "cargo embed",
         "stopAtEntry": false,
       }, 
 
+
+      // debug build & flash
       {
         "preLaunchTask": "${defaultBuildTask}",
         "type": "probe-rs-debug",
@@ -25,7 +28,7 @@
         },
         "chip": "nRF52840_xxAA",
         "coreConfigs": [{
-            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
             "coreIndex": 0,
             "rttEnabled": true,
             "rttChannelFormats": [{
@@ -37,6 +40,8 @@
         "consoleLogLevel": "Console"
       }, 
 
+
+      // release build & flash
       {
         "preLaunchTask": "cargo build release",
         "type": "probe-rs-debug",
@@ -50,7 +55,7 @@
         },
         "chip": "nRF52840_xxAA",
         "coreConfigs": [{
-            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
             "coreIndex": 0,
             "rttEnabled": true,
             "rttChannelFormats": [{
@@ -62,6 +67,8 @@
         "consoleLogLevel": "Console"
       }, 
 
+
+      // attach to existing session, doesnt work
       {
         "type": "probe-rs-debug",
         "request": "attach",
@@ -71,12 +78,44 @@
         "coreConfigs": [
           {
             "coreIndex": 0,
-            "programBinary": "./target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
-            //!MODIFY
-            "svdFile": "Relative or fully qualified path to the CMSIS-SVD file for your target core"
+            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            "svdFile": "nrf52840.svd"
           }
         ],
         "consoleLogLevel": "Console"
       },
+
+
+      // dap server doesnt work
+      {
+        // Configure a default build task for 'cargo build'
+        //"preLaunchTask": "${defaultBuildTask}",
+        "type": "probe-rs-debug",
+        "request": "launch",
+        "name": "Attach DAP-Server",
+        //!MODIFY ... can be a server that is remote from the VSCode session, but local to the probe
+        "server": "127.0.0.1:50000",
+        "cwd": "${workspaceFolder}",
+        //!MODIFY (or remove)
+        //"speed": 24000,
+        "chip": "nRF52840_xxAA",
+        //!MODIFY (or remove)
+        //"probe": "VID:PID:<Serial>",
+        "coreConfigs": [
+          {
+            "coreIndex": 0,
+            //!MODIFY
+            "programBinary": "target/thumbv7em-none-eabi/debug/bike-aid-nrf-rs",
+            //!MODIFY
+            "svdFile": "nrf52840.svd"
+          }
+        ],
+        //!This won't take effect. Please set environment variables before launching `probe-rs dap-server`.
+        "env": {},
+        // Info, Debug
+        "consoleLogLevel": "Console"
+      },
+      
+
     ]
   }

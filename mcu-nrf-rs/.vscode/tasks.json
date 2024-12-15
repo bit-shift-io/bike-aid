@@ -51,13 +51,15 @@
         "label": "cargo embed",
         "type": "shell",
         "command": "cargo embed",
+        //"isBackground": true,
         "group": {
           "kind": "build",
           "isDefault": false
         },
         "problemMatcher": [
-            "$rustc"
-        ]
+          "$rustc"
+        ],
+  
     },
   ]
 }

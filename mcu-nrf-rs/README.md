@@ -14,13 +14,15 @@ RX/SD (yellow - input to I/O)       ->  DIO (yellow - SWD)
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
 
 # USB Permissions
-sudo usermod -aG uucp $USER
+sudo usermod -aG uucp $USER # not sure if we need this one?
+
+# need the udev rule
 sudo cp 69-probe-rs.rules /etc/udev/rules.d/
 sudo udevadm control --reload
 sudo udevadm trigger
 
-# Debugger
-sudo pacman -S gdb-common openocd
+# Debugger - not required
+#sudo pacman -S gdb-common openocd
 
 # list debug probe
 probe-rs list
@@ -64,7 +66,8 @@ probe-rs download --verify --binary-format hex --chip nRF52840_xxAA s140_nrf52_7
 ```
 
 ## Debug support
-Install probe-rs visual studio plugin
+Install probe-rs visual studio plugin  
+Download the svd ```https://github.com/NordicSemiconductor/nrfx/blob/master/mdk/nrf52840.svd```
 
 ## Reset device
 Double tap rest to ground within 0.5 seconds to reset board
