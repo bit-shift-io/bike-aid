@@ -25,6 +25,7 @@ android_logger = "0.14.1"
 ndk-context = "0.1.1"
 #jni = "0.21.1"
 jni-utils = { version = "0.1.1" } # , features = ["build-java-support"] 
+jni = "0.21.1"
 
 
 [build-dependencies]
