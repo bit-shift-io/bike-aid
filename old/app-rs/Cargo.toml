@@ -17,6 +17,7 @@ tokio-stream = "0.1.15"
 #blec = "0.3.3"
 #uuid = "1.10.0"
 btleplug = { version = "0.11.7", features = ["serde"] }
+#btleplug = { version = "0.11.7", features = ["serde"], path = "../../../btleplug" }
 
 # logs
 log = "0.4.22"
@@ -33,7 +34,8 @@ slint-build = "1.7"
 crate-type = ["cdylib", "lib"]
 
 [target.'cfg(target_os = "android")'.dependencies]
-#jni-utils = { version = "0.1.1", features = ["build-java-support"] }
+#jni = "0.21.1"
+#jni-utils = { version = "0.1.1"} #, features = ["build-java-support"] }
 android_logger = "0.14.1"
 ndk-context = "0.1.1"
-jni = "0.21.1"
+jni = "0.19.0" # dont change this, we need it to be the same as jni-utils version

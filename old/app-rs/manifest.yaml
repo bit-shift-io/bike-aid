@@ -1,12 +1,18 @@
-#icon: "icon.png"
-platform:
-  target: thumbv7em-none-eabihf
-toolchain:
-  version: nightly
+# lots of this is from bevy android example
+#platform:
+#  target: thumbv7em-none-eabihf
+#toolchain:
+#  version: nightly
 android:
+  icon: "assets/icon.png"
+  assets: "../assets/*"
+  runtime_libs:
+
   manifest:
-    application:
-      label: "bike-aid" 
+    package: io.bitshift.bike_aid
+    uses_feature:
+      - name: android.hardware.bluetooth_le
+        required: true
     uses_permission:
       - name: android.permission.BLUETOOTH
       - name: android.permission.BLUETOOTH_ADMIN
@@ -14,3 +20,6 @@ android:
       - name: android.permission.BLUETOOTH_SCAN
       - name: android.permission.ACCESS_COARSE_LOCATION
       - name: android.permission.ACCESS_FINE_LOCATION
+    application:
+      label: "bike-aid"
+      theme: "@android:style/Theme.Material.Light.DarkActionBar"

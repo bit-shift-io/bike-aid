@@ -13,7 +13,11 @@ use jni::objects::JObject;
 use jni::sys::jobject;
 use jni::objects::JValue;
 use jni::signature::{JavaType, Primitive};
+use jni::objects::JString;
  
+pub static JAVAVM: OnceCell<JavaVM> = OnceCell::new();
+
+
 // links
 // https://github.com/alvr-org/ALVR/blob/17a79eadc926a2b9c701af6feefda12935f18e3c/alvr/system_info/src/android.rs#L48
 // https://github.com/slint-ui/slint/issues/5839
@@ -43,7 +47,9 @@ pub fn init() {
     ]);
 
     // Now you can initialize btleplug with the JNIEnv
+    let mut env = env();
     //btleplug::platform::init(&env);
+    //btleplug::platform::init(&env).unwrap();
 }
 
 
@@ -52,12 +58,20 @@ pub fn vm() -> JavaVM {
 }
 
 
+pub fn env() -> JNIEnv<'static> {
+    let vm = vm();
+    let env = vm.attach_current_thread().unwrap();
+    let env_ptr = env.get_native_interface();
+    unsafe { JNIEnv::from_raw(env_ptr as *mut _) }.unwrap()
+}
+
+
 pub fn context() -> jobject {
     ndk_context::android_context().context().cast()
 }
 
 pub fn activity() -> JObject<'static> {
-    unsafe { JObject::from_raw(context()) }
+    unsafe { JObject::from(context()) } // unsafe { JObject::from_raw(context()) }
 }
 
 
@@ -82,7 +96,7 @@ fn has_permissions(permissions: &[&str]) -> bool {
                 activity(),
                 "checkSelfPermission",
                 "(Ljava/lang/String;)I",
-                &[(&perm_jstring).into()],
+                &[JValue::from(perm_jstring)], // &[(&perm_jstring).into()],
             )
             .unwrap()
             .i()
@@ -107,7 +121,7 @@ pub fn get_permission(permissions: &[&str]) {
 
     for (i, &permission) in permissions.iter().enumerate() {
         let java_permission = env.new_string(permission).unwrap();
-        env.set_object_array_element(&mut permissions_array, i as i32, java_permission).unwrap(); 
+        env.set_object_array_element(permissions_array, i as i32, java_permission).unwrap(); // &mut permissions_array
     }
 
     if !has_permissions(permissions) {
@@ -115,7 +129,7 @@ pub fn get_permission(permissions: &[&str]) {
             activity(),
             "requestPermissions",
             "([Ljava/lang/String;I)V",
-            &[(&permissions_array).into(), 0.into()],
+            &[JValue::from(permissions_array), JValue::from(0)], // &[(&permissions_array).into(), 0.into()],
         ).unwrap();
     }
 
@@ -135,7 +149,9 @@ pub fn build_string(ty: &str) -> String {
         .unwrap()
         .l()
         .unwrap();
-    let name_raw = env.get_string((&jname).into()).unwrap();
+    //let name_raw = env.get_string((&jname).into()).unwrap();
+    let jname: JString = jname.into();
+    let name_raw = env.get_string(jname).unwrap();
 
     name_raw.to_string_lossy().as_ref().to_owned()
 }
@@ -167,15 +183,15 @@ pub fn get_battery_status() -> (f32, bool) {
         .new_object(
             "android/content/IntentFilter",
             "(Ljava/lang/String;)V",
-            &[(&intent_action_jstring).into()],
+            &[JValue::from(intent_action_jstring)], // &[(&intent_action_jstring).into()],
         )
         .unwrap();
     let battery_intent = env
         .call_method(
-            unsafe { JObject::from_raw(context()) },
+            unsafe { JObject::from(context()) }, // unsafe { JObject::from_raw(context()) },
             "registerReceiver",
             "(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;",
-            &[(&JObject::null()).into(), (&intent_filter).into()],
+            &[JObject::null().into(), intent_filter.into()], // &[(&JObject::null()).into(), (&intent_filter).into()],
         )
         .unwrap()
         .l()
@@ -184,10 +200,10 @@ pub fn get_battery_status() -> (f32, bool) {
     let level_jstring = env.new_string("level").unwrap();
     let level = env
         .call_method(
-            &battery_intent,
+            battery_intent, //&battery_intent,
             "getIntExtra",
             "(Ljava/lang/String;I)I",
-            &[(&level_jstring).into(), (-1).into()],
+            &[JValue::from(level_jstring), JValue::from(-1)] // &[(&level_jstring).into(), (-1).into()],
         )
         .unwrap()
         .i()
@@ -195,10 +211,10 @@ pub fn get_battery_status() -> (f32, bool) {
     let scale_jstring = env.new_string("scale").unwrap();
     let scale = env
         .call_method(
-            &battery_intent,
+            battery_intent, //&battery_intent,
             "getIntExtra",
             "(Ljava/lang/String;I)I",
-            &[(&scale_jstring).into(), (-1).into()],
+            &[JValue::from(scale_jstring), JValue::from(-1)] //&[(&scale_jstring).into(), (-1).into()],
         )
         .unwrap()
         .i()
@@ -207,10 +223,10 @@ pub fn get_battery_status() -> (f32, bool) {
     let plugged_jstring = env.new_string("plugged").unwrap();
     let plugged = env
         .call_method(
-            &battery_intent,
+            battery_intent, // &battery_intent,
             "getIntExtra",
             "(Ljava/lang/String;I)I",
-            &[(&plugged_jstring).into(), (-1).into()],
+            &[JValue::from(plugged_jstring), JValue::from(-1)] //&[(&plugged_jstring).into(), (-1).into()],
         )
         .unwrap()
         .i()
@@ -218,3 +234,13 @@ pub fn get_battery_status() -> (f32, bool) {
 
     (level as f32 / scale as f32, plugged > 0)
 }
+
+// android jvm will automatically load this function when the library is loaded
+// #[no_mangle]
+// pub extern "C" fn JNI_OnLoad(vm: jni::JavaVM, _res: *const std::os::raw::c_void) -> jni::sys::jint {
+//     let env = vm.get_env().unwrap();
+//     jni_utils::init(&env).unwrap();
+//     btleplug::platform::init(&env).unwrap();
+//     let _ = JAVAVM.set(vm);
+//     jni::JNIVersion::V6.into()
+// }

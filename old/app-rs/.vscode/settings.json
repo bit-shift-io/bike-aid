@@ -5,4 +5,5 @@
     "files.exclude": {
         "target/": true
     },
+    "makefile.configureOnOpen": false,
 }
