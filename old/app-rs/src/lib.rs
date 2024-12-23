@@ -132,7 +132,7 @@ fn android_main(app: slint::android::AndroidApp) {
 
     info!("==== BIKE AID START ====");
 
-    // init other
+    // init other 
     slint::android::init(app.clone()).unwrap();
     android::init();
     init(); // shared desktop init

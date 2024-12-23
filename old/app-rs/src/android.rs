@@ -13,7 +13,7 @@ use jni::objects::JObject;
 use jni::sys::jobject;
 use jni::objects::JValue;
 use jni::signature::{JavaType, Primitive};
-
+ 
 // links
 // https://github.com/alvr-org/ALVR/blob/17a79eadc926a2b9c701af6feefda12935f18e3c/alvr/system_info/src/android.rs#L48
 // https://github.com/slint-ui/slint/issues/5839
@@ -27,22 +27,23 @@ pub fn init() {
     let device = device_name();
     info!("{manufacturer} - {model} ({device})");
 
+    // api level
+    let api_level = get_api_level();
+    info!("api: {}", api_level);
+
     // battery status
     let battery = get_battery_status();
     info!("battery: {:?}", battery);
 
-    //try_get_permission("android.permission.BLUETOOTH_SCAN");
-    try_get_permission("android.permission.BLUETOOTH_CONNECT");
-    //try_get_permission("android.permission.ACCESS_COARSE_LOCATION");
-    //try_get_permission("android.permission.ACCESS_FINE_LOCATION");
+    get_permission(&[
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+    ]);
 
     // Now you can initialize btleplug with the JNIEnv
     //btleplug::platform::init(&env);
-
-    // test
-
-
-
 }
 
 
@@ -70,46 +71,59 @@ fn get_api_level() -> i32 {
         .unwrap()
 }
 
-
-pub fn try_get_permission(permission: &str) {
+fn has_permissions(permissions: &[&str]) -> bool {
     let vm = vm();
     let mut env = vm.attach_current_thread().unwrap();
 
-    let mic_perm_jstring = env.new_string(permission).unwrap();
-
-     // determine whether we have been granted a particular permission
-    let permission_status = env
-        .call_method(
-            activity(),
-            "checkSelfPermission",
-            "(Ljava/lang/String;)I",
-            &[(&mic_perm_jstring).into()],
-        )
-        .unwrap()
-        .i()
-        .unwrap();
-
-
-    if permission_status != 0 {
-        let string_class = env.find_class("java/lang/String").unwrap();
-        let perm_array = env
-            .new_object_array(1, string_class, mic_perm_jstring)
+    for &permission in permissions {
+        let perm_jstring = env.new_string(permission).unwrap();
+        let permission_status = env
+            .call_method(
+                activity(),
+                "checkSelfPermission",
+                "(Ljava/lang/String;)I",
+                &[(&perm_jstring).into()],
+            )
+            .unwrap()
+            .i()
             .unwrap();
 
-        let result = env.call_method(
+        if permission_status != 0 {
+            return false;
+        }
+    }
+
+    true
+}
+
+
+pub fn get_permission(permissions: &[&str]) {
+    let vm = vm();
+    let mut env = vm.attach_current_thread().unwrap();
+
+    let string_class = env.find_class("java/lang/String").unwrap();
+    let default_string = env.new_string("").unwrap();
+    let mut permissions_array = env.new_object_array(permissions.len() as i32, string_class, default_string).unwrap();
+
+    for (i, &permission) in permissions.iter().enumerate() {
+        let java_permission = env.new_string(permission).unwrap();
+        env.set_object_array_element(&mut permissions_array, i as i32, java_permission).unwrap(); 
+    }
+
+    if !has_permissions(permissions) {
+        env.call_method(
             activity(),
             "requestPermissions",
             "([Ljava/lang/String;I)V",
-            &[(&perm_array).into(), 0.into()],
-        )
-        .unwrap();
-
-        
-        info!("permission result: {:?}", result);
-
-        // todo: handle case where permission is rejected
+            &[(&permissions_array).into(), 0.into()],
+        ).unwrap();
     }
+
+
+    info!("permissions: {:?}", has_permissions(permissions));
+    // todo: handle case where permission is rejected
 }
+
 
 
 pub fn build_string(ty: &str) -> String {
