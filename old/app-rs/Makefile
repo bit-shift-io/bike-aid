@@ -39,19 +39,6 @@ check-format:
 test:
 	cargo test
 
-# Frontend
-frontend-install-dep:
-	cd frontend
-	npm install
-
-frontend-build:
-	cd frontend
-	npm run build
-
-frontend-run:
-	cd frontend
-	npm run dev
-
 # Desktop
 desktop-build-debug:
 	cargo tauri build $(DESKTOP_OPTIONS)
@@ -68,11 +55,11 @@ server-run:
 
 # Android
 android-dev: .android-prepare
-	adb uninstall loikki.open_biking | true
+#	adb uninstall loikki.open_biking | true
 	export NDK_HOME=$(NDK_HOME)
 	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/:$PKG_CONFIG_PATH
 	export PKG_CONFIG_SYSROOT_DIR=/
-	cargo tauri android dev $(ANDROID_OPTIONS)
+#	cargo tauri android dev $(ANDROID_OPTIONS)
 
 .android-prepare:
 	cp android-files/key.properties gen/android/
