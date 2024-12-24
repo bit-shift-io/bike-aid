@@ -111,6 +111,14 @@ pub async fn connected(_connection: &Connection, _server: &Server) {
 
 pub async fn disconnected(_connection: &Connection, _server: &Server) {
     info!("{}: device disconnected", TASK_ID);
+    
+    // power off, reboot!
+    let power_on =signals::POWER_ON.try_get().unwrap();
+    if !power_on {
+        cortex_m::peripheral::SCB::sys_reset();
+    }
+
+    // else we are still on, so notify
     let send_piezo = signals::PIEZO_MODE.sender();
     send_piezo.send(signals::PiezoModeType::Notify);
 }
