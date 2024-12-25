@@ -59,22 +59,24 @@ cargo apk run
 
 
 ## Build external packages
-
 ```
 <cd to Projects folder>
 git clone https://github.com/deviceplug/jni-utils-rs.git
 cd jni-utils-rs
 cargo build --features=build-java-support
+jar files located in /target/debug/java/libs
 
 cd ..
 git clone https://github.com/deviceplug/btleplug.git
 cd btleplug/src/droidplug/java
-edit build.gradle
+edit build.gradle, comment and replace:
+dependencies {
     implementation files('/home/bronson/Projects/jni-utils-rs/target/debug/java/libs/jni-utils-0.1.1-SNAPSHOT.jar')
-
-
+}
+./gradlew build 
+btleplug/src/droidplug/java/build/outputs/aar/
 ```
-
+an optional idea could be to merge the 2 android folders and build?
 
 
 ## Links

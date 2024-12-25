@@ -14,6 +14,10 @@ use jni::sys::jobject;
 use jni::objects::JValue;
 use jni::signature::{JavaType, Primitive};
 use jni::objects::JString;
+use jni_utils;
+
+// log for android
+
  
 pub static JAVAVM: OnceCell<JavaVM> = OnceCell::new();
 
@@ -24,7 +28,35 @@ pub static JAVAVM: OnceCell<JavaVM> = OnceCell::new();
 // https://github.com/slint-ui/slint/discussions/5692
 
 
-pub fn init() {
+pub fn init(app: slint::android::AndroidApp) {
+    std::env::set_var("RUST_BACKTRACE", "1");
+
+    // configure logcat
+    extern crate android_logger;
+    use log::LevelFilter;
+    use android_logger::Config;
+
+    android_logger::init_once(
+        Config::default().with_max_level(LevelFilter::Info), // change log level here
+    );
+
+    info!("==== BIKE AID START ANDROID ====");
+
+    // init other 
+    slint::android::init(app.clone()).unwrap();
+    
+    // init blec bluetooth
+    //use blec::ble;
+    // let result = ble::init();
+    // match result {
+    //     Ok(_) => {
+    //         info!("Bluetooth initialized");
+    //     }
+    //     Err(e) => {
+    //         info!("BLE Error: {}", e);
+    //     }
+    // }
+
     // device info
     let manufacturer = manufacturer_name();
     let model = model_name();
@@ -46,37 +78,51 @@ pub fn init() {
         "android.permission.ACCESS_FINE_LOCATION",
     ]);
 
+
+    // class loader
+    let mut env = get_env();
+    let activity = get_activity();
+    let activity_class = env.get_object_class(activity).unwrap();
+    //let get_class_loader_method = resolve_method_id(env, activity_class, "getClassLoader", "()Ljava/lang/ClassLoader;")?;
+    let class_loader = env.call_method(
+        activity,
+        "getClassLoader",
+        "()Ljava/lang/ClassLoader;",
+        &[],
+    ).unwrap()
+    .l().unwrap();
+
+
     // Now you can initialize btleplug with the JNIEnv
-    let mut env = env();
     //btleplug::platform::init(&env);
     //btleplug::platform::init(&env).unwrap();
 }
 
 
-pub fn vm() -> JavaVM {
+pub fn get_vm() -> JavaVM {
     unsafe { JavaVM::from_raw(ndk_context::android_context().vm().cast()).unwrap() }
 }
 
 
-pub fn env() -> JNIEnv<'static> {
-    let vm = vm();
+pub fn get_env() -> JNIEnv<'static> {
+    let vm = get_vm();
     let env = vm.attach_current_thread().unwrap();
     let env_ptr = env.get_native_interface();
     unsafe { JNIEnv::from_raw(env_ptr as *mut _) }.unwrap()
 }
 
 
-pub fn context() -> jobject {
+pub fn get_context() -> jobject {
     ndk_context::android_context().context().cast()
 }
 
-pub fn activity() -> JObject<'static> {
-    unsafe { JObject::from(context()) } // unsafe { JObject::from_raw(context()) }
+pub fn get_activity() -> JObject<'static> {
+    unsafe { JObject::from(get_context()) } // unsafe { JObject::from_raw(context()) }
 }
 
 
 fn get_api_level() -> i32 {
-    let vm = vm();
+    let vm = get_vm();
     let mut env = vm.attach_current_thread().unwrap();
 
     env.get_static_field("android/os/Build$VERSION", "SDK_INT", "I")
@@ -86,14 +132,14 @@ fn get_api_level() -> i32 {
 }
 
 fn has_permissions(permissions: &[&str]) -> bool {
-    let vm = vm();
+    let vm = get_vm();
     let mut env = vm.attach_current_thread().unwrap();
 
     for &permission in permissions {
         let perm_jstring = env.new_string(permission).unwrap();
         let permission_status = env
             .call_method(
-                activity(),
+                get_activity(),
                 "checkSelfPermission",
                 "(Ljava/lang/String;)I",
                 &[JValue::from(perm_jstring)], // &[(&perm_jstring).into()],
@@ -112,7 +158,7 @@ fn has_permissions(permissions: &[&str]) -> bool {
 
 
 pub fn get_permission(permissions: &[&str]) {
-    let vm = vm();
+    let vm = get_vm();
     let mut env = vm.attach_current_thread().unwrap();
 
     let string_class = env.find_class("java/lang/String").unwrap();
@@ -126,7 +172,7 @@ pub fn get_permission(permissions: &[&str]) {
 
     if !has_permissions(permissions) {
         env.call_method(
-            activity(),
+            get_activity(),
             "requestPermissions",
             "([Ljava/lang/String;I)V",
             &[JValue::from(permissions_array), JValue::from(0)], // &[(&permissions_array).into(), 0.into()],
@@ -141,7 +187,7 @@ pub fn get_permission(permissions: &[&str]) {
 
 
 pub fn build_string(ty: &str) -> String {
-    let vm = vm();
+    let vm = get_vm();
     let mut env = vm.attach_current_thread().unwrap();
 
     let jname = env
@@ -173,7 +219,7 @@ pub fn manufacturer_name() -> String {
 
 
 pub fn get_battery_status() -> (f32, bool) {
-    let vm = vm();
+    let vm = get_vm();
     let mut env = vm.attach_current_thread().unwrap();
 
     let intent_action_jstring = env
@@ -188,7 +234,7 @@ pub fn get_battery_status() -> (f32, bool) {
         .unwrap();
     let battery_intent = env
         .call_method(
-            unsafe { JObject::from(context()) }, // unsafe { JObject::from_raw(context()) },
+            unsafe { JObject::from(get_context()) }, // unsafe { JObject::from_raw(context()) },
             "registerReceiver",
             "(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;",
             &[JObject::null().into(), intent_filter.into()], // &[(&JObject::null()).into(), (&intent_filter).into()],
@@ -235,12 +281,13 @@ pub fn get_battery_status() -> (f32, bool) {
     (level as f32 / scale as f32, plugged > 0)
 }
 
+
 // android jvm will automatically load this function when the library is loaded
-// #[no_mangle]
-// pub extern "C" fn JNI_OnLoad(vm: jni::JavaVM, _res: *const std::os::raw::c_void) -> jni::sys::jint {
-//     let env = vm.get_env().unwrap();
-//     jni_utils::init(&env).unwrap();
-//     btleplug::platform::init(&env).unwrap();
-//     let _ = JAVAVM.set(vm);
-//     jni::JNIVersion::V6.into()
-// }
+#[no_mangle]
+pub extern "C" fn JNI_OnLoad(vm: jni::JavaVM, _res: *const std::os::raw::c_void) -> jni::sys::jint {
+    let env = vm.get_env().unwrap();
+    jni_utils::init(&env).unwrap();
+    btleplug::platform::init(&env).unwrap();
+    let _ = JAVAVM.set(vm);
+    jni::JNIVersion::V6.into()
+}
