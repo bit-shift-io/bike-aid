@@ -7,6 +7,8 @@ https://gist.github.com/qdot/210f31439888927fc23b14d2e3d40503
 
 # other apps
 
+https://github.com/MiniMinerX/bevy_gaussian_oxr_simple/blob/main/manifest.yaml
+
 https://gitlab.com/loikki/open-biking/-/tree/main?ref_type=heads
 https://github.com/kyrosle/bevy_android
 https://github.com/rust-mobile/xbuild

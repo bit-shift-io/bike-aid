@@ -21,7 +21,7 @@ Note: may need to symlink clang??
 
 Install dependencies  
 ```bash
-sudo pacman -S jdk11-openjdk clang lld llvm
+sudo pacman -S jdk17-openjdk clang lld llvm
 ```
 
 Install android tools
@@ -32,15 +32,35 @@ sudo pacman -S android-tools android-udev
 Set env variables in ~/.bash_profile 
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_NDK_HOME=$HOME/Android/Ndk
 export ANDROID_NDK_ROOT=$HOME/Android/Ndk
 export ANDROID_SDK_ROOT=$ANDROID_HOME
+export PATH=$PATH:$HOME/Android/Ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
 #export PATH=$PATH:$ANDROID_HOME/tools
 #export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
 
 Run ```sudo adb devices```
 
-## run android using xbuild
+
+## Android Gradle Build
+From ```https://github.com/rust-mobile/android-activity/blob/main/examples/na-mainloop/README.md```
+``` bash
+export ANDROID_NDK_HOME="path/to/ndk"
+export ANDROID_HOME="path/to/sdk"
+
+rustup target add aarch64-linux-android
+cargo install cargo-ndk
+
+cargo ndk -t arm64-v8a -o app/src/main/jniLibs/  build
+./gradlew build
+./gradlew installDebug
+```
+
+
+
+
+## run android using xbuild -old?
 ```bash
 x doctor
 x devices
@@ -49,7 +69,7 @@ x build --device adb:<id>
 x run --device adb:<id>
 ```
 
-## run android using cargo-apk
+## run android using cargo-apk - untested
 ```bash
 rustup target add arm-linux-androideabi
 cargo apk check
