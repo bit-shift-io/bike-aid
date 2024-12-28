@@ -4,12 +4,13 @@ version = "0.1.0"
 authors = ["Bronson <bronsonmathews@gmail.com>"]
 edition = "2021"
 build = "build.rs"
+readme = "README.md"
 
-[profile.dev]
-target = "armv7-unknown-linux-androideabi"
+#[profile.dev]
+#target = "armv7-unknown-linux-androideabi"
 
 [dependencies]
-slint = { version = "1.9", features = ["backend-android-activity-06"] }
+slint = { version = "1.9.1" }
 tokio = { version = "1.39.1", features = ["full"] }
 tokio-stream = "0.1.15"
 
@@ -27,12 +28,13 @@ once_cell = "1.20.2"
 thiserror = "2.0.9"
 
 
+[target.'cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))'.dependencies]
+env_logger = "0.10"
 
-[build-dependencies]
-slint-build = "1.7"
 
-[lib]
-crate-type = ["cdylib", "lib"]
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_log =  { version = "1.0", features = ["color"] }
+
 
 [target.'cfg(target_os = "android")'.dependencies]
 #jni = "0.21.1"
@@ -40,7 +42,36 @@ jni-utils = { version = "0.1.1"} #, features = ["build-java-support"] }
 android_logger = "0.14.1"
 ndk-context = "0.1.1"
 jni = "0.19.0" # dont change this, we need it to be the same as jni-utils version
-ndk = "0.9.0"
+#ndk = "0.9.0"
+
+
+[build-dependencies]
+slint-build = "1.9.1"
+
+
+[features]
+default = []
+web = []
+desktop = []
+android = [ "slint/backend-android-activity-06" ]
+#full = ["desktop", "qrcode", "database", "cutil/full"]
+
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+path = "src/desktop.rs"
+name = "slint-template"
+required-features = ["desktop"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
 
 
 ####################

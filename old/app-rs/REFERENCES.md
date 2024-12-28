@@ -1,3 +1,38 @@
+
+## Links
+
+#### BLE
+
+https://github.com/MnlPhlp/blec
+
+
+#### Android
+https://github.com/slint-ui/slint/tree/3aafce2c52fa1e14971e4f2455bdc556daeb079d/internal/backends/android-activity
+
+https://github.com/slint-ui/slint/blob/master/examples/todo/rust/lib.rs
+
+https://git.sr.ht/~tmpod/eigen/tree/main/item/src
+
+https://github.com/search?q=repo%3Aslint-ui%2Fslint%20android&type=code
+
+
+https://crates.io/crates/android-activity
+
+https://docs.rs/android-manifest/latest/android_manifest/struct.UsesPermission.html
+
+#### JNI
+
+https://docs.rs/jni/latest/jni/
+
+https://github.com/astonbitecode/j4rs
+
+#### Build.rs
+
+https://github.com/slint-ui/slint/blob/e0f3fd4168fa6ad5ed17a50910111ed72d1ae95e/internal/backends/android-activity/build.rs#L15
+
+
+
+
 # btleplug
 
 https://github.com/deviceplug/btleplug/tree/master
