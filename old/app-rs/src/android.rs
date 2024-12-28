@@ -94,7 +94,7 @@ pub fn init(app: slint::android::AndroidApp) {
 
 
     // Now you can initialize btleplug with the JNIEnv
-    btleplug::platform::init(&env);
+    //btleplug::platform::init(&env);
     //btleplug::platform::init(&env).unwrap();
 }
 

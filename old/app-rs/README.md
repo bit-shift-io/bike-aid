@@ -32,33 +32,37 @@ sudo pacman -S android-tools android-udev
 Set env variables in ~/.bash_profile 
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
-export ANDROID_NDK_HOME=$HOME/Android/Ndk
-export ANDROID_NDK_ROOT=$HOME/Android/Ndk
-export ANDROID_SDK_ROOT=$ANDROID_HOME
-export PATH=$PATH:$HOME/Android/Ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.12674087/
+export PATH=$PATH:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+#export ANDROID_NDK_ROOT=$HOME/Android/Ndk
+#export ANDROID_SDK_ROOT=$ANDROID_HOME
+
 #export PATH=$PATH:$ANDROID_HOME/tools
 #export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+
+Install rust tools
+```bash
+rustup update
+rustup target add aarch64-linux-android
+cargo install cargo-ndk
 ```
 
 Run ```sudo adb devices```
 
 
 ## Android Gradle Build
-From ```https://github.com/rust-mobile/android-activity/blob/main/examples/na-mainloop/README.md```
 ``` bash
-export ANDROID_NDK_HOME="path/to/ndk"
-export ANDROID_HOME="path/to/sdk"
-
-rustup target add aarch64-linux-android
-cargo install cargo-ndk
-
 cargo ndk -t arm64-v8a -o app/src/main/jniLibs/  build
 ./gradlew build
 ./gradlew installDebug
 ```
 
-
-
+working as an apk... need libs?
+```bash
+cargo apk run --target aarch64-linux-android --lib
+```
 
 ## run android using xbuild -old?
 ```bash
