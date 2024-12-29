@@ -35,5 +35,6 @@ pub async fn run(power_on: bool, park_brake_on: bool) {
 
 pub async fn power_down_timer() {
     Timer::after_secs(INTERVAL).await;
-    signals::REQUEST_POWER_ON.sender().send(false);  // power off
+    cortex_m::peripheral::SCB::sys_reset(); //reboot instead
+    //signals::REQUEST_POWER_ON.sender().send(false);  // power off
 }
