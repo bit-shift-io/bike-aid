@@ -15,5 +15,5 @@ dependencyResolutionManagement {
         }
     }
 }
-//rootProject.name = "Rust Template"
+rootProject.name = "Bike-Aid"
 include ':app'

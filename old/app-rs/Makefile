@@ -3,6 +3,7 @@
 pwd=${shell pwd}
 
 app-name=bike-aid
+android-package-name=io.bitshift.bike_aid
 version=`git describe --tags --abbrev=0`
 
 build-env=
@@ -24,9 +25,22 @@ android-debug:
 	$(android-build-env) $(run-env) cargo apk run --lib --features=android
 
 android-gradle:
-	$(android-build-env) $(run-env) cargo ndk -p 31 -t arm64-v8a -o android/app/src/main/jniLibs/ build --features=android -vv
+	$(android-build-env) $(run-env) cargo ndk -p 26 -t arm64-v8a -o android/app/src/main/jniLibs/ build --features=android -vv
 	./android/gradlew build -p android
+	adb uninstall $(android-package-name) | true
+	adb logcat -c
 	./android/gradlew installDebug -p android
+	adb logcat -e "io.bitshift.bike_aid"
+
+android-deploy:
+	adb uninstall $(android-package-name) | true
+	adb install bike-aid.apk
+
+android-logs:
+	adb logcat -e "io.bitshift.bike_aid"
+
+android-logs-clear:
+	adb logcat -c
 	
 android-env:
 	$(android-build-env) $(run-env) cargo ndk --help
