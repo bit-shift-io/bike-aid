@@ -25,12 +25,14 @@ android-debug:
 	$(android-build-env) $(run-env) cargo apk run --lib --features=android
 
 android-gradle:
+	clear
 	$(android-build-env) $(run-env) cargo ndk -p 26 -t arm64-v8a -o android/app/src/main/jniLibs/ build --features=android -vv
 	./android/gradlew build -p android
 	adb uninstall $(android-package-name) | true
 	adb logcat -c
 	./android/gradlew installDebug -p android
-	adb logcat -e "io.bitshift.bike_aid"
+	adb shell monkey -p $(android-package-name) 1
+	adb logcat | grep bike_aid
 
 android-xbuild:
 	x build --device adb:3B031FDJH001KZ --features=android
@@ -41,7 +43,7 @@ android-deploy:
 	adb install bike-aid.apk
 
 android-logs:
-	adb logcat -e "io.bitshift.bike_aid"
+	adb logcat | grep bike_aid
 
 android-logs-clear:
 	adb logcat -c

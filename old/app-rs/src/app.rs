@@ -60,7 +60,7 @@ pub async fn init() -> Result<(), slint::PlatformError> {
 
                     // Call async function
                     info!("begin scan");
-                    let item = bluetooth::scan_sleep().await;
+                    let item = bluetooth::scan_stream().await;
                     /* 
                     // Update UI model state
                     update_model(

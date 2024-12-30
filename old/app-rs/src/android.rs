@@ -79,18 +79,24 @@ pub fn init(app: slint::android::AndroidApp) {
     ]);
 
 
-    // class loader
-    let mut env = get_env();
-    let activity = get_activity();
-    let activity_class = env.get_object_class(activity).unwrap();
-    //let get_class_loader_method = resolve_method_id(env, activity_class, "getClassLoader", "()Ljava/lang/ClassLoader;")?;
-    let class_loader = env.call_method(
-        activity,
-        "getClassLoader",
-        "()Ljava/lang/ClassLoader;",
-        &[],
-    ).unwrap()
-    .l().unwrap();
+    // // class loader
+    // let mut env = get_env();
+    // let activity = get_activity();
+    // let activity_class = env.get_object_class(activity).unwrap();
+    // let get_class_loader_method = resolve_method_id(env, activity_class, "getClassLoader", "()Ljava/lang/ClassLoader;")?;
+    
+    // trace!("Calling activity.getClassLoader()");
+
+
+    
+    
+    // let class_loader = env.call_method(
+    //     activity,
+    //     "getClassLoader",
+    //     "()Ljava/lang/ClassLoader;",
+    //     &[],
+    // ).unwrap()
+    // .l().unwrap();
 
 
     // Now you can initialize btleplug with the JNIEnv
