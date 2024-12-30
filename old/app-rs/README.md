@@ -27,6 +27,13 @@ export ANDROID_HOME=$HOME/Android/Sdk
 export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.12674087/
 export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
 export PATH=$PATH:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+# for skia bindings
+export ANDROID_NDK=$ANDROID_NDK_HOME
+export CC_aarch64_linux_android=aarch64-linux-android26-clang
+export CXX_aarch64_linux_android=aarch64-linux-android26-clang++
+export AR_aarch64_linux_android=llvm-ar
+export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=aarch64-linux-android26-clang
 ```
 
 Install rust tools
@@ -53,7 +60,7 @@ working as an apk... need libs?
 cargo apk run --target aarch64-linux-android --lib
 ```
 
-## run android using xbuild -old?
+## Android xbuild -old?
 ```bash
 x doctor
 x devices
@@ -62,10 +69,10 @@ x build --device adb:<id>
 x run --device adb:<id>
 ```
 
-## run android using cargo-apk - untested
+## Android cargo-apk - untested
 ```bash
-rustup target add arm-linux-androideabi
-cargo apk check
+rustup target add aarch64-linux-android
+cargo install cargo-apk
 cargo apk build
 cargo apk run
 ```

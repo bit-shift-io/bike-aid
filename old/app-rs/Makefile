@@ -24,10 +24,13 @@ android-debug:
 	$(android-build-env) $(run-env) cargo apk run --lib --features=android
 
 android-gradle:
-	$(android-build-env) $(run-env) cargo ndk -t arm64-v8a -o android/app/src/main/jniLibs/  build --features=android
-	cd android
-	./gradlew build
-	./gradlew installDebug
+	$(android-build-env) $(run-env) cargo ndk -p 31 -t arm64-v8a -o android/app/src/main/jniLibs/ build --features=android -vv
+	./android/gradlew build -p android
+	./android/gradlew installDebug -p android
+	
+android-env:
+	$(android-build-env) $(run-env) cargo ndk --help
+	$(android-build-env) $(run-env) cargo ndk-env -p 26
 
 desktop-build-debug:
 	$(desktop-build-env) cargo build --features=desktop
