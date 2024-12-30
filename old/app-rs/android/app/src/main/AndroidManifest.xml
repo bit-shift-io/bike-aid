@@ -25,13 +25,17 @@ PackageManager.hasSystemFeature(FEATURE_BLUETOOTH_LE) -->
         <activity
             android:name="android.app.NativeActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:exported="true">
+            android:exported="true"
+            android:hardwareAccelerated="true">
+            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <meta-data android:name="android.app.bike_aid" android:value="bike-aid" />
+            <meta-data android:name="android.app.lib_name" android:value="bike_aid" />
+            <!-- <meta-data android:name="android.app.bike_aid" android:value="bike-aid" />-->
+            
         </activity>
 
     </application>

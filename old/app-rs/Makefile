@@ -32,6 +32,10 @@ android-gradle:
 	./android/gradlew installDebug -p android
 	adb logcat -e "io.bitshift.bike_aid"
 
+android-xbuild:
+	x build --device adb:3B031FDJH001KZ --features=android
+	x run --device adb:3B031FDJH001KZ --features=android
+
 android-deploy:
 	adb uninstall $(android-package-name) | true
 	adb install bike-aid.apk
