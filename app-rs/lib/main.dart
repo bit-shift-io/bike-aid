@@ -6,6 +6,7 @@ import 'logger_service.dart';
 import 'main_page.dart';
 import 'log_page.dart';
 import 'bluetooth_service.dart';
+import 'gps_service.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:bike_aid/i18n/strings.g.dart';
@@ -51,6 +52,7 @@ class MainAppShell extends StatefulWidget {
 class _MainAppShellState extends State<MainAppShell> {
   final ScooterBluetoothService _bluetoothService = ScooterBluetoothService();
   final LoggerService _loggerService = LoggerService();
+  final GpsService _gpsService = GpsService();
 
   final ScrollController _logScrollController = ScrollController();
   final TextEditingController _uartController = TextEditingController();
@@ -68,6 +70,9 @@ class _MainAppShellState extends State<MainAppShell> {
     // Listen for state changes to rebuild UI
     _bluetoothService.addListener(_onServiceUpdate);
     _loggerService.addListener(_onServiceUpdate);
+    _gpsService.addListener(_onServiceUpdate);
+    
+    _gpsService.init();
 
     // Pipe Bluetooth logs to Logger
     _logSubscription = _bluetoothService.logStream.listen((message) {
@@ -95,9 +100,11 @@ class _MainAppShellState extends State<MainAppShell> {
   void dispose() {
     _bluetoothService.removeListener(_onServiceUpdate);
     _loggerService.removeListener(_onServiceUpdate);
+    _gpsService.removeListener(_onServiceUpdate);
 
     _bluetoothService.dispose();
     _loggerService.dispose();
+    _gpsService.dispose();
 
     _logSubscription?.cancel();
     _logScrollController.dispose();
@@ -116,6 +123,8 @@ class _MainAppShellState extends State<MainAppShell> {
           children: [
             MainPage(
               scooterState: _bluetoothService.scooterState,
+              gpsSpeed: _gpsService.currentSpeed,
+              gpsStatus: _gpsService.status,
               connectedDevice: _bluetoothService.connectedDevice,
               scanResults: _bluetoothService.scanResults,
               isConnecting: _bluetoothService.isConnecting,

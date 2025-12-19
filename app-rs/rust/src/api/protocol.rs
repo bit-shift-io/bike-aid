@@ -57,14 +57,14 @@ pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8
 
     // Normalize UUID (extract 16-bit part if it matches base)
     let uuid_16 = if uuid.len() == 36 {
-        let upper = uuid.to_uppercase();
-        if upper.starts_with("0000") && upper.ends_with("-0000-1000-8000-00805F9B34FB") {
-            upper[4..8].to_string()
+        let lower = uuid.to_lowercase();
+        if lower.starts_with("0000") && lower.ends_with("-0000-1000-8000-00805f9b34fb") {
+            lower[4..8].to_string()
         } else {
-            upper // Keep full if custom (like likely UART)
+            lower // Keep full if custom (like likely UART)
         }
     } else {
-        uuid.to_uppercase()
+        uuid.to_lowercase()
     };
     
     match uuid_16.as_str() {

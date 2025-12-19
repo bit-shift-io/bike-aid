@@ -41,6 +41,7 @@ dependencies:
   intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
+  geolocator: ^12.0.0
   rust_lib_bike_aid:
     path: rust_builder
 

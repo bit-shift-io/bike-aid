@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
 import 'package:bike_aid/i18n/strings.g.dart';
+import 'gps_service.dart';
 
 class ScooterDashboard extends StatelessWidget {
   final ScooterState? state;
+  final double? gpsSpeed;
+  final GpsStatus gpsStatus;
   final bool isConnecting;
   final bool isScanning;
   final Function(ScooterCommand) onSendCommand;
@@ -11,6 +14,8 @@ class ScooterDashboard extends StatelessWidget {
   const ScooterDashboard({
     super.key,
     required this.state,
+    this.gpsSpeed,
+    required this.gpsStatus,
     required this.isConnecting,
     required this.isScanning,
     required this.onSendCommand,
@@ -94,14 +99,31 @@ class ScooterDashboard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(height: 10), // Spacer to push speed down a bit if needed
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (gpsStatus == GpsStatus.active)
+                        const Icon(Icons.gps_fixed, size: 16, color: Colors.green),
+                      if (gpsStatus == GpsStatus.searching)
+                        const Icon(Icons.gps_not_fixed, size: 16, color: Colors.orange),
+                      if (gpsStatus == GpsStatus.active || gpsStatus == GpsStatus.searching)
+                        const SizedBox(width: 4),
+                      if (gpsStatus == GpsStatus.active || gpsStatus == GpsStatus.searching)
+                        const Text("GPS", style: TextStyle(fontSize: 12, color: Color(0xFFCCCCCC))),
+                    ],
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      _val(state?.speed, "00"),
+                      gpsStatus == GpsStatus.active && gpsSpeed != null
+                          ? gpsSpeed!.toStringAsFixed(0).padLeft(2, '0')
+                          : _val(state?.speed, "00"),
                       style: const TextStyle(fontSize: 100, fontWeight: FontWeight.normal, color: Color(0xFFCCCCCC), height: 1.0),
                     ),
                     Text(" ${t.dashboard.units.kmh}", style: const TextStyle(fontSize: 24, color: Color(0xFFCCCCCC))),

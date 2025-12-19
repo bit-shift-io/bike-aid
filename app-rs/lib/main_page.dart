@@ -3,9 +3,12 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
 import 'dashboard.dart';
 import 'connectivity_status.dart';
+import 'gps_service.dart';
 
 class MainPage extends StatelessWidget {
   final ScooterState? scooterState;
+  final double? gpsSpeed;
+  final GpsStatus gpsStatus;
   final BluetoothDevice? connectedDevice;
   final List<ScanResult> scanResults;
   final bool isConnecting;
@@ -19,6 +22,8 @@ class MainPage extends StatelessWidget {
   const MainPage({
     super.key,
     required this.scooterState,
+    this.gpsSpeed,
+    required this.gpsStatus,
     required this.connectedDevice,
     required this.scanResults,
     required this.isConnecting,
@@ -37,6 +42,8 @@ class MainPage extends StatelessWidget {
         // ... dashboard ...
         ScooterDashboard(
           state: scooterState,
+          gpsSpeed: gpsSpeed,
+          gpsStatus: gpsStatus,
           isConnecting: isConnecting,
           isScanning: isScanning,
           onSendCommand: onSendCommand,
