@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
+import 'package:bike_aid/i18n/strings.g.dart';
 
 class ScooterDashboard extends StatelessWidget {
   final ScooterState? state;
@@ -41,14 +42,18 @@ class ScooterDashboard extends StatelessWidget {
       height: 90,
       child: Row(
         children: [
-          Expanded(child: _buildDashboardButton("Power", state?.powerOn ?? false, () => onSendCommand(const ScooterCommand.togglePower()))),
+          Expanded(child: _buildDashboardButton(t.dashboard.power, state?.powerOn ?? false, () => onSendCommand(const ScooterCommand.togglePower()))),
           const VerticalDivider(width: 1, color: Colors.white24, thickness: 1),
-          Expanded(child: _buildDashboardButton("Alarm", state?.alarmOn ?? false, () => onSendCommand(const ScooterCommand.toggleAlarm()))),
+          Expanded(child: _buildDashboardButton(t.dashboard.alarm, state?.alarmOn ?? false, () => onSendCommand(const ScooterCommand.toggleAlarm()))),
           const VerticalDivider(width: 1, color: Colors.white24, thickness: 1),
-          Expanded(child: _buildDashboardButton("Lights", state?.lightsOn ?? false, () => onSendCommand(const ScooterCommand.toggleLights()))),
+          Expanded(child: _buildDashboardButton(t.dashboard.lights, state?.lightsOn ?? false, () => onSendCommand(const ScooterCommand.toggleLights()))),
         ],
       ),
     );
+  }
+
+  String _val(String? v, String def) {
+    return (v == null || v.isEmpty) ? def : v;
   }
 
   Widget _buildRow2Stats() {
@@ -57,9 +62,9 @@ class ScooterDashboard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatText("${state?.batteryPower ?? "0000"} w", fontSize: 26),
+          _buildStatText("${_val(state?.batteryPower, "0000")} ${t.dashboard.units.watts}", fontSize: 26),
           _buildClockWidget(),
-          _buildStatText("${state?.batteryLevel ?? "0"}%", fontSize: 26),
+          _buildStatText("${_val(state?.batteryLevel, "0")}%", fontSize: 26),
         ],
       ),
     );
@@ -77,9 +82,9 @@ class ScooterDashboard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildIndicatorLabel("Brake", state?.brakeActive ?? false),
-                _buildIndicatorLabel("Cruise", (state?.cruiseLevel ?? 0) > 0),
-                _buildIndicatorLabel("Park", state?.parkBrakeActive ?? false),
+                _buildIndicatorLabel(t.dashboard.brake, state?.brakeActive ?? true),
+                _buildIndicatorLabel(t.dashboard.cruise, state == null || (state!.cruiseLevel > 0)),
+                _buildIndicatorLabel(t.dashboard.park, state?.parkBrakeActive ?? true),
               ],
             ),
           ),
@@ -87,23 +92,27 @@ class ScooterDashboard extends StatelessWidget {
           // Center: Speed
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const SizedBox(height: 10), // Spacer to push speed down a bit if needed
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      state?.speed ?? "00",
+                      _val(state?.speed, "00"),
                       style: const TextStyle(fontSize: 100, fontWeight: FontWeight.normal, color: Color(0xFFCCCCCC), height: 1.0),
                     ),
-                    const Text(" km/h", style: TextStyle(fontSize: 24, color: Color(0xFFCCCCCC))),
+                    Text(" ${t.dashboard.units.kmh}", style: const TextStyle(fontSize: 24, color: Color(0xFFCCCCCC))),
                   ],
                 ),
-                Text(
-                  "${state?.throttleLevel ?? "0000"} mv",
-                  style: const TextStyle(fontSize: 24, color: Color(0xFFCCCCCC)),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    "${_val(state?.throttleLevel, "0000")} ${t.dashboard.units.mv}",
+                    style: const TextStyle(fontSize: 24, color: Color(0xFFCCCCCC)),
+                  ),
                 ),
               ],
             ),
@@ -111,21 +120,23 @@ class ScooterDashboard extends StatelessWidget {
 
           // Right: Cruise Bar Chart (5 bars)
           SizedBox(
-            width: 80,
+            width: 100, // Increased to fit max width of 95
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
                 final level = 5 - index;
-                final isActive = (state?.cruiseLevel ?? 0) >= level;
-                return Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 2),
-                    height: 16,
-                    width: 20.0 + (level * 15.0),
-                    decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFFBBBBBB) : const Color(0xFF333333),
-                      borderRadius: BorderRadius.circular(2),
+                final isActive = (state?.cruiseLevel ?? 5) >= level;
+                return Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      width: 20.0 + (level * 15.0),
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isActive ? const Color(0xFFCCCCCC) : const Color(0xFF333333),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
                     ),
                   ),
                 );
@@ -143,9 +154,9 @@ class ScooterDashboard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatText("${state?.odometer ?? "0000"} km", fontSize: 26),
-          _buildStatText("${state?.temperature ?? "00"}°C", fontSize: 26),
-          _buildStatText("${state?.clockHours ?? "00"}:${state?.clockMinutes ?? "00"}", fontSize: 26),
+          _buildStatText("${_val(state?.odometer, "0000")} ${t.dashboard.units.km}", fontSize: 26),
+          _buildStatText("${_val(state?.temperature, "00")}${t.dashboard.units.celsius}", fontSize: 26),
+          _buildStatText("${_val(state?.clockHours, "00")}:${_val(state?.clockMinutes, "00")}", fontSize: 26),
         ],
       ),
     );
@@ -156,13 +167,13 @@ class ScooterDashboard extends StatelessWidget {
       height: 90,
       child: Row(
         children: [
-          Expanded(child: _buildDashboardButton("Sport", state?.sportOn ?? false, () => onSendCommand(const ScooterCommand.toggleSport()))),
+          Expanded(child: _buildDashboardButton(t.dashboard.sport, state?.sportOn ?? false, () => onSendCommand(const ScooterCommand.toggleSport()))),
           const VerticalDivider(width: 1, color: Colors.white24, thickness: 1),
-          Expanded(child: _buildDashboardButton("Cruise\nDown", false, () => onSendCommand(const ScooterCommand.cruiseDown()), isAction: true)),
+          Expanded(child: _buildDashboardButton(t.dashboard.cruise_down, false, () => onSendCommand(const ScooterCommand.cruiseDown()), isAction: true)),
           const VerticalDivider(width: 1, color: Colors.white24, thickness: 1),
-          Expanded(child: _buildDashboardButton("Cruise\nUp", false, () => onSendCommand(const ScooterCommand.cruiseUp()), isAction: true)),
+          Expanded(child: _buildDashboardButton(t.dashboard.cruise_up, false, () => onSendCommand(const ScooterCommand.cruiseUp()), isAction: true)),
           const VerticalDivider(width: 1, color: Colors.white24, thickness: 1),
-          Expanded(child: _buildDashboardButton("Horn", false, () => onSendCommand(const ScooterCommand.horn()), isAction: true)),
+          Expanded(child: _buildDashboardButton(t.dashboard.horn, false, () => onSendCommand(const ScooterCommand.horn()), isAction: true)),
         ],
       ),
     );
@@ -186,7 +197,7 @@ class ScooterDashboard extends StatelessWidget {
               ),
               if (!isAction)
                 Text(
-                  isOn ? "ON" : "OFF",
+                  isOn ? t.dashboard.indicators.on : t.dashboard.indicators.off,
                   style: const TextStyle(color: Colors.white, fontSize: 20),
                 ),
             ],

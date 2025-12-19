@@ -41,8 +41,8 @@ class ScooterBluetoothService extends ChangeNotifier {
     // Get target name
     _targetDeviceName = getTargetDeviceName();
     
-    // Initial State
-    _scooterState = await ScooterState.default_();
+    // Initial State - Keep null so UI shows "Active/White" defaults until connected
+    // _scooterState = await ScooterState.default_();
     notifyListeners();
 
     // Listen to Scan Results
@@ -182,34 +182,36 @@ class ScooterBluetoothService extends ChangeNotifier {
         for (var characteristic in service.characteristics) {
           if (characteristic.properties.notify || characteristic.properties.indicate) {
             await characteristic.setNotifyValue(true);
-            characteristic.onValueReceived.listen((value) {
-                if (_scooterState != null) {
-                  final result = parseCharacteristicData(
-                    state: _scooterState!,
-                    uuid: characteristic.uuid.toString(),
-                    data: value,
-                  );
+            characteristic.onValueReceived.listen((value) async {
+                // Ensure state exists before parsing
+                _scooterState ??= await ScooterState.default_();
+                
+                final result = parseCharacteristicData(
+                  state: _scooterState!,
+                  uuid: characteristic.uuid.toString(),
+                  data: value,
+                );
 
-                  if (result.log != null) {
-                    _logController.add(result.log!);
-                  }
-
-                  _scooterState = result.state;
-                  notifyListeners();
+                if (result.log != null) {
+                  _logController.add(result.log!);
                 }
+
+                _scooterState = result.state;
+                notifyListeners();
             });
           }
           if (characteristic.properties.read) {
             final value = await characteristic.read();
-             if (_scooterState != null) {
-                  final result = parseCharacteristicData(
-                    state: _scooterState!,
-                    uuid: characteristic.uuid.toString(),
-                    data: value,
-                  );
-                  _scooterState = result.state;
-                  notifyListeners();
-             }
+             // Ensure state exists before parsing
+             _scooterState ??= await ScooterState.default_();
+             
+             final result = parseCharacteristicData(
+                state: _scooterState!,
+                uuid: characteristic.uuid.toString(),
+                data: value,
+             );
+             _scooterState = result.state;
+             notifyListeners();
           }
         }
       }
@@ -222,7 +224,8 @@ class ScooterBluetoothService extends ChangeNotifier {
   }
 
   Future<void> sendCommand(ScooterCommand command) async {
-    if (_connectedDevice == null || _scooterState == null) return;
+    if (_connectedDevice == null) return;
+    _scooterState ??= await ScooterState.default_();
 
     final action = getCommandAction(command: command, currentState: _scooterState!);
     _logController.add("> sending command: ${command.toString().split('_').last}");

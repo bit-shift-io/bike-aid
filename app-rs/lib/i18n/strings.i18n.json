@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "power": "Power",
+    "alarm": "Alarm",
+    "lights": "Lights",
+    "sport": "Sport",
+    "cruise": "Cruise",
+    "park": "Park",
+    "brake": "Brake",
+    "horn": "Horn",
+    "cruise_up": "Cruise\nUp",
+    "cruise_down": "Cruise\nDown",
+    "units": {
+      "kmh": "km/h",
+      "km": "km",
+      "celsius": "°C",
+      "mv": "mv",
+      "watts": "w"
+    },
+    "indicators": {
+      "on": "ON",
+      "off": "OFF"
+    }
+  },
+  "scanner": {
+    "title": "Device Scanner",
+    "scanning": "Scanning...",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "unknown": "Unknown Device"
+  }
+}

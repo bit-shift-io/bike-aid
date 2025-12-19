@@ -7,9 +7,14 @@ import 'dashboard_page.dart';
 import 'scanner_page.dart';
 import 'bluetooth_service.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:bike_aid/i18n/strings.g.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  //LocaleSettings.useDeviceLocale(); // Initialize i18n
+  LocaleSettings.setLocale(AppLocale.zh); // chinese test
+  runApp(TranslationProvider(child: const MyApp())); // Wrap app
 }
 
 class MyApp extends StatelessWidget {
@@ -26,6 +31,9 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      locale: TranslationProvider.of(context).flutterLocale, // use provider
+      supportedLocales: AppLocaleUtils.supportedLocales,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       themeMode: ThemeMode.dark,
       home: const MyHomePage(title: 'Bike Aid - Scooter Console'),
     );
@@ -43,20 +51,20 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final ScooterBluetoothService _bluetoothService = ScooterBluetoothService();
   final LoggerService _loggerService = LoggerService();
-  
+
   final ScrollController _logScrollController = ScrollController();
   final TextEditingController _uartController = TextEditingController();
   final PageController _pageController = PageController();
-  
+
   StreamSubscription? _logSubscription;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize Service
     _bluetoothService.init();
-    
+
     // Listen for state changes to rebuild UI
     _bluetoothService.addListener(_onServiceUpdate);
     _loggerService.addListener(_onServiceUpdate);
@@ -68,7 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_logScrollController.hasClients) {
-            _logScrollController.jumpTo(_logScrollController.position.maxScrollExtent);
+            _logScrollController.jumpTo(
+              _logScrollController.position.maxScrollExtent,
+            );
           }
         });
       }
@@ -85,10 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     _bluetoothService.removeListener(_onServiceUpdate);
     _loggerService.removeListener(_onServiceUpdate);
-    
+
     _bluetoothService.dispose();
     _loggerService.dispose();
-    
+
     _logSubscription?.cancel();
     _logScrollController.dispose();
     _uartController.dispose();
@@ -121,13 +131,21 @@ class _MyHomePageState extends State<MyHomePage> {
               onScan: _bluetoothService.scan,
               onConnect: (device) {
                 _bluetoothService.connect(device);
-                _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                _pageController.animateToPage(
+                  0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
               },
               onDisconnect: (device) async {
                 await device.disconnect();
                 // Service will handle state update via listener
               },
-              onBack: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+              onBack: () => _pageController.animateToPage(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
             ),
           ],
         ),

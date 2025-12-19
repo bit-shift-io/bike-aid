@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:bike_aid/i18n/strings.g.dart';
 
 class ScannerPage extends StatelessWidget {
   final BluetoothDevice? connectedDevice;
@@ -44,11 +45,11 @@ class ScannerPage extends StatelessWidget {
               color: Colors.blue.withOpacity(0.1),
               child: ListTile(
                 leading: const Icon(Icons.bluetooth_connected, color: Colors.blue),
-                title: Text(connectedDevice!.platformName.isNotEmpty ? connectedDevice!.platformName : "Connected Device"),
+                title: Text(connectedDevice!.platformName.isNotEmpty ? connectedDevice!.platformName : t.scanner.unknown),
                 subtitle: Text(connectedDevice!.remoteId.str),
                 trailing: TextButton(
                   onPressed: () => onDisconnect(connectedDevice!),
-                  child: const Text("DISCONNECT", style: TextStyle(color: Colors.red)),
+                  child: Text(t.scanner.disconnect.toUpperCase(), style: const TextStyle(color: Colors.red)),
                 ),
               ),
             ),
@@ -69,7 +70,7 @@ class ScannerPage extends StatelessWidget {
                           : result.device.platformName;
                       return ListTile(
                         leading: const Icon(Icons.bluetooth),
-                        title: Text(name.isNotEmpty ? name : "Unknown"),
+                        title: Text(name.isNotEmpty ? name : t.scanner.unknown),
                         subtitle: Text("${result.device.remoteId.str} (${result.rssi} dBm)"),
                         onTap: () => onConnect(result.device),
                       );
@@ -82,7 +83,7 @@ class ScannerPage extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: isScanning ? null : onScan,
               icon: Icon(isScanning ? Icons.bluetooth_searching : Icons.search),
-              label: Text(isScanning ? 'SCANNING...' : 'START SCAN'),
+              label: Text(isScanning ? t.scanner.scanning.toUpperCase() : "START SCAN"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
                 backgroundColor: Colors.blue.withOpacity(0.2),
