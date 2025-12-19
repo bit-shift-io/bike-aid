@@ -6,9 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <application
-        android:label="bike_aid"
+        android:label="Bike Aid"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/mipmap">
         <activity
             android:name=".MainActivity"
             android:exported="true"

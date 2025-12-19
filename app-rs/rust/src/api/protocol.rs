@@ -46,9 +46,26 @@ pub struct ParseResult {
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn parse_characteristic_data(state: ScooterState, uuid_16: String, data: Vec<u8>) -> ParseResult {
+pub fn get_target_device_name() -> String {
+    "BScooter".to_string()
+}
+
+#[flutter_rust_bridge::frb(sync)]
+pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8>) -> ParseResult {
     let mut new_state = state;
     let mut log = None;
+
+    // Normalize UUID (extract 16-bit part if it matches base)
+    let uuid_16 = if uuid.len() == 36 {
+        let upper = uuid.to_uppercase();
+        if upper.starts_with("0000") && upper.ends_with("-0000-1000-8000-00805F9B34FB") {
+            upper[4..8].to_string()
+        } else {
+            upper // Keep full if custom (like likely UART)
+        }
+    } else {
+        uuid.to_uppercase()
+    };
     
     match uuid_16.as_str() {
         // 1000 series is settings

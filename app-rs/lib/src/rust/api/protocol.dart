@@ -10,13 +10,16 @@ part 'protocol.freezed.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
 
+String getTargetDeviceName() =>
+    RustLib.instance.api.crateApiProtocolGetTargetDeviceName();
+
 ParseResult parseCharacteristicData({
   required ScooterState state,
-  required String uuid16,
+  required String uuid,
   required List<int> data,
 }) => RustLib.instance.api.crateApiProtocolParseCharacteristicData(
   state: state,
-  uuid16: uuid16,
+  uuid: uuid,
   data: data,
 );
 

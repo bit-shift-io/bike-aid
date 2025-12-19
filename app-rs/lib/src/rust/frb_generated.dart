@@ -64,7 +64,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 418451786;
+  int get rustContentHash => -1300515756;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,9 +85,11 @@ abstract class RustLibApi extends BaseApi {
     required ScooterState currentState,
   });
 
+  String crateApiProtocolGetTargetDeviceName();
+
   ParseResult crateApiProtocolParseCharacteristicData({
     required ScooterState state,
-    required String uuid16,
+    required String uuid,
     required List<int> data,
   });
 
@@ -163,9 +165,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  String crateApiProtocolGetTargetDeviceName() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiProtocolGetTargetDeviceNameConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiProtocolGetTargetDeviceNameConstMeta =>
+      const TaskConstMeta(debugName: "get_target_device_name", argNames: []);
+
+  @override
   ParseResult crateApiProtocolParseCharacteristicData({
     required ScooterState state,
-    required String uuid16,
+    required String uuid,
     required List<int> data,
   }) {
     return handler.executeSync(
@@ -173,16 +197,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_box_autoadd_scooter_state(state, serializer);
-          sse_encode_String(uuid16, serializer);
+          sse_encode_String(uuid, serializer);
           sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_parse_result,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiProtocolParseCharacteristicDataConstMeta,
-        argValues: [state, uuid16, data],
+        argValues: [state, uuid, data],
         apiImpl: this,
       ),
     );
@@ -191,7 +215,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiProtocolParseCharacteristicDataConstMeta =>
       const TaskConstMeta(
         debugName: "parse_characteristic_data",
-        argNames: ["state", "uuid16", "data"],
+        argNames: ["state", "uuid", "data"],
       );
 
   @override
@@ -203,7 +227,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
