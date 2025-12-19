@@ -27,6 +27,8 @@
     "scanning": "Scanning...",
     "connect": "Connect",
     "disconnect": "Disconnect",
-    "unknown": "Unknown Device"
+    "unknown": "Unknown Device",
+    "nearby": "NEARBY DEVICES",
+    "log": "Log"
   }
 }

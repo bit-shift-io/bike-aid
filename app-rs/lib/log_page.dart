@@ -1,45 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
-import 'dashboard.dart';
+import 'package:bike_aid/i18n/strings.g.dart';
 import 'log.dart';
 
-class DashboardPage extends StatelessWidget {
-  final ScooterState? scooterState;
-  final bool isConnecting;
-  final bool isScanning;
+class LogPage extends StatelessWidget {
   final List<String> logs;
   final ScrollController logScrollController;
   final TextEditingController uartController;
   final Function(ScooterCommand) onSendCommand;
   final VoidCallback onClearLogs;
+  final VoidCallback onBack;
 
-  const DashboardPage({
+  const LogPage({
     super.key,
-    required this.scooterState,
-    required this.isConnecting,
-    required this.isScanning,
     required this.logs,
     required this.logScrollController,
     required this.uartController,
     required this.onSendCommand,
     required this.onClearLogs,
+    required this.onBack,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 1. The 5-Row Dashboard (Top Section)
-        ScooterDashboard(
-          state: scooterState,
-          isConnecting: isConnecting,
-          isScanning: isScanning,
-          onSendCommand: onSendCommand,
+        // Top section: Title
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: onBack,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                t.log_page.title,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
 
-        const Divider(height: 2, color: Colors.white54, thickness: 2),
+        const Divider(height: 1, color: Colors.white24),
 
-        // 2. Log Terminal & UART (Bottom Section)
+        // Logs
         Expanded(
           child: LogTerminal(
             logs: logs,

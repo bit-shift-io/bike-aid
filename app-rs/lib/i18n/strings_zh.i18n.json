@@ -27,6 +27,8 @@
         "scanning": "扫描中...",
         "connect": "连接",
         "disconnect": "断开",
-        "unknown": "未知设备"
+        "unknown": "未知设备",
+        "nearby": "附近设备",
+        "log": "日志"
     }
 }

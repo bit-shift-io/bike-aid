@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
 import 'logger_service.dart';
-import 'dashboard_page.dart';
-import 'scanner_page.dart';
+import 'main_page.dart';
+import 'log_page.dart';
 import 'bluetooth_service.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,8 +12,8 @@ import 'package:bike_aid/i18n/strings.g.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  //LocaleSettings.useDeviceLocale(); // Initialize i18n
-  LocaleSettings.setLocale(AppLocale.zh); // chinese test
+  LocaleSettings.useDeviceLocale(); // Initialize i18n
+  //LocaleSettings.setLocale(AppLocale.zh); // chinese test
   runApp(TranslationProvider(child: const MyApp())); // Wrap app
 }
 
@@ -35,20 +35,20 @@ class MyApp extends StatelessWidget {
       supportedLocales: AppLocaleUtils.supportedLocales,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       themeMode: ThemeMode.dark,
-      home: const MyHomePage(title: 'Bike Aid - Scooter Console'),
+      home: const MainAppShell(title: 'Bike Aid - Scooter Console'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class MainAppShell extends StatefulWidget {
+  const MainAppShell({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainAppShell> createState() => _MainAppShellState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainAppShellState extends State<MainAppShell> {
   final ScooterBluetoothService _bluetoothService = ScooterBluetoothService();
   final LoggerService _loggerService = LoggerService();
 
@@ -114,33 +114,28 @@ class _MyHomePageState extends State<MyHomePage> {
         child: PageView(
           controller: _pageController,
           children: [
-            DashboardPage(
+            MainPage(
               scooterState: _bluetoothService.scooterState,
+              connectedDevice: _bluetoothService.connectedDevice,
+              scanResults: _bluetoothService.scanResults,
               isConnecting: _bluetoothService.isConnecting,
               isScanning: _bluetoothService.isScanning,
+              onScan: _bluetoothService.scan,
+              onConnect: (device) => _bluetoothService.connect(device),
+              onDisconnect: (device) => device.disconnect(),
+              onSendCommand: _bluetoothService.sendCommand,
+              onGoToScanner: () => _pageController.animateToPage(
+                1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+            ),
+            LogPage(
               logs: _loggerService.logs,
               logScrollController: _logScrollController,
               uartController: _uartController,
               onSendCommand: _bluetoothService.sendCommand,
               onClearLogs: _loggerService.clear,
-            ),
-            ScannerPage(
-              connectedDevice: _bluetoothService.connectedDevice,
-              scanResults: _bluetoothService.scanResults,
-              isScanning: _bluetoothService.isScanning,
-              onScan: _bluetoothService.scan,
-              onConnect: (device) {
-                _bluetoothService.connect(device);
-                _pageController.animateToPage(
-                  0,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-              onDisconnect: (device) async {
-                await device.disconnect();
-                // Service will handle state update via listener
-              },
               onBack: () => _pageController.animateToPage(
                 0,
                 duration: const Duration(milliseconds: 300),
