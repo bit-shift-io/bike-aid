@@ -8,6 +8,7 @@
     "park": "Park",
     "brake": "Brake",
     "horn": "Horn",
+    "entry": "Entry",
     "cruise_up": "Cruise\nUp",
     "cruise_down": "Cruise\nDown",
     "units": {
@@ -23,12 +24,12 @@
     }
   },
   "scanner": {
-    "title": "Device Scanner",
+    "title": "Log",
     "scanning": "Scanning...",
     "connect": "Connect",
     "disconnect": "Disconnect",
     "unknown": "Unknown Device",
-    "nearby": "NEARBY DEVICES",
+    "nearby": "Nearby Devices",
     "log": "Log"
   }
 }

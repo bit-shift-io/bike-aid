@@ -34,20 +34,20 @@ class ConnectivityStatus extends StatelessWidget {
     if (connectedDevice != null) {
       statusText = connectedDevice!.platformName.isNotEmpty
           ? connectedDevice!.platformName
-          : t.log_page.unknown;
-      statusColor = Colors.blue;
+          : t.scanner.unknown;
+      statusColor = const Color(0xFFCCCCCC);
       statusIcon = Icons.bluetooth_connected;
     } else if (isConnecting) {
-      statusText = "CONNECTING...";
-      statusColor = Colors.orange;
+      statusText = "Connecting...";
+      statusColor = const Color(0xFFCCCCCC);
       statusIcon = Icons.bluetooth_searching;
     } else if (isScanning) {
-      statusText = t.log_page.scanning.toUpperCase();
-      statusColor = Colors.green;
+      statusText = t.scanner.scanning;
+      statusColor = const Color(0xFFCCCCCC);
       statusIcon = Icons.bluetooth_searching;
     } else {
-      statusText = "DISCONNECTED";
-      statusColor = Colors.red;
+      statusText = "Disconnected";
+      statusColor = const Color(0xFFCCCCCC);
       statusIcon = Icons.bluetooth_disabled;
     }
 
@@ -87,10 +87,13 @@ class ConnectivityStatus extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white24,
-                  size: 32,
+                IconButton(
+                  icon: Icon(
+                    isScanning ? Icons.stop : Icons.search,
+                    color: const Color(0xFFCCCCCC),
+                    size: isScanning ? 32 : 28,
+                  ),
+                  onPressed: onScan,
                 ),
               ],
             ),

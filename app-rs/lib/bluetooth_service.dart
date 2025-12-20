@@ -37,10 +37,10 @@ class ScooterBluetoothService extends ChangeNotifier {
   Future<void> init() async {
     // Initialize Rust
     await RustLib.init();
-    
+
     // Get target name
     _targetDeviceName = getTargetDeviceName();
-    
+
     // Initial State - Keep null so UI shows "Active/White" defaults until connected
     // _scooterState = await ScooterState.default_();
     notifyListeners();
@@ -49,18 +49,18 @@ class ScooterBluetoothService extends ChangeNotifier {
     FlutterBluePlus.scanResults.listen((results) {
       _scanResults = results;
       notifyListeners();
-      
+
       // Auto-connect
       if (_connectedDevice == null && !_isConnecting) {
         for (var result in results) {
-           final name = result.advertisementData.localName.isNotEmpty 
-                ? result.advertisementData.localName 
-                : result.device.platformName;
-            
-            if (name == _targetDeviceName) {
-              connect(result.device);
-              break;
-            }
+          final name = result.advertisementData.localName.isNotEmpty
+              ? result.advertisementData.localName
+              : result.device.platformName;
+
+          if (name == _targetDeviceName) {
+            connect(result.device);
+            break;
+          }
         }
       }
     });
@@ -103,7 +103,9 @@ class ScooterBluetoothService extends ChangeNotifier {
     if (_targetDeviceName == null) return;
     final bonded = await FlutterBluePlus.bondedDevices;
     for (var device in bonded) {
-      if (device.platformName == _targetDeviceName && _connectedDevice == null && !_isConnecting) {
+      if (device.platformName == _targetDeviceName &&
+          _connectedDevice == null &&
+          !_isConnecting) {
         connect(device);
         break;
       }
@@ -158,17 +160,20 @@ class ScooterBluetoothService extends ChangeNotifier {
       }
 
       _logController.add("connecting: ${device.platformName}");
-      await device.connect(autoConnect: false, timeout: const Duration(seconds: 10));
+      await device.connect(
+        autoConnect: false,
+        timeout: const Duration(seconds: 10),
+      );
 
       await _connectionSubscription?.cancel();
       _connectionSubscription = device.connectionState.listen((state) {
         if (state == BluetoothConnectionState.disconnected) {
-            _logController.add("disconnected from device");
-            _connectedDevice = null;
-            _isConnecting = false;
-            notifyListeners();
+          _logController.add("disconnected from device");
+          _connectedDevice = null;
+          _isConnecting = false;
+          notifyListeners();
         } else if (state == BluetoothConnectionState.connected) {
-            _logController.add("connected: ${device.platformName}");
+          _logController.add("connected: ${device.platformName}");
         }
       });
 
@@ -180,42 +185,42 @@ class ScooterBluetoothService extends ChangeNotifier {
       final services = await device.discoverServices();
       for (var service in services) {
         for (var characteristic in service.characteristics) {
-          if (characteristic.properties.notify || characteristic.properties.indicate) {
+          if (characteristic.properties.notify ||
+              characteristic.properties.indicate) {
             await characteristic.setNotifyValue(true);
             characteristic.onValueReceived.listen((value) async {
-                // Ensure state exists before parsing
-                _scooterState ??= await ScooterState.default_();
-                
-                final result = parseCharacteristicData(
-                  state: _scooterState!,
-                  uuid: characteristic.uuid.toString(),
-                  data: value,
-                );
+              // Ensure state exists before parsing
+              _scooterState ??= await ScooterState.default_();
 
-                if (result.log != null) {
-                  _logController.add(result.log!);
-                }
+              final result = parseCharacteristicData(
+                state: _scooterState!,
+                uuid: characteristic.uuid.toString(),
+                data: value,
+              );
 
-                _scooterState = result.state;
-                notifyListeners();
+              if (result.log != null) {
+                _logController.add(result.log!);
+              }
+
+              _scooterState = result.state;
+              notifyListeners();
             });
           }
           if (characteristic.properties.read) {
             final value = await characteristic.read();
-             // Ensure state exists before parsing
-             _scooterState ??= await ScooterState.default_();
-             
-             final result = parseCharacteristicData(
-                state: _scooterState!,
-                uuid: characteristic.uuid.toString(),
-                data: value,
-             );
-             _scooterState = result.state;
-             notifyListeners();
+            // Ensure state exists before parsing
+            _scooterState ??= await ScooterState.default_();
+
+            final result = parseCharacteristicData(
+              state: _scooterState!,
+              uuid: characteristic.uuid.toString(),
+              data: value,
+            );
+            _scooterState = result.state;
+            notifyListeners();
           }
         }
       }
-
     } catch (e) {
       _logController.add("Connection error: $e");
       _isConnecting = false;
@@ -227,14 +232,28 @@ class ScooterBluetoothService extends ChangeNotifier {
     if (_connectedDevice == null) return;
     _scooterState ??= await ScooterState.default_();
 
-    final action = getCommandAction(command: command, currentState: _scooterState!);
-    _logController.add("> sending command: ${command.toString().split('_').last}");
+    final action = getCommandAction(
+      command: command,
+      currentState: _scooterState!,
+    );
+    _logController.add(
+      "> sending command: ${command.toString().split('_').last}",
+    );
 
     try {
       final services = await _connectedDevice!.discoverServices();
-      final service = services.firstWhere((s) => s.uuid == Guid(action.serviceUuid));
-      final char = service.characteristics.firstWhere((c) => c.uuid == Guid(action.characteristicUuid));
-      await char.write(action.bytes);
+      final service = services.firstWhere(
+        (s) => s.uuid == Guid(action.serviceUuid),
+      );
+      final char = service.characteristics.firstWhere(
+        (c) => c.uuid == Guid(action.characteristicUuid),
+      );
+
+      // Determine write type
+      // Prefer WriteWithoutResponse if available (common for UART)
+      bool withoutResponse = char.properties.writeWithoutResponse;
+
+      await char.write(action.bytes, withoutResponse: withoutResponse);
     } catch (e) {
       _logController.add("Command Failed: $e");
     }

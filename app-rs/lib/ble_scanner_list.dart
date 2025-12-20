@@ -26,33 +26,6 @@ class BleScannerList extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                t.log_page.nearby,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  isScanning ? Icons.stop : Icons.search,
-                  color: Colors.blue,
-                  size: 20,
-                ),
-                onPressed: onScan,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1, color: Colors.white24),
         Flexible(
           child: ListView(
             shrinkWrap: true,
@@ -60,23 +33,26 @@ class BleScannerList extends StatelessWidget {
             children: [
               if (connectedDevice != null)
                 Card(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.white10,
                   child: ListTile(
-                    dense: true,
                     leading: const Icon(
                       Icons.bluetooth_connected,
-                      color: Colors.blue,
+                      color: Color(0xFFCCCCCC),
                     ),
                     title: Text(
                       connectedDevice!.platformName.isNotEmpty
                           ? connectedDevice!.platformName
-                          : t.log_page.unknown,
+                          : t.scanner.unknown,
+                      style: const TextStyle(fontSize: 18),
                     ),
                     trailing: TextButton(
                       onPressed: () => onDisconnect(connectedDevice!),
                       child: Text(
-                        t.log_page.disconnect,
-                        style: const TextStyle(color: Colors.red),
+                        t.scanner.disconnect,
+                        style: const TextStyle(
+                          color: Color(0xFFCCCCCC),
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -90,10 +66,15 @@ class BleScannerList extends StatelessWidget {
                 if (isConnected) return const SizedBox.shrink();
 
                 return ListTile(
-                  dense: true,
                   leading: const Icon(Icons.bluetooth),
-                  title: Text(name.isNotEmpty ? name : t.log_page.unknown),
-                  subtitle: Text(result.device.remoteId.str),
+                  title: Text(
+                    name.isNotEmpty ? name : t.scanner.unknown,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    result.device.remoteId.str,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   onTap: () => onConnect(result.device),
                 );
               }),
@@ -103,7 +84,7 @@ class BleScannerList extends StatelessWidget {
                   child: Center(
                     child: Text(
                       "No devices found",
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                   ),
                 ),

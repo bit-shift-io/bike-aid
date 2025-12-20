@@ -71,7 +71,7 @@ class _MainAppShellState extends State<MainAppShell> {
     _bluetoothService.addListener(_onServiceUpdate);
     _loggerService.addListener(_onServiceUpdate);
     _gpsService.addListener(_onServiceUpdate);
-    
+
     _gpsService.init();
 
     // Pipe Bluetooth logs to Logger
@@ -119,6 +119,7 @@ class _MainAppShellState extends State<MainAppShell> {
       backgroundColor: Colors.black,
       body: SafeArea(
         child: PageView(
+          physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
           children: [
             MainPage(

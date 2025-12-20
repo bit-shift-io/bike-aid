@@ -49,7 +49,7 @@ class MainPage extends StatelessWidget {
           onSendCommand: onSendCommand,
         ),
 
-        const Divider(height: 2, color: Colors.white54, thickness: 2),
+        //const Divider(height: 2, color: Colors.white54, thickness: 2),
 
         // 2. Connectivity Status & Scanner (Bottom Section)
         Expanded(

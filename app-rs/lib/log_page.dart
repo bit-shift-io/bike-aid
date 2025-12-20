@@ -36,7 +36,7 @@ class LogPage extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                t.log_page.title,
+                t.scanner.title,
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

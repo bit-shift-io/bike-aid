@@ -65,13 +65,13 @@ class LogTerminal extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Text("...", style: TextStyle(color: Colors.white24, fontSize: 20)),
-                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: uartController,
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                     decoration: const InputDecoration(
+                      hintText: "...",
+                      hintStyle: TextStyle(color: Colors.white24, fontSize: 20),
                       border: InputBorder.none,
                       isDense: true,
                     ),
