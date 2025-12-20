@@ -66,7 +66,7 @@ pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8
     } else {
         uuid.to_lowercase()
     };
-    
+
     match uuid_16.as_str() {
         // 1000 series is settings
         "1001" => {
@@ -89,7 +89,7 @@ pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8
                 new_state.sport_on = data[0] != 0;
             }
         }
-        
+
         // 2000 series is data
         "2001" => {
             if !data.is_empty() {
@@ -132,7 +132,7 @@ pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8
                 new_state.cruise_level = data[0] as i32;
             }
         }
-        
+
         // Battery
         "2a19" => {
             if !data.is_empty() {
@@ -152,15 +152,18 @@ pub fn parse_characteristic_data(state: ScooterState, uuid: String, data: Vec<u8
             }
         }
         // UART RX
-        "0003" => {
+        "0003" | "6e400003-b5a3-f393-e0a9-e50e24dcca9e" => {
             if let Ok(s) = String::from_utf8(data) {
                 log = Some(s);
             }
         }
         _ => {}
     }
-    
-    ParseResult { state: new_state, log }
+
+    ParseResult {
+        state: new_state,
+        log,
+    }
 }
 
 #[flutter_rust_bridge::frb(sync)]
@@ -204,7 +207,7 @@ pub fn create_command_bytes(command: ScooterCommand, current_state: ScooterState
 #[flutter_rust_bridge::frb(sync)]
 pub fn get_command_action(command: ScooterCommand, current_state: ScooterState) -> BleAction {
     let bytes = create_command_bytes(command.clone(), current_state);
-    
+
     let (service, characteristic) = match command {
         ScooterCommand::TogglePower => ("1000", "1001"),
         ScooterCommand::ToggleLights => ("1000", "1003"),
@@ -212,7 +215,10 @@ pub fn get_command_action(command: ScooterCommand, current_state: ScooterState) 
         ScooterCommand::ToggleSport => ("1000", "1005"),
         ScooterCommand::CruiseUp | ScooterCommand::CruiseDown => ("1000", "1006"),
         ScooterCommand::Horn => ("1000", "1002"),
-        ScooterCommand::SetUart(_) => ("6E400001-B5A3-F393-E0A9-E50E24DCCA9E", "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"),
+        ScooterCommand::SetUart(_) => (
+            "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+            "6e400002-b5a3-f393-e0a9-e50e24dcca9e",
+        ),
     };
 
     let expand_16 = |s: &str| -> String {

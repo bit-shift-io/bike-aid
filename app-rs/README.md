@@ -18,7 +18,7 @@ The "brain" of the app lives in the `rust/` directory.
 The UI and Bluetooth transport are in the `lib/` directory.
 - **main.dart**: **GUI Entry Point.**
   - **Bluetooth Manager**: Handles scanning for "BScooter", auto-connecting, and characteristic subscriptions.
-  - **Swipe Navigation**: Implements the fullscreen `PageView` (Dashboard <-> Connectivity).
+  - **Page Navigation**: Implements the fullscreen `PageView` (Dashboard <-> Log).
   - **Control Panel**: The button-based interface that triggers Rust commands.
 - **`lib/src/rust/`**: **Generated Bridge.** Contains the Dart bindings that allow calling Rust functions seamlessly.
 
@@ -37,10 +37,11 @@ cargo install flutter_rust_bridge_codegen --version 2.11.1
 rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 ```
 
-### 2. Generate Bridge
-Run this to link the Rust code (even if logic is in Dart):
+### 2. Generate Code
+Run this to link the Rust code and generate translations:
 ```bash
 flutter_rust_bridge_codegen generate
+dart run slang
 ```
 
 ### 3. Run the App
@@ -50,6 +51,8 @@ flutter run
 
 ## Features
 - **Native Bluetooth**: Fast and reliable scanning using `flutter_blue_plus`.
+- **HTTP Entry Control**: Control IoT entry points via HTTP requests (with offline queuing).
+- **Log & Diagnostic Terminal**: Real-time logging of Bluetooth commands and responses with manual UART input.
 - **Permission Handling**: Dynamic requests for Location and Bluetooth.
 - **Dark Theme**: Modern Material 3 dark UI.
 

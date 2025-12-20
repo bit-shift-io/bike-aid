@@ -229,15 +229,31 @@ class ScooterBluetoothService extends ChangeNotifier {
   }
 
   Future<void> sendCommand(ScooterCommand command) async {
-    if (_connectedDevice == null) return;
+    // Add empty line for SetUart to match Java behavior
+    command.maybeWhen(setUart: (_) => _logController.add(""), orElse: () {});
+
+    final logMessage = command.when(
+      togglePower: () => "> sending command: TogglePower",
+      toggleAlarm: () => "> sending command: ToggleAlarm",
+      toggleSport: () => "> sending command: ToggleSport",
+      toggleLights: () => "> sending command: ToggleLights",
+      cruiseUp: () => "> sending command: CruiseUp",
+      cruiseDown: () => "> sending command: CruiseDown",
+      horn: () => "> sending command: Horn",
+      setUart: (s) => "> $s",
+    );
+    _logController.add(logMessage);
+
+    if (_connectedDevice == null) {
+      _logController.add("Not connected");
+      return;
+    }
+
     _scooterState ??= await ScooterState.default_();
 
     final action = getCommandAction(
       command: command,
       currentState: _scooterState!,
-    );
-    _logController.add(
-      "> sending command: ${command.toString().split('_').last}",
     );
 
     try {
