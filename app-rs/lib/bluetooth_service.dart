@@ -1,3 +1,4 @@
+// Manages Bluetooth operations using flutter_blue_plus. Handles scanning, connecting, service discovery, characteristic subscription, and command transmission with logging.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

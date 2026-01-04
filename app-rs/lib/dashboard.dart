@@ -1,3 +1,4 @@
+// Displays the scooter's dashboard UI. Visualizes state (speed, battery, clock, temperature) and provides control buttons (Power, Lights, Cruise, Entry).
 import 'package:flutter/material.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
 import 'package:bike_aid/i18n/strings.g.dart';

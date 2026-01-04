@@ -1,3 +1,4 @@
+// A terminal-like widget. Renders a scrolling list of logs and provides a text input field for sending manual commands to the scooter.
 import 'package:flutter/material.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
 
@@ -33,7 +34,11 @@ class LogTerminal extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return Text(
                       logs[index],
-                      style: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 16, height: 1.2),
+                      style: const TextStyle(
+                        color: Color(0xFFCCCCCC),
+                        fontSize: 16,
+                        height: 1.2,
+                      ),
                     );
                   },
                 ),
@@ -48,8 +53,14 @@ class LogTerminal extends StatelessWidget {
                     child: InkWell(
                       onTap: onClearLogs,
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text("clear", style: TextStyle(color: Colors.white, fontSize: 16)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          "clear",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -86,7 +97,11 @@ class LogTerminal extends StatelessWidget {
                 Container(
                   color: const Color(0xFF333333),
                   child: IconButton(
-                    icon: const Icon(Icons.chevron_right, color: Colors.white, size: 30),
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                     onPressed: () {
                       final val = uartController.text;
                       if (val.isNotEmpty) {

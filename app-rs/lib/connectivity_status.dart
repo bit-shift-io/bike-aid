@@ -1,3 +1,4 @@
+// A collapsible status widget. Shows current connection state (Connected, Scanning, Disconnected) and expands to reveal the BleScannerList.
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:bike_aid/i18n/strings.g.dart';

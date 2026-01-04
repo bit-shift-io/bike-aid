@@ -1,3 +1,4 @@
+// Core business logic in Rust. Defines the ScooterState struct, parses raw byte data from the scooter, and generates byte arrays for commands (SetUart, TogglePower, etc.).
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

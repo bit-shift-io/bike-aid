@@ -1,3 +1,4 @@
+// Application entry point. Initializes services (Bluetooth, Logger, GPS), sets up the main PageView navigation (Dashboard vs Log), and configures global app theme/localization.
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';

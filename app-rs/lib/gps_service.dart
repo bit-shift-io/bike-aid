@@ -1,3 +1,4 @@
+// Manages GPS location updates. Provides current speed and status (Active, Searching) to the dashboard.
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -42,12 +43,12 @@ class GpsService extends ChangeNotifier {
         return;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
       _status = GpsStatus.denied;
       notifyListeners();
       return;
-    } 
+    }
 
     _status = GpsStatus.searching;
     notifyListeners();
@@ -58,22 +59,23 @@ class GpsService extends ChangeNotifier {
       distanceFilter: 0,
     );
 
-    _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position position) {
-        // position.speed is in m/s, convert to km/h
-        _currentSpeed = position.speed * 3.6;
-        
-        if (_status != GpsStatus.active) {
-          _status = GpsStatus.active;
-        }
-        notifyListeners();
-      },
-      onError: (error) {
-        debugPrint("GPS Error: $error");
-        _status = GpsStatus.disabled;
-        notifyListeners();
-      }
-    );
+    _positionSubscription =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          (Position position) {
+            // position.speed is in m/s, convert to km/h
+            _currentSpeed = position.speed * 3.6;
+
+            if (_status != GpsStatus.active) {
+              _status = GpsStatus.active;
+            }
+            notifyListeners();
+          },
+          onError: (error) {
+            debugPrint("GPS Error: $error");
+            _status = GpsStatus.disabled;
+            notifyListeners();
+          },
+        );
   }
 
   void stop() {

@@ -1,3 +1,4 @@
+// The primary screen widget. Combines the ScooterDashboard (top) and ConnectivityStatus (bottom) into a single vertical layout.
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:bike_aid/src/rust/api/protocol.dart';
