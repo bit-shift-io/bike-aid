@@ -56,7 +56,7 @@ class EntryService {
 
   Future<void> _sendRequest() async {
     try {
-      final url = Uri.parse("http://192.168.1.2:1880/entry");
+      final url = Uri.parse("http://192.168.1.3:1880/entry");
       final response = await http.get(url);
       debugPrint("Entry request sent. Status: ${response.statusCode}");
     } catch (e) {

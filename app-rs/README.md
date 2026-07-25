@@ -31,22 +31,28 @@ The UI and Bluetooth transport are in the `lib/` directory.
 ## Setup & Running
 
 ### 1. Fix PATH & Install Tools (Once)
-```fish
+in the scripts repo run ``./install_android_flutter.sh``
+OR the manual pain
+install android + sdk + tools then:
+```bash
+sudo pacman -S cmake ninja
 set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
-cargo install flutter_rust_bridge_codegen --version 2.11.1
+cargo install flutter_rust_bridge_codegen
 rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
+cargo install cargo-ndk
+flutter doctor
 ```
 
 ### 2. Generate Code
 Run this to link the Rust code and generate translations:
 ```bash
-flutter_rust_bridge_codegen generate
-dart run slang
+./build.sh
 ```
+confirm adb on the device
 
 ### 3. Run the App
 ```bash
-flutter run
+./run.sh
 ```
 
 ## Features
