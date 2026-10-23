@@ -55,6 +55,22 @@ confirm adb on the device
 ./run.sh
 ```
 
+## App Icon
+
+The source artwork is `assets/app_icon.svg`. After editing it, regenerate the
+PNG source and platform icons from this directory (requires Inkscape):
+
+```bash
+inkscape assets/app_icon.svg --export-type=png --export-width=1024 --export-height=1024 --export-filename=assets/app_icon.png
+dart run flutter_launcher_icons
+for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  magick "android/app/src/main/res/mipmap-$density/mipmap.png" "android/app/src/main/res/mipmap-$density/ic_launcher.png"
+done
+```
+
+The final step requires ImageMagick and refreshes Android's fallback icons as
+well as the `mipmap` icons used by the app manifest.
+
 ## Features
 - **Native Bluetooth**: Fast and reliable scanning using `flutter_blue_plus`.
 - **HTTP Entry Control**: Control IoT entry points via HTTP requests (with offline queuing).

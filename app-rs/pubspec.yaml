@@ -72,7 +72,18 @@ flutter:
 flutter_launcher_icons:
   android: "mipmap"
   ios: true
-  image_path: "assets/icon.png"
+  image_path: "assets/app_icon.png"
+  remove_alpha_ios: true
+  background_color_ios: "#1a1a1a"
+  web:
+    generate: true
+    background_color: "#1a1a1a"
+    theme_color: "#1a1a1a"
+  windows:
+    generate: true
+    icon_size: 256
+  macos:
+    generate: true
 
   # To add assets to your application, add an assets section, like this:
   # assets:
